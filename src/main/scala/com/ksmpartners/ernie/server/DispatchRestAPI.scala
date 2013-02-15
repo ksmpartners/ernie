@@ -17,6 +17,6 @@ object DispatchRestAPI extends XMLApiHelper {
   def dispatch: LiftRules.DispatchPF = {
     case Req(List("reports", "pending"), _, GetRequest) => () => Full(OkResponse())
     case _ => () => Full(NotFoundResponse())
- }
+  }
 
 }
