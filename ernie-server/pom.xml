@@ -41,6 +41,11 @@
             <version>${jetty.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.ow2.orchestra.eclipse.birt</groupId>
+            <artifactId>org.ow2.orchestra.eclipse.birt.report.engine</artifactId>
+            <version>3.7.0</version>
+        </dependency>
     </dependencies>
 
     <build>

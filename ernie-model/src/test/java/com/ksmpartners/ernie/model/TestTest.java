@@ -1,7 +1,6 @@
 package com.ksmpartners.ernie.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ksmpartners.ernie.util.TestUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -11,45 +10,21 @@ public class TestTest {
     public void testMethod()
         throws Exception
     {
-        ObjectMapper om = new ObjectMapper();
+        TestClass obj = new TestClass("test_name", 1);
 
-        TestClass obj = new TestClass();
+        String json = TestUtil.serialize(obj);
+        TestClass newObj = TestUtil.deserialize(json, TestClass.class);
 
-        obj.setName("test_name");
-        obj.setId(1);
-
-        String json = om.writeValueAsString(obj);
+        Assert.assertEquals(newObj.getName(), "test_name");
 
         Assert.assertEquals(json, "{\"name\":\"test_name\",\"id\":1}");
     }
 
-    private class TestClass {
-
-        private String name;
-        private int id;
-
-        @JsonProperty("name")
-        public String getName()
-        {
-            return name;
-        }
-
-        @JsonProperty
-        public int getId()
-        {
-            return id;
-        }
-
-        public void setName(String name)
-        {
-            this.name = name;
-        }
-
-        public void setId(int id)
-        {
-            this.id = id;
-        }
-
+    @Test
+    public void testVerify()
+        throws Exception
+    {
+        TestUtil.verifySerialization(TestClass.class);
     }
 
 }
