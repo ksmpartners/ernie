@@ -21,5 +21,6 @@
     </build>
     <modules>
         <module>ernie-server</module>
+        <module>ernie-model</module>
     </modules>
 </project>
