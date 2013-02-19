@@ -1,10 +1,14 @@
 package com.ksmpartners.ernie.model;
 
+/**
+ * Class used for testing serialization and deserialization
+ */
 public class TestClass {
 
     private String name;
     private int id;
 
+    // Must have public no-arg constructors
     public TestClass(){}
 
     public TestClass(String name, int id)
@@ -13,6 +17,7 @@ public class TestClass {
         this.id = id;
     }
 
+    // Field names in JSON are taken from getter names, unless annotated with @JsonProperty("Alternate Name")
     public String getName()
     {
         return name;
@@ -33,6 +38,7 @@ public class TestClass {
         this.id = id;
     }
 
+    // This is for testing purposes
     @Override
     public boolean equals(Object another)
     {
