@@ -10,6 +10,9 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.*;
 
+/**
+ * Utility for testing Jackson serialization
+ */
 public class TestUtil {
 
     public static final ObjectMapper MAPPER = new ObjectMapper();
@@ -53,11 +56,9 @@ public class TestUtil {
     public static <T> void verifySerialization(Class<T> clazz)
         throws InstantiationException, IllegalAccessException
     {
-        createTestValuesIfNeeded();
-
         T t = clazz.newInstance();
 
-        testGettersSetters(clazz, t);
+        populateFields(clazz, t);
 
         String json = serialize(t);
 
@@ -74,7 +75,7 @@ public class TestUtil {
      * and that the results of calling the setter followed by the getter match.
      * <p>
      */
-    public static void testGettersSetters(Class clazz, Object target) {
+    public static void populateFields(Class clazz, Object target) {
 
         PropertyDescriptor[] properties = PropertyUtils.getPropertyDescriptors(target);
         for (PropertyDescriptor property : properties) {
@@ -158,6 +159,7 @@ public class TestUtil {
      * @return a new value to be used in setter calls
      */
     private static Object createSetValue(final String qName, final Class<?> fieldType) {
+        createTestValuesIfNeeded();
         // create a set value
         Object setValue = null;
         try {
