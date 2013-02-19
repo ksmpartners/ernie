@@ -45,10 +45,14 @@ public class TestClass {
         if(!(another instanceof TestClass))
             return false;
 
-        if(getId() == ((TestClass) another).getId())
-            return true;
-        else
+        TestClass that = (TestClass) another;
+
+        if(getId() != that.getId())
             return false;
+        else if(!getName().equalsIgnoreCase(that.getName()))
+            return false;
+
+        return true;
     }
 
     @Override
