@@ -51,4 +51,10 @@ public class TestClass {
             return false;
     }
 
+    @Override
+    public String toString()
+    {
+        return "id: " + id + ", name: " + name;
+    }
+
 }

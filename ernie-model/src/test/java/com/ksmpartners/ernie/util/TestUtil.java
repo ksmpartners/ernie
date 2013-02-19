@@ -25,9 +25,13 @@ public class TestUtil {
     }
 
     public static <T> void verifySerialization(Class<T> clazz)
-        throws Exception
+        throws InstantiationException, IllegalAccessException
     {
         T t = clazz.newInstance();
+
+        PropertyTestUtil testUtil = new PropertyTestUtil(t, true, true);
+
+        testUtil.testGettersSetters();
 
         String json = serialize(t);
 
