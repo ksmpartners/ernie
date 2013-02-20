@@ -94,8 +94,9 @@ public class TestUtil {
         // Assemble the map of field name to getter method
         PropertyDescriptor[] properties = PropertyUtils.getPropertyDescriptors(obj1);
         for (PropertyDescriptor property : properties) {
-            // ignore getClass()
-            if (property.getName().equals("class"))
+
+            // ignore getClass() and isEmpty()
+            if (property.getName().equals("class") || property.getName().equals("empty"))
                 continue;
 
             methodNameToMethodMap.put(property.getName(),property.getReadMethod());
@@ -133,8 +134,8 @@ public class TestUtil {
             final String qName = "[" + clazz.getName() + "]." + property.getName();
             final Class<?> fieldType = property.getPropertyType();
 
-            // ignore getClass()
-            if (property.getName().equals("class"))
+            // ignore getClass() and isEmpty()
+            if (property.getName().equals("class") || property.getName().equals("empty"))
                 continue;
 
             // create a test value for our setter
