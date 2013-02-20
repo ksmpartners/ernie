@@ -40,6 +40,7 @@ public class TestTest {
         List<TestClass> newList = TestUtil.MAPPER.readValue(json, new TypeReference<List<TestClass>>(){});
 
         Assert.assertEquals(json, "[{\"name\":\"test_name1\",\"id\":1},{\"name\":\"test_name2\",\"id\":2}]");
+        Assert.assertTrue(TestUtil.equal(objList, newList));
     }
 
     @Test
