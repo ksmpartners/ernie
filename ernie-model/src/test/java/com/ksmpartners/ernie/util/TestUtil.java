@@ -75,8 +75,6 @@ public class TestUtil {
      */
     public static <T> boolean equal(T obj1, T obj2)
     {
-        Map<String, Method> methodNameToMethodMap = new HashMap<String, Method>();
-
         if(obj1 == null || obj2 == null) {
             // If they're both null, we call this equal
             if(obj1 == null && obj2 == null)
@@ -91,7 +89,25 @@ public class TestUtil {
         if(obj1.equals(obj2))
             return true;
 
-        // Assemble the map of field name to getter method
+        List<Pair> vals = new ArrayList<Pair>();
+
+        if(Collection.class.isAssignableFrom(obj1.getClass())) {
+
+            Collection c1 = (Collection) obj1;
+            Collection c2 = (Collection) obj2;
+
+            if(c1.size()!=c2.size())
+                return false;
+
+            Iterator itr1 = c1.iterator();
+            Iterator itr2 = c2.iterator();
+
+            while(itr1.hasNext() && itr2.hasNext()) {
+                vals.add(new Pair(itr1.next(), itr2.next()));
+            }
+
+        }
+
         PropertyDescriptor[] properties = PropertyUtils.getPropertyDescriptors(obj1);
         for (PropertyDescriptor property : properties) {
 
@@ -99,20 +115,17 @@ public class TestUtil {
             if (property.getName().equals("class") || property.getName().equals("empty"))
                 continue;
 
-            methodNameToMethodMap.put(property.getName(),property.getReadMethod());
+            Object val1 = invokeMethod(obj1, property.getReadMethod(), null, property.getName());
+            Object val2 = invokeMethod(obj2, property.getReadMethod(), null, property.getName());
+
+            vals.add(new Pair(val1, val2));
         }
 
-        // If there are no fields and obj1.equals(obj2) returned false, then they're not equal
-        if(methodNameToMethodMap.isEmpty())
+        if(vals.isEmpty())
             return false;
 
-        // Get the field values and compare them for each object
-        for(String prop : methodNameToMethodMap.keySet()) {
-            Method currMethod = methodNameToMethodMap.get(prop);
-            Object val1 = invokeMethod(obj1, currMethod, null, prop);
-            Object val2 = invokeMethod(obj2, currMethod, null, prop);
-
-            if(!equal(val1, val2))
+        for(Pair pair : vals) {
+            if(!equal(pair.left, pair.right))
                 return false;
         }
 
@@ -255,6 +268,17 @@ public class TestUtil {
         testValues.put(List.class, Mockito.anyList());
         testValues.put(Set.class, Mockito.anySet());
         testValues.put(Map.class, Mockito.anyMap());
+    }
+
+    private static class Pair {
+        Object left;
+        Object right;
+
+        public Pair(Object left, Object right)
+        {
+            this.right = right;
+            this.left = left;
+        }
     }
 
 }
