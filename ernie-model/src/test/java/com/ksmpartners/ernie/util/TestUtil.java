@@ -64,8 +64,58 @@ public class TestUtil {
 
         T newT = deserialize(json, clazz);
 
-        if(!t.equals(newT))
-            throw new RuntimeException("Could not verify serialization of " + clazz.getCanonicalName());
+        Assert.assertTrue(equal(t,newT), "Pre and post serialization objects are not equal for class " + clazz.getCanonicalName());
+    }
+
+    /**
+     * Checks equality of two objects based on the equality of their fields.
+     * @param obj1
+     * @param obj2
+     * @return
+     */
+    public static <T> boolean equal(T obj1, T obj2)
+    {
+        Map<String, Method> methodNameToMethodMap = new HashMap<String, Method>();
+
+        if(obj1 == null || obj2 == null) {
+            // If they're both null, we call this equal
+            if(obj1 == null && obj2 == null)
+                return true;
+            else
+                return false;
+        }
+
+        if(!obj1.getClass().equals(obj2.getClass()))
+            return false;
+
+        if(obj1.equals(obj2))
+            return true;
+
+        // Assemble the map of field name to getter method
+        PropertyDescriptor[] properties = PropertyUtils.getPropertyDescriptors(obj1);
+        for (PropertyDescriptor property : properties) {
+            // ignore getClass()
+            if (property.getName().equals("class"))
+                continue;
+
+            methodNameToMethodMap.put(property.getName(),property.getReadMethod());
+        }
+
+        // If there are no fields and obj1.equals(obj2) returned false, then they're not equal
+        if(methodNameToMethodMap.isEmpty())
+            return false;
+
+        // Get the field values and compare them for each object
+        for(String prop : methodNameToMethodMap.keySet()) {
+            Method currMethod = methodNameToMethodMap.get(prop);
+            Object val1 = invokeMethod(obj1, currMethod, null, prop);
+            Object val2 = invokeMethod(obj2, currMethod, null, prop);
+
+            if(!equal(val1, val2))
+                return false;
+        }
+
+        return true;
     }
 
     /**

@@ -38,23 +38,6 @@ public class TestClass {
         this.id = id;
     }
 
-    // This is for testing purposes
-    @Override
-    public boolean equals(Object another)
-    {
-        if(!(another instanceof TestClass))
-            return false;
-
-        TestClass that = (TestClass) another;
-
-        if(getId() != that.getId())
-            return false;
-        else if(!getName().equalsIgnoreCase(that.getName()))
-            return false;
-
-        return true;
-    }
-
     @Override
     public String toString()
     {

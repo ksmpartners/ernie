@@ -4,6 +4,8 @@ import com.ksmpartners.ernie.util.TestUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
+
 public class TestTest {
 
     @Test
@@ -25,6 +27,16 @@ public class TestTest {
         throws Exception
     {
         TestUtil.verifySerialization(TestClass.class);
+    }
+
+    @Test
+    public void testEqual()
+        throws Exception
+    {
+        Assert.assertFalse(TestUtil.equal(new TestClass("name", 1), new TestClass("name1", 2)));
+        Assert.assertTrue(TestUtil.equal(new TestClass("name", 1), new TestClass("name", 1)));
+        Assert.assertTrue(TestUtil.equal(TestClass.class.newInstance(), TestClass.class.newInstance()));
+        Assert.assertFalse(TestUtil.equal("test string", Integer.valueOf(1)));
     }
 
 }
