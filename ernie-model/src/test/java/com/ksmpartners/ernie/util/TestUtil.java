@@ -108,6 +108,7 @@ public class TestUtil {
 
         }
 
+        // Assemble the map of field name to getter method
         PropertyDescriptor[] properties = PropertyUtils.getPropertyDescriptors(obj1);
         for (PropertyDescriptor property : properties) {
 
