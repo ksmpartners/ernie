@@ -15,8 +15,9 @@ object DispatchRestAPI extends XMLApiHelper {
    * Stateless dispatch.
    */
   def dispatch: LiftRules.DispatchPF = {
-    // TODO: This is a test response.
-    case Req(List("reports", "pending"), _, GetRequest) => () => Full(OkResponse())
+    case Req(List("jobs"), _, PutRequest) => () => Full(OkResponse())
+    case Req(List("jobs", jobId, "status"), _, GetRequest) => () => Full(OkResponse())
+    case Req(List("jobs", jobId, "results", "pdf"), _, GetRequest) => () => Full(OkResponse())
     case _ => () => Full(NotFoundResponse())
   }
 
