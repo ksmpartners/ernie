@@ -68,7 +68,7 @@ public class TestUtil {
     }
 
     /**
-     * Checks equality of two objects based on the equality of their fields.
+     * Checks equality of two objects based on the equality of their fields, items, or .equals() method.
      * @param obj1
      * @param obj2
      * @return
@@ -91,6 +91,7 @@ public class TestUtil {
 
         List<Pair> vals = new ArrayList<Pair>();
 
+        // If obj1 and obj2 are Collections, get the objects in them
         if(Collection.class.isAssignableFrom(obj1.getClass())) {
 
             Collection c1 = (Collection) obj1;
@@ -108,7 +109,7 @@ public class TestUtil {
 
         }
 
-        // Assemble the map of field name to getter method
+        // Get field values from obj1 and obj2
         PropertyDescriptor[] properties = PropertyUtils.getPropertyDescriptors(obj1);
         for (PropertyDescriptor property : properties) {
 
