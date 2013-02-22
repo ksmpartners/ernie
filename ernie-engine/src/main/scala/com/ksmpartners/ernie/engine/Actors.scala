@@ -19,7 +19,10 @@ object Coordinator extends Actor {
         case ReportRequest(rptId) =>
           val jobId = getJobId
           jobIdToStatusMap += (jobId -> JobStatus.PENDING)
+          sender ! Notify(jobId, jobIdToStatusMap.get(jobId).get, this)
           Worker ! JobRequest(rptId, jobId, this)
+        case StatusRequest(jobId) =>
+          if (jobIdToStatusMap.contains(jobId)) sender ! jobIdToStatusMap.get(jobId)
         case Notify(jobId, jobStatus, worker) =>
           jobIdToStatusMap += (jobId -> jobStatus)
           println("Coord: got notify for id: " + jobId + ", status: " + jobStatus)
