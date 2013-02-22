@@ -34,6 +34,7 @@
     <build>
     </build>
     <modules>
+        <module>ernie-engine</module>
         <module>ernie-server</module>
         <module>ernie-model</module>
     </modules>
