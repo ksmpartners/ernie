@@ -9,18 +9,17 @@ import util.Random
 
 object Coordinator extends Actor {
 
-  var jobIdToStatusMap = new HashMap[Int, JobStatus]()
+  private var jobIdToStatusMap = new HashMap[Int, JobStatus]()
+  private val rnd: Random = new Random()
 
-  val rnd: Random = new Random()
-
-  def act() {
+  def act {
     println("Coord: in act()")
     while (true) {
       receive {
-        case Request(id, _) =>
+        case ReportRequest(rptId) =>
           val jobId = getJobId
           jobIdToStatusMap += (jobId -> JobStatus.PENDING)
-          Worker ! Request(jobId, this)
+          Worker ! JobRequest(rptId, jobId, this)
         case Notify(jobId, jobStatus, worker) =>
           jobIdToStatusMap += (jobId -> jobStatus)
           println("Coord: got notify for id: " + jobId + ", status: " + jobStatus)
@@ -29,7 +28,7 @@ object Coordinator extends Actor {
     }
   }
 
-  def getJobId(): Int = {
+  def getJobId: Int = {
     var rndId = 0
     var found = false
     while(!found) {
@@ -44,23 +43,23 @@ object Coordinator extends Actor {
 
 object Worker extends Actor {
 
-  def act() {
+  def act {
     loop {
       react {
-        case Request(id, requester) =>
-          requester ! Notify(id, JobStatus.IN_PROGRESS, this)
-          runReport()
-          requester ! Notify(id, JobStatus.COMPLETE, this)
+        case JobRequest(rptId, jobId, requester) =>
+          requester ! Notify(jobId, JobStatus.IN_PROGRESS, this)
+          runReport(rptId, jobId)
+          requester ! Notify(jobId, JobStatus.COMPLETE, this)
         case msg => println("Worker: received message: " + msg.toString)
       }
     }
   }
 
-  def runReport() {
+  def runReport(rptId: Int, jobId: Int) {
     // TODO: Run report...
-    println("Worker: running report...")
+    println("Worker" + jobId + ": running report " + rptId + "...")
     Thread.sleep(1000)
-    println("Worker: done report...")
+    println("Worker" + jobId + ": done report " + rptId + "...")
   }
 
 }

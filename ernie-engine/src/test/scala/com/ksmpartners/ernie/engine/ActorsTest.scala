@@ -8,9 +8,9 @@ class ActorsTest {
   def testActors() {
     Coordinator.start()
     Worker.start()
-    Coordinator ! Request(0, null)
-    Coordinator ! Request(1, null)
-    Coordinator ! Request(2, null)
+    for ( i <- 0 to 2) {
+      Coordinator ! ReportRequest(i)
+    }
     Thread.sleep(5000)
   }
 
