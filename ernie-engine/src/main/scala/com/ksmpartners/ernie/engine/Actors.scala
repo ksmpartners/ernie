@@ -9,6 +9,8 @@ import util.Random
 
 object Coordinator extends Actor {
 
+  // TODO: Replace println with proper logging.
+
   private var jobIdToStatusMap = new HashMap[Int, JobStatus]()
   private val rnd: Random = new Random()
 
@@ -22,7 +24,8 @@ object Coordinator extends Actor {
           sender ! Notify(jobId, jobIdToStatusMap.get(jobId).get, this)
           Worker ! JobRequest(rptId, jobId, this)
         case StatusRequest(jobId) =>
-          if (jobIdToStatusMap.contains(jobId)) sender ! jobIdToStatusMap.get(jobId)
+          if (jobIdToStatusMap.contains(jobId))
+            sender ! Notify(jobId, jobIdToStatusMap.get(jobId).get, this)
         case Notify(jobId, jobStatus, worker) =>
           jobIdToStatusMap += (jobId -> jobStatus)
           println("Coord: got notify for id: " + jobId + ", status: " + jobStatus)
@@ -31,6 +34,7 @@ object Coordinator extends Actor {
     }
   }
 
+  // TODO: Rework logic for getting jobId
   def getJobId: Int = {
     var rndId = 0
     var found = false
