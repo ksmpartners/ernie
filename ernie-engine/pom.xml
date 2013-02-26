@@ -24,9 +24,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.ow2.orchestra.eclipse.birt</groupId>
-            <artifactId>org.ow2.orchestra.eclipse.birt.report.engine</artifactId>
-            <version>3.7.0</version>
+	    <groupId>org.eclipse.birt.runtime</groupId>
+	    <artifactId>org.eclipse.birt.runtime</artifactId>
+	    <version>4.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>

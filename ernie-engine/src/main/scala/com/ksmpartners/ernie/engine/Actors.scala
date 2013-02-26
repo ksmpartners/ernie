@@ -11,7 +11,7 @@ object Coordinator extends Actor {
 
   // TODO: Replace println with proper logging.
 
-  private var jobIdToStatusMap = new HashMap[Int, JobStatus]()
+  private val jobIdToStatusMap = new HashMap[Int, JobStatus]()
   private val rnd: Random = new Random()
 
   def act {
@@ -29,7 +29,7 @@ object Coordinator extends Actor {
         case Notify(jobId, jobStatus, worker) =>
           jobIdToStatusMap += (jobId -> jobStatus)
           println("Coord: got notify for id: " + jobId + ", status: " + jobStatus)
-        case msg => System.out.println("Received message: " + msg.toString)
+        case msg => println("Coord: Received message: " + msg.toString)
       }
     }
   }
@@ -50,6 +50,8 @@ object Coordinator extends Actor {
 
 object Worker extends Actor {
 
+  private var rptGenerator = new ReportGenerator(".", ".", "PDF")
+
   def act {
     loop {
       react {
@@ -62,11 +64,23 @@ object Worker extends Actor {
     }
   }
 
-  def runReport(rptId: Int, jobId: Int) {
+  def runReport(rptId: String, jobId: Int) {
     // TODO: Run report...
     println("Worker" + jobId + ": running report " + rptId + "...")
-    Thread.sleep(1000)
+    rptGenerator.runReport(rptId + ".rptdesign", "REPORT_" + jobId + ".pdf")
     println("Worker" + jobId + ": done report " + rptId + "...")
+  }
+
+  def setRptGenerator(rptGenerator: ReportGenerator) {
+    this.rptGenerator = rptGenerator
+  }
+
+  def startRptGenerator {
+    rptGenerator.startup
+  }
+
+  def stopRptGenerator {
+    rptGenerator.shutdown
   }
 
 }

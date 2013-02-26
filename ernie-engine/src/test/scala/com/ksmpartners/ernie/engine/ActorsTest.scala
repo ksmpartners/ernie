@@ -4,14 +4,16 @@ import org.testng.annotations.Test
 
 class ActorsTest {
 
-  @Test
   def testActors() {
+    Worker.setRptGenerator(new ReportGenerator("./ernie-engine/src/main/resources", "./ernie-engine/src/main/resources/output", "PDF"))
+    Worker.startRptGenerator
     Coordinator.start()
     Worker.start()
-    for ( i <- 0 to 2) {
-      Coordinator ! ReportRequest(i)
-    }
-    Thread.sleep(5000)
+
+    Coordinator ! ReportRequest("Report-" + 0)
+
+    Thread.sleep(60000)
+    Worker.stopRptGenerator
   }
 
 }
