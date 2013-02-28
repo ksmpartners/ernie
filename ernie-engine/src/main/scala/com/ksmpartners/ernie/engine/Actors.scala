@@ -31,7 +31,7 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
         case ReportRequest(rptId) =>
           val jobId = getJobId
           jobIdToStatusMap += (jobId -> JobStatus.PENDING)
-          sender ! Notify(jobId, jobIdToStatusMap.get(jobId).get, this)
+          sender ! new Notification(jobId, jobIdToStatusMap.get(jobId).get)
           worker ! JobRequest(rptId, jobId, this)
         case StatusRequest(jobId) =>
           val jobStatus = (jobIdToStatusMap.contains(jobId) match {
