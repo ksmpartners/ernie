@@ -18,11 +18,11 @@ object DispatchRestAPI extends XMLApiHelper {
    * Stateless dispatch.
    */
   def dispatch: LiftRules.DispatchPF = {
-    case Req(List("jobs"), _, PutRequest) => () => Full(OkResponse())
-    case Req(List("jobs", jobId, "status"), _, GetRequest) => () => Full(OkResponse())
-    case Req(List("jobs", jobId, "results", "pdf"), _, GetRequest) => () => Full(OkResponse())
-    case _ =>
-      LOG.error("Got unknown request")
+    case req @ Req(List("jobs"), _, PutRequest) => () => ServiceRegistry.jobsResource.put(req.body)
+    case Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
+    case Req(List("jobs", jobId, "results", "pdf"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
+    case req =>
+      LOG.error("Got unknown request: {}", req)
       () => Full(NotFoundResponse())
   }
 

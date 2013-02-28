@@ -48,6 +48,8 @@ public class TestTest {
         throws Exception
     {
         TestUtil.verifySerialization(TestClass.class);
+        TestUtil.verifySerialization(ReportRequest.class);
+        TestUtil.verifySerialization(Notification.class);
     }
 
     @Test

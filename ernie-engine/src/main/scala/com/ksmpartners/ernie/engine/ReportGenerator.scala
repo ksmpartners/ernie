@@ -3,7 +3,7 @@ package com.ksmpartners.ernie.engine
 import org.eclipse.birt.report.engine.api._
 import org.eclipse.birt.core.framework.Platform
 
-class ReportGenerator(rptDefDirName: String, outputDirName: String, outputFormat: String  ) {
+class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
 
   var engine: IReportEngine = null
 
@@ -11,27 +11,36 @@ class ReportGenerator(rptDefDirName: String, outputDirName: String, outputFormat
     val ec = new EngineConfig
 
     Platform.startup(ec)
-    val iFactory = Platform.createFactoryObject( IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY )
+    val factory = Platform.createFactoryObject( IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY )
 
-    iFactory match {
+    engine = (factory match {
       case fact: IReportEngineFactory => fact
       case _ => throw new ClassCastException
-    }
-    val factory = iFactory.asInstanceOf[IReportEngineFactory]
+    }).createReportEngine(ec)
 
-    engine = factory.createReportEngine(ec)
   }
 
-  def runReport(rptDefName: String, outputFileName: String) {
-    val filePath = rptDefDirName + "/" + rptDefName
-
+  def runPdfReport(rptDefName: String, outputFileName: String) {
+    val filePath = pathToDefinitions + "/" + rptDefName
     val design = engine.openReportDesign(filePath)
-    val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
-    val renderOption = new PDFRenderOption()
-    renderOption.setOutputFileName(outputDirName + "/" + outputFileName)
-    renderOption.setOutputFormat(outputFormat)
+    val renderOption = new PDFRenderOption
+    renderOption.setOutputFileName(pathToOutputs + "/" + outputFileName)
+    renderOption.setOutputFormat("pdf")
+    runReport(design, renderOption)
+  }
 
-    task.setRenderOption(renderOption)
+  def runHtmlReport(rptDefName: String, outputFileName: String) {
+    val filePath = pathToDefinitions + "/" + rptDefName
+    val design = engine.openReportDesign(filePath)
+    val renderOption = new HTMLRenderOption
+    renderOption.setOutputFileName(pathToOutputs + "/" + outputFileName)
+    renderOption.setOutputFormat("html")
+    runReport(design, renderOption)
+  }
+
+  private def runReport(design: IReportRunnable, option: RenderOption) {
+    val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
+    task.setRenderOption(option)
     task.run
     task.close
   }

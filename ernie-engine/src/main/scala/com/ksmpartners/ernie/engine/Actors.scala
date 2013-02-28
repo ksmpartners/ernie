@@ -1,35 +1,48 @@
 package com.ksmpartners.ernie.engine
 
-import scala.actors.Actor
-import scala.actors.Actor._
+import actors.Actor
 import scala.math.abs
 import collection.mutable.HashMap
-import com.ksmpartners.ernie.model.JobStatus
+import com.ksmpartners.ernie.model.{Notification, JobStatus}
 import util.Random
+import org.slf4j.LoggerFactory
+import org.eclipse.birt.report.engine.api.EngineException
 
-object Coordinator extends Actor {
+class Coordinator(rptGenerator: ReportGenerator) extends Actor {
 
-  // TODO: Replace println with proper logging.
+  val LOG = LoggerFactory.getLogger(this.getClass)
 
+  private var worker: Worker = null
   private val jobIdToStatusMap = new HashMap[Int, JobStatus]()
   private val rnd: Random = new Random()
 
+
+  override def start(): Actor = {
+    super.start()
+    this.worker = new Worker(rptGenerator)
+    worker.start
+    this
+  }
+
   def act {
-    println("Coord: in act()")
+    LOG.info("Coord: in act()")
     while (true) {
       receive {
         case ReportRequest(rptId) =>
           val jobId = getJobId
           jobIdToStatusMap += (jobId -> JobStatus.PENDING)
           sender ! Notify(jobId, jobIdToStatusMap.get(jobId).get, this)
-          Worker ! JobRequest(rptId, jobId, this)
+          worker ! JobRequest(rptId, jobId, this)
         case StatusRequest(jobId) =>
-          if (jobIdToStatusMap.contains(jobId))
-            sender ! Notify(jobId, jobIdToStatusMap.get(jobId).get, this)
+          val jobStatus = (jobIdToStatusMap.contains(jobId) match {
+            case true => jobIdToStatusMap.get(jobId).get
+            case false => JobStatus.NO_SUCH_JOB
+          })
+          sender ! new Notification(jobId, jobStatus)
         case Notify(jobId, jobStatus, worker) =>
           jobIdToStatusMap += (jobId -> jobStatus)
-          println("Coord: got notify for id: " + jobId + ", status: " + jobStatus)
-        case msg => println("Coord: Received message: " + msg.toString)
+          LOG.info("Coord: got notify for id: " + jobId + ", status: " + jobStatus)
+        case msg => LOG.info("Coord: Received message: " + msg.toString)
       }
     }
   }
@@ -48,31 +61,44 @@ object Coordinator extends Actor {
 
 }
 
-object Worker extends Actor {
+class Worker(rptGenerator: ReportGenerator) extends Actor {
 
-  private var rptGenerator = new ReportGenerator(".", ".", "PDF")
+  val LOG = LoggerFactory.getLogger(this.getClass)
 
   def act {
     loop {
       react {
         case JobRequest(rptId, jobId, requester) =>
           requester ! Notify(jobId, JobStatus.IN_PROGRESS, this)
-          runReport(rptId, jobId)
-          requester ! Notify(jobId, JobStatus.COMPLETE, this)
-        case msg => println("Worker: received message: " + msg.toString)
+          val result = (runPdfReport(rptId, jobId) match {
+            case true => JobStatus.COMPLETE
+            case false => JobStatus.FAILED
+          })
+          requester ! Notify(jobId, result, this)
+        case msg => LOG.info("Worker: received message: " + msg.toString)
       }
     }
   }
 
-  def runReport(rptId: String, jobId: Int) {
-    // TODO: Run report...
-    println("Worker" + jobId + ": running report " + rptId + "...")
-    rptGenerator.runReport(rptId + ".rptdesign", "REPORT_" + jobId + ".pdf")
-    println("Worker" + jobId + ": done report " + rptId + "...")
+  override def start(): Actor = {
+    super.start()
+    startRptGenerator
+    this
   }
 
-  def setRptGenerator(rptGenerator: ReportGenerator) {
-    this.rptGenerator = rptGenerator
+  def runPdfReport(rptId: String, jobId: Int): Boolean = {
+    // TODO: Run report...
+    LOG.info("Worker" + jobId + ": running report " + rptId + "...")
+    var success: Boolean = true
+    try {
+      rptGenerator.runPdfReport(rptId + ".rptdesign", "REPORT_" + jobId + ".pdf")
+    } catch {
+      case ex: EngineException =>
+        LOG.error("Caught exception {}", ex)
+        success = false
+    }
+    LOG.info("Worker" + jobId + ": done report " + rptId + "...")
+    success
   }
 
   def startRptGenerator {
