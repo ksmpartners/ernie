@@ -1,5 +1,8 @@
 package com.ksmpartners.ernie.model;
 
+/**
+ * A JSONable classed used to send job status information via HTTP
+ */
 public class Notification {
     private int jobId;
     private JobStatus jobStatus;

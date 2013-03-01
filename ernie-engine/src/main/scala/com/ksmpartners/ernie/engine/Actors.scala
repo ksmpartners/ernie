@@ -10,7 +10,7 @@ import org.eclipse.birt.report.engine.api.EngineException
 
 class Coordinator(rptGenerator: ReportGenerator) extends Actor {
 
-  val LOG = LoggerFactory.getLogger(this.getClass)
+  private val LOG = LoggerFactory.getLogger(this.getClass)
 
   private var worker: Worker = null
   private val jobIdToStatusMap = new HashMap[Int, JobStatus]()
@@ -64,7 +64,7 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
 
 class Worker(rptGenerator: ReportGenerator) extends Actor {
 
-  val LOG = LoggerFactory.getLogger(this.getClass)
+  private val LOG = LoggerFactory.getLogger(this.getClass)
 
   def act {
     loop {
@@ -88,7 +88,6 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
   }
 
   def runPdfReport(rptId: String, jobId: Int): Boolean = {
-    // TODO: Run report...
     LOG.info("%s: running report %s...".format(this, rptId))
     var success: Boolean = true
     try {

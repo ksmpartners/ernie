@@ -1,5 +1,8 @@
 package com.ksmpartners.ernie.model;
 
+/**
+ * A JSONable class used to send a report request via HTTP
+ */
 public class ReportRequest {
 
     private String reportDefId;
