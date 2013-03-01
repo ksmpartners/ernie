@@ -5,10 +5,11 @@ import net.liftweb.http.{LiftResponse, PlainTextResponse, OkResponse}
 import com.ksmpartners.ernie.engine.{StatusRequest => SReq, Coordinator, ReportGenerator, ReportRequest => RReq}
 import com.ksmpartners.ernie.model.{Notification, ReportRequest}
 import com.fasterxml.jackson.databind.ObjectMapper
+import net.liftweb.util.Props
 
 trait JobDependencies {
 
-  val reportGenerator = new ReportGenerator(".", ".") // TODO: Make directories a configuration
+  val reportGenerator = new ReportGenerator(Props.get("rpt.def.dir").open_!, Props.get("output.dir").open_!)
   val coordinator = new Coordinator(reportGenerator).start()
 
   class JobsResource extends JsonTranslator {
