@@ -18,6 +18,7 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
 
 
   override def start(): Actor = {
+    LOG.debug("Starting %s".format(this))
     super.start()
     this.worker = new Worker(rptGenerator)
     worker.start
@@ -25,7 +26,7 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
   }
 
   def act {
-    LOG.info("Coord: in act()")
+    LOG.info("%s: in act()".format(this))
     while (true) {
       receive {
         case ReportRequest(rptId) =>
@@ -41,8 +42,8 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
           sender ! new Notification(jobId, jobStatus)
         case Notify(jobId, jobStatus, worker) =>
           jobIdToStatusMap += (jobId -> jobStatus)
-          LOG.info("Coord: got notify for id: " + jobId + ", status: " + jobStatus)
-        case msg => LOG.info("Coord: Received message: " + msg.toString)
+          LOG.info("%s: got notify for jobId %s with status %s".format(this, jobId, jobStatus))
+        case msg => LOG.info("%s: Received message: %s".format(this, msg))
       }
     }
   }
@@ -75,7 +76,7 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
             case false => JobStatus.FAILED
           })
           requester ! Notify(jobId, result, this)
-        case msg => LOG.info("Worker: received message: " + msg.toString)
+        case msg => LOG.info("%s: received message: %s".format(this, msg))
       }
     }
   }
@@ -88,16 +89,16 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
 
   def runPdfReport(rptId: String, jobId: Int): Boolean = {
     // TODO: Run report...
-    LOG.info("Worker" + jobId + ": running report " + rptId + "...")
+    LOG.info("%s: running report %s...".format(this, rptId))
     var success: Boolean = true
     try {
       rptGenerator.runPdfReport(rptId + ".rptdesign", "REPORT_" + jobId + ".pdf")
     } catch {
       case ex: EngineException =>
-        LOG.error("Caught exception {}", ex)
+        LOG.error("Caught exception %s".format(ex))
         success = false
     }
-    LOG.info("Worker" + jobId + ": done report " + rptId + "...")
+    LOG.info("%s: done report %s...".format(this, rptId))
     success
   }
 
