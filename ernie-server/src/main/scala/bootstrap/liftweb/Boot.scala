@@ -15,6 +15,8 @@ class Boot {
     LiftRules.early.append(makeUtf8)
 
     LiftRules.statelessDispatchTable.prepend(DispatchRestAPI.dispatch)
+
+    LiftRules.unloadHooks.prepend(() => DispatchRestAPI.shutdown)
   }
 
 

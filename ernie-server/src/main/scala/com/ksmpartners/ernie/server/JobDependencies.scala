@@ -1,11 +1,12 @@
 package com.ksmpartners.ernie.server
 
 import net.liftweb.common.{Box, Full, Empty}
-import net.liftweb.http.{LiftResponse, PlainTextResponse, OkResponse}
+import net.liftweb.http.{BadResponse, LiftResponse, PlainTextResponse, OkResponse}
 import com.ksmpartners.ernie.engine.{StatusRequest => SReq, Coordinator, ReportGenerator, ReportRequest => RReq}
 import com.ksmpartners.ernie.model.{Notification, ReportRequest}
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.liftweb.util.Props
+import java.io.IOException
 
 trait JobDependencies {
 
@@ -17,9 +18,14 @@ trait JobDependencies {
       Full(OkResponse())
     }
     def put(body: Box[Array[Byte]]) = {
-      val obj = deserialize(body.open_!, classOf[ReportRequest])
-      val response = (coordinator !! RReq(obj.getReportDefId))
-      getJsonResponse(response.apply().asInstanceOf[Notification])
+      var req: ReportRequest = null
+      try {
+        req = deserialize(body.open_!, classOf[ReportRequest])
+        val response = (coordinator !! RReq(req.getReportDefId))
+        getJsonResponse(response.apply().asInstanceOf[Notification])
+      } catch {
+        case e: IOException => Full(BadResponse())
+      }
     }
   }
 
@@ -33,6 +39,12 @@ trait JobDependencies {
   class JobResultsResource {
     def get(jobId: String) = {
       Full(OkResponse())
+    }
+  }
+
+  class ShutdownResource {
+    def shutdown() {
+      reportGenerator.shutdown
     }
   }
 

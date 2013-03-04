@@ -2,11 +2,14 @@ package com.ksmpartners.ernie.engine
 
 import org.eclipse.birt.report.engine.api._
 import org.eclipse.birt.core.framework.Platform
+import org.slf4j.LoggerFactory
 
 /**
  * Class used to generate BIRT reports
  */
 class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
+
+  private val LOG = LoggerFactory.getLogger(this.getClass)
 
   var engine: IReportEngine = null
 
@@ -14,6 +17,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    * Method to be called before any reports can be generated
    */
   def startup {
+    LOG.info("Starting Report Engine")
     val ec = new EngineConfig
 
     Platform.startup(ec)
@@ -32,6 +36,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    */
   def runPdfReport(rptDefName: String, outputFileName: String) {
     if (engine==null) throw new IllegalStateException("ReportGenerator was not started")
+    LOG.debug("Generating PDF %s from report definition %s".format(outputFileName, rptDefName))
     val filePath = pathToDefinitions + "/" + rptDefName
     val design = engine.openReportDesign(filePath)
     val renderOption = new PDFRenderOption
@@ -46,6 +51,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    */
   def runHtmlReport(rptDefName: String, outputFileName: String) {
     if (engine==null) throw new IllegalStateException("ReportGenerator was not started")
+    LOG.debug("Generating HTML %s from report definition %s".format(outputFileName, rptDefName))
     val filePath = pathToDefinitions + "/" + rptDefName
     val design = engine.openReportDesign(filePath)
     val renderOption = new HTMLRenderOption
@@ -65,6 +71,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    * Method to be called after all the reports have been run.
    */
   def shutdown {
+    LOG.info("Shutting down Report Engine")
     engine.destroy
     Platform.shutdown
     engine = null

@@ -6,4 +6,6 @@ object ServiceRegistry extends JobDependencies {
   val jobStatusResource = new JobStatusResource
   val jobResultsResource = new JobResultsResource
 
+  val shutdownResource = new ShutdownResource
+
 }

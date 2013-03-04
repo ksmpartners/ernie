@@ -26,4 +26,8 @@ object DispatchRestAPI extends XMLApiHelper {
       () => Full(NotFoundResponse())
   }
 
+  def shutdown {
+    ServiceRegistry.shutdownResource.shutdown()
+  }
+
 }

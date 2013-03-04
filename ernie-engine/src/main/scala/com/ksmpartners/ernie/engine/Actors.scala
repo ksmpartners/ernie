@@ -18,7 +18,7 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
 
 
   override def start(): Actor = {
-    LOG.debug("Starting %s".format(this))
+    LOG.debug("in start()")
     super.start()
     this.worker = new Worker(rptGenerator)
     worker.start
@@ -26,7 +26,7 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
   }
 
   def act {
-    LOG.info("%s: in act()".format(this))
+    LOG.debug("in act()")
     while (true) {
       receive {
         case ReportRequest(rptId) =>
@@ -42,8 +42,8 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
           sender ! new Notification(jobId, jobStatus)
         case Notify(jobId, jobStatus, worker) =>
           jobIdToStatusMap += (jobId -> jobStatus)
-          LOG.info("%s: got notify for jobId %s with status %s".format(this, jobId, jobStatus))
-        case msg => LOG.info("%s: Received message: %s".format(this, msg))
+          LOG.info("Got notify for jobId %s with status %s".format(jobId, jobStatus))
+        case msg => LOG.info("Received unexpected message: %s".format(msg))
       }
     }
   }
@@ -67,6 +67,7 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
   private val LOG = LoggerFactory.getLogger(this.getClass)
 
   def act {
+    LOG.debug("in act()")
     loop {
       react {
         case JobRequest(rptId, jobId, requester) =>
@@ -76,28 +77,31 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
             case false => JobStatus.FAILED
           })
           requester ! Notify(jobId, result, this)
-        case msg => LOG.info("%s: received message: %s".format(this, msg))
+        case msg => LOG.info("Received unexpected message: %s".format(msg))
       }
     }
   }
 
   override def start(): Actor = {
+    LOG.debug("in start()")
     super.start()
     startRptGenerator
     this
   }
 
   def runPdfReport(rptId: String, jobId: Int): Boolean = {
-    LOG.info("%s: running report %s...".format(this, rptId))
+    LOG.debug("Running report %s...".format(rptId))
+    val rptDefName = rptId + ".rptdesign"
+    val rptOutputName = "REPORT_" + jobId + ".pdf"
     var success: Boolean = true
     try {
-      rptGenerator.runPdfReport(rptId + ".rptdesign", "REPORT_" + jobId + ".pdf")
+      rptGenerator.runPdfReport(rptDefName, rptOutputName)
     } catch {
       case ex: EngineException =>
         LOG.error("Caught exception %s".format(ex))
         success = false
     }
-    LOG.info("%s: done report %s...".format(this, rptId))
+    LOG.debug("Done report %s...".format(rptId))
     success
   }
 
