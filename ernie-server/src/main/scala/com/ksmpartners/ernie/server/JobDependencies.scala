@@ -50,13 +50,22 @@ trait JobDependencies {
 
 }
 
+/**
+ * Trait containing method for serializing/deserializing JSONs
+ */
 trait JsonTranslator {
   private val MAPPER = new ObjectMapper
 
+  /**
+   * Serializes an object into a JSON String
+   */
   def serialize[T](obj: T): String = {
     MAPPER.writeValueAsString(obj)
   }
 
+  /**
+   * Deserializes the given JSON String into an object of the type clazz represents
+   */
   def deserialize[T](json: String, clazz: Class[T]): T = {
     MAPPER.readValue(json, clazz) match {
       case t: T => t
@@ -64,6 +73,9 @@ trait JsonTranslator {
     }
   }
 
+  /**
+   * Deserializes the given JSON Array[Byte] into an object of the type clazz represents
+   */
   def deserialize[T](json: Array[Byte], clazz: Class[T]): T = {
     MAPPER.readValue(json, clazz) match {
       case t: T => t
@@ -71,6 +83,10 @@ trait JsonTranslator {
     }
   }
 
+  /**
+   * Serializes the given response object into a Full[PlainTextResponse] with a content-type of application/json and
+   * an HTTP code of 200
+   */
   def getJsonResponse[T](response: T): Box[LiftResponse] = {
     Full(PlainTextResponse(serialize(response), List(("Content-Type", "application/json")), 200))
   }

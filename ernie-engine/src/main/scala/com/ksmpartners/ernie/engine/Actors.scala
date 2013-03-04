@@ -98,7 +98,7 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
       rptGenerator.runPdfReport(rptDefName, rptOutputName)
     } catch {
       case ex: EngineException =>
-        LOG.error("Caught exception %s".format(ex))
+        LOG.error("Caught exception while generating report: %s".format(ex.getMessage))
         success = false
     }
     LOG.debug("Done report %s...".format(rptId))
