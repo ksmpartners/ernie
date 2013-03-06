@@ -21,7 +21,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
     val ec = new EngineConfig
 
     Platform.startup(ec)
-    val factory = Platform.createFactoryObject( IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY )
+    val factory = Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY)
 
     engine = (factory match {
       case fact: IReportEngineFactory => fact
@@ -35,7 +35,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    * as a .pdf
    */
   def runPdfReport(rptDefName: String, outputFileName: String) {
-    if (engine==null) throw new IllegalStateException("ReportGenerator was not started")
+    if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     LOG.debug("Generating PDF %s from report definition %s".format(outputFileName, rptDefName))
     val filePath = pathToDefinitions + "/" + rptDefName
     val design = engine.openReportDesign(filePath)
@@ -50,7 +50,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    * as .html
    */
   def runHtmlReport(rptDefName: String, outputFileName: String) {
-    if (engine==null) throw new IllegalStateException("ReportGenerator was not started")
+    if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     LOG.debug("Generating HTML %s from report definition %s".format(outputFileName, rptDefName))
     val filePath = pathToDefinitions + "/" + rptDefName
     val design = engine.openReportDesign(filePath)

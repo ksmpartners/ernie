@@ -3,7 +3,7 @@ package com.ksmpartners.ernie.engine
 import actors.Actor
 import scala.math.abs
 import collection.mutable.HashMap
-import com.ksmpartners.ernie.model.{Notification, JobStatus}
+import com.ksmpartners.ernie.model.{ Notification, JobStatus }
 import util.Random
 import org.slf4j.LoggerFactory
 import org.eclipse.birt.report.engine.api.EngineException
@@ -15,7 +15,6 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
   private var worker: Worker = null
   private val jobIdToStatusMap = new HashMap[Int, JobStatus]()
   private val rnd: Random = new Random()
-
 
   override def start(): Actor = {
     LOG.debug("in start()")
@@ -52,7 +51,7 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
   def getJobId: Int = {
     var rndId = 0
     var found = false
-    while(!found) {
+    while (!found) {
       rndId = abs(rnd.nextInt())
       if (!jobIdToStatusMap.contains(rndId))
         found = true

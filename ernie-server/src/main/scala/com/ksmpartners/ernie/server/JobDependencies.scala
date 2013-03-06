@@ -1,9 +1,9 @@
 package com.ksmpartners.ernie.server
 
-import net.liftweb.common.{Box, Full, Empty}
-import net.liftweb.http.{BadResponse, LiftResponse, PlainTextResponse, OkResponse}
-import com.ksmpartners.ernie.engine.{StatusRequest => SReq, Coordinator, ReportGenerator, ReportRequest => RReq}
-import com.ksmpartners.ernie.model.{Notification, ReportRequest}
+import net.liftweb.common.{ Box, Full, Empty }
+import net.liftweb.http.{ BadResponse, LiftResponse, PlainTextResponse, OkResponse }
+import com.ksmpartners.ernie.engine.{ StatusRequest => SReq, Coordinator, ReportGenerator, ReportRequest => RReq }
+import com.ksmpartners.ernie.model.{ Notification, ReportRequest }
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.liftweb.util.Props
 import java.io.IOException
@@ -22,7 +22,7 @@ trait JobDependencies {
       try {
         req = deserialize(body.open_!, classOf[ReportRequest])
         val response = (coordinator !! RReq(req.getReportDefId))
-        getJsonResponse(response.apply().asInstanceOf[Notification])
+        getJsonResponse(response().asInstanceOf[Notification])
       } catch {
         case e: IOException => Full(BadResponse())
       }
@@ -32,7 +32,7 @@ trait JobDependencies {
   class JobStatusResource extends JsonTranslator {
     def get(jobId: String) = {
       val response = (coordinator !! SReq(jobId.toInt))
-      getJsonResponse(response.apply().asInstanceOf[Notification])
+      getJsonResponse(response().asInstanceOf[Notification])
     }
   }
 

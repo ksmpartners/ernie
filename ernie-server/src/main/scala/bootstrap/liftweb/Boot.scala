@@ -19,7 +19,6 @@ class Boot {
     LiftRules.unloadHooks.prepend(() => DispatchRestAPI.shutdown)
   }
 
-
   /**
    * Force the request to be UTF-8
    */
