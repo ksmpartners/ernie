@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 
 object DispatchRestAPI extends XMLApiHelper {
 
-  private val LOG = LoggerFactory.getLogger(this.getClass)
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   // Required override, though not used
   def createTag(contents: NodeSeq) = <api>{ contents }</api>
@@ -22,7 +22,7 @@ object DispatchRestAPI extends XMLApiHelper {
     case Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
     case Req(List("jobs", jobId, "results", "pdf"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
     case req =>
-      LOG.error("Got unknown request: {}", req)
+      log.error("Got unknown request: {}", req)
       () => Full(NotFoundResponse())
   }
 

@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
  */
 class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
 
-  private val LOG = LoggerFactory.getLogger(this.getClass)
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   var engine: IReportEngine = null
 
@@ -17,7 +17,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    * Method to be called before any reports can be generated
    */
   def startup {
-    LOG.info("Starting Report Engine")
+    log.info("Starting Report Engine")
     val ec = new EngineConfig
 
     Platform.startup(ec)
@@ -36,7 +36,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    */
   def runPdfReport(rptDefName: String, outputFileName: String) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
-    LOG.debug("Generating PDF %s from report definition %s".format(outputFileName, rptDefName))
+    log.debug("Generating PDF from report definition {}", rptDefName)
     val filePath = pathToDefinitions + "/" + rptDefName
     val design = engine.openReportDesign(filePath)
     val renderOption = new PDFRenderOption
@@ -51,7 +51,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    */
   def runHtmlReport(rptDefName: String, outputFileName: String) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
-    LOG.debug("Generating HTML %s from report definition %s".format(outputFileName, rptDefName))
+    log.debug("Generating HTML from report definition {}", rptDefName)
     val filePath = pathToDefinitions + "/" + rptDefName
     val design = engine.openReportDesign(filePath)
     val renderOption = new HTMLRenderOption
@@ -71,7 +71,7 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    * Method to be called after all the reports have been run.
    */
   def shutdown {
-    LOG.info("Shutting down Report Engine")
+    log.info("Shutting down Report Engine")
     engine.destroy
     Platform.shutdown
     engine = null
