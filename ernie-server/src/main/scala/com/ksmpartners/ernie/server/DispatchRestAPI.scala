@@ -28,9 +28,10 @@ object DispatchRestAPI extends XMLApiHelper {
     case req@Req(List("jobs"), _, PutRequest) => () => ServiceRegistry.jobsResource.put(req.body)
     case Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
     case Req(List("jobs", jobId, "results", "pdf"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
-    case req =>
+    case req => {
       log.error("Got unknown request: {}", req)
       () => Full(NotFoundResponse())
+    }
   }
 
   def shutdown {

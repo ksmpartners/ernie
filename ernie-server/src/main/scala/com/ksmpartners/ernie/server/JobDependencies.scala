@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.server
 
 import net.liftweb.common.{ Box, Full, Empty }
 import net.liftweb.http.{ BadResponse, LiftResponse, PlainTextResponse, OkResponse }
-import com.ksmpartners.ernie.engine.{ StatusRequest => SReq, ReportRequest => RReq, Notify, Coordinator, ReportGenerator }
+import com.ksmpartners.ernie.engine.{ StatusRequest => SReq, ReportRequest => RReq, ShutDownRequest, Notify, Coordinator, ReportGenerator }
 import com.ksmpartners.ernie.model.{ Notification, ReportRequest }
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.liftweb.util.Props
@@ -51,7 +51,7 @@ trait JobDependencies {
 
   class ShutdownResource {
     def shutdown() {
-      reportGenerator.shutdown
+      coordinator ! ShutDownRequest
     }
   }
 
