@@ -17,8 +17,7 @@ import java.io.IOException
 
 trait JobDependencies {
 
-  val reportGenerator = new ReportGenerator(Props.get("rpt.def.dir").open_!, Props.get("output.dir").open_!)
-  val coordinator = new Coordinator(reportGenerator).start()
+  val coordinator = new Coordinator(Props.get("rpt.def.dir").open_!, Props.get("output.dir").open_!).start()
 
   class JobsResource extends JsonTranslator {
     def get = {

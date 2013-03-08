@@ -14,18 +14,20 @@ import com.ksmpartners.ernie.model.JobStatus
 import util.Random
 import org.slf4j.LoggerFactory
 
-class Coordinator(rptGenerator: ReportGenerator) extends Actor {
+/**
+ * Actor for coordinating report generation.
+ */
+class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  private var worker: Worker = null
+  private lazy val worker: Worker = new Worker(pathToRptDefs, pathToOutputs)
   private val jobIdToStatusMap = new mutable.HashMap[Int, JobStatus]()
   private val rnd: Random = new Random()
 
   override def start(): Actor = {
     log.debug("in start()")
     super.start()
-    this.worker = new Worker(rptGenerator)
     worker.start
     this
   }
@@ -72,9 +74,13 @@ class Coordinator(rptGenerator: ReportGenerator) extends Actor {
 
 }
 
-class Worker(rptGenerator: ReportGenerator) extends Actor {
+/**
+ * Actor that is paired with a Coordinator, and executes report requests.
+ */
+class Worker(pathToRptDefs: String, pathToOutputs: String) extends Actor {
 
   private val log = LoggerFactory.getLogger(this.getClass)
+  private lazy val rptGenerator = new ReportGenerator(pathToRptDefs, pathToOutputs)
 
   def act {
     log.debug("in act()")
@@ -94,7 +100,7 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
           requester ! Notify(jobId, result, this)
         }
         case ShutDownRequest => {
-          stopRptGenerator
+          stopRptGenerator()
           sender ! ShutDownResponse
           exit()
         }
@@ -106,7 +112,7 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
   override def start(): Actor = {
     log.debug("in start()")
     super.start()
-    startRptGenerator
+    startRptGenerator()
     this
   }
 
@@ -118,11 +124,11 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
     log.debug("Done report {}...", rptId)
   }
 
-  private def startRptGenerator {
+  private def startRptGenerator() {
     rptGenerator.startup
   }
 
-  private def stopRptGenerator {
+  private def stopRptGenerator() {
     rptGenerator.shutdown
   }
 
