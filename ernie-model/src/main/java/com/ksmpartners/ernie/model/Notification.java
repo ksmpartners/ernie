@@ -10,17 +10,17 @@ package com.ksmpartners.ernie.model;
  * A JSONable classed used to send job status information via HTTP
  */
 public class Notification {
-    private int jobId;
+    private long jobId;
     private JobStatus jobStatus;
 
     public Notification() {}
 
-    public Notification(int jobId, JobStatus jobStatus) {
+    public Notification(long jobId, JobStatus jobStatus) {
         this.jobId = jobId;
         this.jobStatus = jobStatus;
     }
 
-    public int getJobId() {
+    public long getJobId() {
         return jobId;
     }
 
@@ -28,7 +28,7 @@ public class Notification {
         return jobStatus;
     }
 
-    public void setJobId(int jobId) {
+    public void setJobId(long jobId) {
         this.jobId = jobId;
     }
 

@@ -37,7 +37,7 @@ trait JobDependencies {
 
   class JobStatusResource extends JsonTranslator {
     def get(jobId: String) = {
-      val response = (coordinator !! SReq(jobId.toInt)).apply().asInstanceOf[Notify]
+      val response = (coordinator !! SReq(jobId.toLong)).apply().asInstanceOf[Notify]
       getJsonResponse(new Notification(response.jobId, response.jobStatus))
     }
   }

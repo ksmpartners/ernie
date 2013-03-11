@@ -8,10 +8,8 @@
 package com.ksmpartners.ernie.engine
 
 import actors.Actor
-import scala.math.abs
 import collection._
 import com.ksmpartners.ernie.model.JobStatus
-import util.Random
 import org.slf4j.LoggerFactory
 
 /**
@@ -22,8 +20,7 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
   private val log = LoggerFactory.getLogger(this.getClass)
 
   private lazy val worker: Worker = new Worker(pathToRptDefs, pathToOutputs)
-  private val jobIdToStatusMap = new mutable.HashMap[Int, JobStatus]()
-  private val rnd: Random = new Random()
+  private val jobIdToStatusMap = new mutable.HashMap[Long, JobStatus]()
 
   override def start(): Actor = {
     log.debug("in start()")
@@ -58,18 +55,11 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
     }
   }
 
-  var currJobId = System.currentTimeMillis()
+  private var currJobId = System.currentTimeMillis()
 
-  // TODO: Rework logic for getting jobId
-  private def getJobId: Int = {
-    var rndId = 0
-    var found = false
-    while (!found) {
-      rndId = abs(rnd.nextInt())
-      if (!jobIdToStatusMap.contains(rndId))
-        found = true
-    }
-    rndId
+  private def getJobId(): Long = {
+    currJobId += 1
+    currJobId
   }
 
 }
@@ -116,7 +106,7 @@ class Worker(pathToRptDefs: String, pathToOutputs: String) extends Actor {
     this
   }
 
-  private def runPdfReport(rptId: String, jobId: Int) {
+  private def runPdfReport(rptId: String, jobId: Long) {
     log.debug("Running report {}...", rptId)
     val rptDefName = rptId + ".rptdesign"
     val rptOutputName = "REPORT_" + jobId + ".pdf"
