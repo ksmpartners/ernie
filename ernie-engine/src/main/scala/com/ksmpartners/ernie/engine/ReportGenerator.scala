@@ -14,6 +14,8 @@ import java.io.{ IOException, File }
 
 /**
  * Class used to generate BIRT reports
+ * <br><br>
+ * This Class is not thread safe.
  */
 class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
 
@@ -23,8 +25,8 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
   private val outputDir: File = new File(pathToOutputs)
 
   // Validate directories
-  if (!rptDefDir.isDirectory || !outputDir.isDirectory) {
-    throw new IOException("Input/output directories do not exist. " +
+  if (!(rptDefDir.isDirectory && rptDefDir.canRead) || !(outputDir.isDirectory && outputDir.canWrite)) {
+    throw new IOException("Input/output directories do not exist or do not have the correct read/write access. " +
       "Def Dir: " + rptDefDir +
       ". Output Dir: " + outputDir)
   }
@@ -78,6 +80,9 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
     runReport(design, renderOption)
   }
 
+  /**
+   * Method that creates and runs a BIRT task based on the given design and optitons
+   */
   private def runReport(design: IReportRunnable, option: RenderOption) {
     val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
     task.setRenderOption(option)
@@ -89,10 +94,11 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    * Method to be called after all the reports have been run.
    */
   def shutdown() {
-    log.info("Shutting down Report Engine")
+    log.info("BEGIN Shutting down Report Engine")
     engine.destroy()
     Platform.shutdown()
     engine = null
+    log.info("END Shutting down Report Engine")
   }
 
 }

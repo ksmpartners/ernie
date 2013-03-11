@@ -34,7 +34,7 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
     loop {
       react {
         case ReportRequest(rptId) => {
-          val jobId = getJobId
+          val jobId = getJobId()
           jobIdToStatusMap += (jobId -> JobStatus.PENDING)
           sender ! Notify(jobId, jobIdToStatusMap.get(jobId).get, this)
           worker ! JobRequest(rptId, jobId, this)
