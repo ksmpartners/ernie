@@ -10,7 +10,7 @@ package com.ksmpartners.ernie.engine
 import org.eclipse.birt.report.engine.api._
 import org.eclipse.birt.core.framework.Platform
 import org.slf4j.LoggerFactory
-import java.io.{ IOException, File }
+import java.io._
 
 /**
  * Class used to generate BIRT reports
@@ -54,40 +54,61 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    * Method that runs the .rtpdesign file at the given location rptDefName, and outputs the results to outputFileName
    * as a .pdf
    */
-  def runPdfReport(rptDefName: String, outputFileName: String) {
+  def runPdfReport(rptDefFileStream: InputStream, outputFileStream: OutputStream) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
-    log.debug("Generating PDF from report definition {}", rptDefName)
-    val filePath = pathToDefinitions + "/" + rptDefName
-    val design = engine.openReportDesign(filePath)
+    val design = engine.openReportDesign(rptDefFileStream)
     val renderOption = new PDFRenderOption
-    renderOption.setOutputFileName(pathToOutputs + "/" + outputFileName)
+    renderOption.setOutputStream(outputFileStream)
     renderOption.setOutputFormat("pdf")
     runReport(design, renderOption)
   }
 
   /**
    * Method that runs the .rtpdesign file at the given location rptDefName, and outputs the results to outputFileName
-   * as .html
+   * as a .pdf
    */
-  def runHtmlReport(rptDefName: String, outputFileName: String) {
+  def runPdfReport(rptDefName: String, outputFileName: String): File = {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
-    log.debug("Generating HTML from report definition {}", rptDefName)
-    val filePath = pathToDefinitions + "/" + rptDefName
-    val design = engine.openReportDesign(filePath)
-    val renderOption = new HTMLRenderOption
-    renderOption.setOutputFileName(pathToOutputs + "/" + outputFileName)
-    renderOption.setOutputFormat("html")
-    runReport(design, renderOption)
+    log.debug("Generating PDF from report definition {}", rptDefName)
+    val outputFile = new File(outputDir, outputFileName)
+    try_(new FileInputStream(new File(rptDefDir, rptDefName))) { rptDefFileStream =>
+      try_(new FileOutputStream(outputFile)) { outputFileStream =>
+        runPdfReport(rptDefFileStream, outputFileStream)
+      }
+    }
+    outputFile
   }
 
   /**
-   * Method that creates and runs a BIRT task based on the given design and optitons
+   * Method that runs the .rtpdesign file at the given location rptDefName, and outputs the results to outputFileName
+   * as .html
+   */
+  def runHtmlReport(rptDefName: String, outputFileName: String): File = {
+    if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
+    log.debug("Generating HTML from report definition {}", rptDefName)
+    val outputFile = new File(outputDir, outputFileName)
+    try_(new FileInputStream(new File(rptDefDir, rptDefName))) { rptDefFileStream =>
+      try_(new FileOutputStream(outputFile)) { outputFileStream =>
+        val design = engine.openReportDesign(rptDefFileStream)
+        val renderOption = new HTMLRenderOption
+        renderOption.setOutputStream(outputFileStream)
+        renderOption.setOutputFormat("html")
+        runReport(design, renderOption)
+      }
+    }
+    outputFile
+  }
+
+  /**
+   * Method that creates and runs a BIRT task based on the given design and options
    */
   private def runReport(design: IReportRunnable, option: RenderOption) {
+    log.debug("BEGIN Running report...")
     val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
     task.setRenderOption(option)
     task.run
     task.close
+    log.debug("END Running report...")
   }
 
   /**
@@ -99,6 +120,28 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
     Platform.shutdown()
     engine = null
     log.info("END Shutting down Report Engine")
+  }
+
+  // TODO: Create util package/class/object
+  /**
+   * Method that mimics Java 1.7's try-with-resources
+   *
+   * Usage:
+   * try_(new Closable...) { closableInstance =>
+   *   closableInstance.doSomething()
+   * }
+   *
+   */
+  private def try_[A <% Closeable](ac: A)(f: A => Unit) {
+    try {
+      f(ac)
+    } finally {
+      try {
+        ac.close()
+      } catch {
+        case e =>
+      }
+    }
   }
 
 }

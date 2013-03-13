@@ -8,7 +8,7 @@
 package com.ksmpartners.ernie.server
 
 import net.liftweb.common.{ Box, Full, Empty }
-import net.liftweb.http.{ BadResponse, LiftResponse, PlainTextResponse, OkResponse }
+import net.liftweb.http._
 import com.ksmpartners.ernie.engine.{ StatusRequest => SReq, ReportRequest => RReq, ShutDownRequest, Notify, Coordinator, ReportGenerator }
 import com.ksmpartners.ernie.model.{ Notification, ReportRequest }
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -44,7 +44,16 @@ trait JobDependencies {
 
   class JobResultsResource {
     def get(jobId: String) = {
-      Full(OkResponse())
+      val data: Array[Byte] = "This is a test!!!".getBytes
+      val header: List[(String, String)] =
+        ("Content-type" -> "application/pdf") ::
+          ("Content-length" -> data.length.toString) ::
+          ("Content-disposition" -> "attachment; filname=download.pdf") :: Nil
+      Full(StreamingResponse(
+        new java.io.ByteArrayInputStream(data),
+        () => Unit,
+        data.size,
+        header, Nil, 200))
     }
   }
 
@@ -57,7 +66,7 @@ trait JobDependencies {
 }
 
 /**
- * Trait containing method for serializing/deserializing JSONs
+ * Trait containing methods for serializing/deserializing JSONs
  */
 trait JsonTranslator {
   private val mapper = new ObjectMapper
@@ -65,16 +74,16 @@ trait JsonTranslator {
   /**
    * Serializes an object into a JSON String
    */
-  def serialize[T](obj: T): String = {
+  def serialize[A](obj: A): String = {
     mapper.writeValueAsString(obj)
   }
 
   /**
    * Deserializes the given JSON String into an object of the type clazz represents
    */
-  def deserialize[T](json: String, clazz: Class[T]): T = {
+  def deserialize[A](json: String, clazz: Class[A]): A = {
     mapper.readValue(json, clazz) match {
-      case t: T => t
+      case a: A => a
       case _ => throw new ClassCastException
     }
   }
@@ -82,9 +91,9 @@ trait JsonTranslator {
   /**
    * Deserializes the given JSON Array[Byte] into an object of the type clazz represents
    */
-  def deserialize[T](json: Array[Byte], clazz: Class[T]): T = {
+  def deserialize[A](json: Array[Byte], clazz: Class[A]): A = {
     mapper.readValue(json, clazz) match {
-      case t: T => t
+      case a: A => a
       case _ => throw new ClassCastException
     }
   }
@@ -93,7 +102,7 @@ trait JsonTranslator {
    * Serializes the given response object into a Full[PlainTextResponse] with a content-type of application/json and
    * an HTTP code of 200
    */
-  def getJsonResponse[T](response: T): Box[LiftResponse] = {
+  def getJsonResponse[A](response: A): Box[LiftResponse] = {
     Full(PlainTextResponse(serialize(response), List(("Content-Type", "application/json")), 200))
   }
 }

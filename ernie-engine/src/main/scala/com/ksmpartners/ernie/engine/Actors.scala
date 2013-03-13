@@ -11,6 +11,7 @@ import actors.Actor
 import collection._
 import com.ksmpartners.ernie.model.JobStatus
 import org.slf4j.LoggerFactory
+import java.io.File
 
 /**
  * Actor for coordinating report generation.
@@ -106,12 +107,13 @@ class Worker(pathToRptDefs: String, pathToOutputs: String) extends Actor {
     this
   }
 
-  private def runPdfReport(rptId: String, jobId: Long) {
+  private def runPdfReport(rptId: String, jobId: Long): File = {
     log.debug("Running report {}...", rptId)
     val rptDefName = rptId + ".rptdesign"
     val rptOutputName = "REPORT_" + jobId + ".pdf"
-    rptGenerator.runPdfReport(rptDefName, rptOutputName)
+    val outputFile = rptGenerator.runPdfReport(rptDefName, rptOutputName)
     log.debug("Done report {}...", rptId)
+    outputFile
   }
 
   private def startRptGenerator() {
