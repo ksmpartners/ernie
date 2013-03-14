@@ -24,9 +24,8 @@ trait JobDependencies {
       Full(OkResponse())
     }
     def put(body: Box[Array[Byte]]) = {
-      var req: ReportRequest = null
       try {
-        req = deserialize(body.open_!, classOf[ReportRequest])
+        val req = deserialize(body.open_!, classOf[ReportRequest])
         val response = (coordinator !? RReq(req.getReportDefId)).asInstanceOf[RResp]
         getJsonResponse(new ReportResponse(response.jobId))
       } catch {
