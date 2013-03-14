@@ -21,7 +21,7 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
   private val log = LoggerFactory.getLogger(this.getClass)
 
   private lazy val worker: Worker = new Worker(pathToRptDefs, pathToOutputs)
-  private val jobIdToStatusMap = new mutable.HashMap[Long, JobStatus]()
+  private val jobIdToResultMap = new mutable.HashMap[Long, (JobStatus, Option[String] /* filePath */ )]()
 
   override def start(): Actor = {
     log.debug("in start()")
@@ -34,18 +34,22 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
     log.debug("in act()")
     loop {
       react {
-        case ReportRequest(rptId) => {
+        case req@ReportRequest(rptId) => {
           val jobId = getJobId()
-          jobIdToStatusMap += (jobId -> JobStatus.PENDING)
-          sender ! Notify(jobId, jobIdToStatusMap.get(jobId).get, this)
-          worker ! JobRequest(rptId, jobId, this)
+          jobIdToResultMap += (jobId -> (JobStatus.PENDING, null))
+          sender ! ReportResponse(jobId, req)
+          worker ! JobRequest(rptId, jobId)
         }
-        case StatusRequest(jobId) => {
-          sender ! Notify(jobId, jobIdToStatusMap.getOrElse(jobId, JobStatus.NO_SUCH_JOB), this)
+        case req@StatusRequest(jobId) => {
+          sender ! StatusResponse(jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, null))._1, req)
         }
-        case Notify(jobId, jobStatus, worker) => {
-          jobIdToStatusMap += (jobId -> jobStatus)
-          log.info("Got notify for jobId {} with status {}", jobId, jobStatus)
+        case req@ResultRequest(jobId) => {
+          val filePath = jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, None))._2
+          sender ! ResultResponse(filePath, req)
+        }
+        case JobResponse(jobStatus, filePath, req) => {
+          log.info("Got notify for jobId {} with status {}", req.jobId, jobStatus)
+          jobIdToResultMap += (req.jobId -> (jobStatus, filePath))
         }
         case ShutDownRequest => {
           worker !? ShutDownRequest
@@ -77,18 +81,19 @@ class Worker(pathToRptDefs: String, pathToOutputs: String) extends Actor {
     log.debug("in act()")
     loop {
       react {
-        case JobRequest(rptId, jobId, requester) => {
-          requester ! Notify(jobId, JobStatus.IN_PROGRESS, this)
-          var result = JobStatus.COMPLETE
+        case req@JobRequest(rptId, jobId) => {
+          sender ! JobResponse(JobStatus.IN_PROGRESS, null, req)
+          var resultStatus = JobStatus.COMPLETE
+          var resultFile: Option[String] = None
           try {
-            runPdfReport(rptId, jobId)
+            resultFile = Some(runPdfReport(rptId, jobId).getAbsolutePath)
           } catch {
             case ex: Exception => {
               log.error("Caught exception while generating report: {}", ex.getMessage)
-              result = JobStatus.FAILED
+              resultStatus = JobStatus.FAILED
             }
           }
-          requester ! Notify(jobId, result, this)
+          sender ! JobResponse(resultStatus, resultFile, req)
         }
         case ShutDownRequest => {
           stopRptGenerator()

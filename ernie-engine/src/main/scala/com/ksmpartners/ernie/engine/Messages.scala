@@ -7,13 +7,16 @@
 
 package com.ksmpartners.ernie.engine
 
-import actors.Actor
 import com.ksmpartners.ernie.model.JobStatus
 
 case class ReportRequest(rtpDefId: String)
-case class JobRequest(rtpDefId: String, jobId: Long, self: Actor)
+case class ReportResponse(jobId: Long, req: ReportRequest)
+case class ResultRequest(jobId: Long)
+case class ResultResponse(filePath: Option[String], req: ResultRequest)
 case class StatusRequest(jobId: Long)
-case class Notify(jobId: Long, jobStatus: JobStatus, self: Actor)
+case class StatusResponse(jobStatus: JobStatus, req: StatusRequest)
 
+case class JobRequest(rtpDefId: String, jobId: Long)
+case class JobResponse(jobStatus: JobStatus, filePath: Option[String], req: JobRequest)
 case class ShutDownRequest()
 case class ShutDownResponse()

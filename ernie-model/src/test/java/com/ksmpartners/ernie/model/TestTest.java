@@ -55,7 +55,8 @@ public class TestTest {
     {
         TestUtil.verifySerialization(TestClass.class);
         TestUtil.verifySerialization(ReportRequest.class);
-        TestUtil.verifySerialization(Notification.class);
+        TestUtil.verifySerialization(ReportResponse.class);
+        TestUtil.verifySerialization(StatusResponse.class);
     }
 
     @Test

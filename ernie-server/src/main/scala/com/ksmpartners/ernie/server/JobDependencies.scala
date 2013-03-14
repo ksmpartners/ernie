@@ -9,11 +9,11 @@ package com.ksmpartners.ernie.server
 
 import net.liftweb.common.{ Box, Full, Empty }
 import net.liftweb.http._
-import com.ksmpartners.ernie.engine.{ StatusRequest => SReq, ReportRequest => RReq, ShutDownRequest, Notify, Coordinator, ReportGenerator }
-import com.ksmpartners.ernie.model.{ Notification, ReportRequest }
+import com.ksmpartners.ernie.engine.{ Coordinator, ReportRequest => RReq, ReportResponse => RResp, ResultRequest, ResultResponse, StatusRequest => SReq, StatusResponse => SResp, ShutDownRequest }
+import com.ksmpartners.ernie.model.{ StatusResponse, ReportResponse, ReportRequest }
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.liftweb.util.Props
-import java.io.IOException
+import java.io.{ FileInputStream, File, IOException }
 
 trait JobDependencies {
 
@@ -27,8 +27,8 @@ trait JobDependencies {
       var req: ReportRequest = null
       try {
         req = deserialize(body.open_!, classOf[ReportRequest])
-        val response = (coordinator !! RReq(req.getReportDefId)).apply().asInstanceOf[Notify]
-        getJsonResponse(new Notification(response.jobId, response.jobStatus))
+        val response = (coordinator !? RReq(req.getReportDefId)).asInstanceOf[RResp]
+        getJsonResponse(new ReportResponse(response.jobId))
       } catch {
         case e: IOException => Full(BadResponse())
       }
@@ -37,23 +37,30 @@ trait JobDependencies {
 
   class JobStatusResource extends JsonTranslator {
     def get(jobId: String) = {
-      val response = (coordinator !! SReq(jobId.toLong)).apply().asInstanceOf[Notify]
-      getJsonResponse(new Notification(response.jobId, response.jobStatus))
+      val response = (coordinator !? SReq(jobId.toLong)).asInstanceOf[SResp]
+      getJsonResponse(new StatusResponse(response.jobStatus))
     }
   }
 
   class JobResultsResource {
     def get(jobId: String) = {
-      val data: Array[Byte] = "This is a test!!!".getBytes
-      val header: List[(String, String)] =
-        ("Content-type" -> "application/pdf") ::
-          ("Content-length" -> data.length.toString) ::
-          ("Content-disposition" -> "attachment; filname=download.pdf") :: Nil
-      Full(StreamingResponse(
-        new java.io.ByteArrayInputStream(data),
-        () => Unit,
-        data.size,
-        header, Nil, 200))
+      val response = (coordinator !? ResultRequest(jobId.toLong)).asInstanceOf[ResultResponse]
+
+      if (response.filePath.isDefined) {
+        val file = new File(response.filePath.get)
+        val fileStream = new FileInputStream(file)
+        val header: List[(String, String)] =
+          ("Content-type" -> "application/pdf") ::
+            ("Content-length" -> file.length.toString) ::
+            ("Content-disposition" -> ("attachment; filename=\"" + file.getName + "\"")) :: Nil
+        Full(StreamingResponse(
+          fileStream,
+          () => { fileStream.close() }, // On end method.
+          file.length,
+          header, Nil, 200))
+      } else {
+        Full(BadResponse())
+      }
     }
   }
 
