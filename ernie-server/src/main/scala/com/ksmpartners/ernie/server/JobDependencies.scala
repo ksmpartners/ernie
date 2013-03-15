@@ -11,7 +11,6 @@ import net.liftweb.common.{ Box, Full, Empty }
 import net.liftweb.http._
 import com.ksmpartners.ernie.engine.{ Coordinator, ReportRequest => RReq, ReportResponse => RResp, ResultRequest, ResultResponse, StatusRequest => SReq, StatusResponse => SResp, ShutDownRequest }
 import com.ksmpartners.ernie.model.{ StatusResponse, ReportResponse, ReportRequest }
-import com.fasterxml.jackson.databind.ObjectMapper
 import net.liftweb.util.Props
 import java.io.{ FileInputStream, File, IOException }
 
@@ -69,46 +68,4 @@ trait JobDependencies {
     }
   }
 
-}
-
-/**
- * Trait containing methods for serializing/deserializing JSONs
- */
-trait JsonTranslator {
-  private val mapper = new ObjectMapper
-
-  /**
-   * Serializes an object into a JSON String
-   */
-  def serialize[A](obj: A): String = {
-    mapper.writeValueAsString(obj)
-  }
-
-  /**
-   * Deserializes the given JSON String into an object of the type clazz represents
-   */
-  def deserialize[A](json: String, clazz: Class[A]): A = {
-    mapper.readValue(json, clazz) match {
-      case a: A => a
-      case _ => throw new ClassCastException
-    }
-  }
-
-  /**
-   * Deserializes the given JSON Array[Byte] into an object of the type clazz represents
-   */
-  def deserialize[A](json: Array[Byte], clazz: Class[A]): A = {
-    mapper.readValue(json, clazz) match {
-      case a: A => a
-      case _ => throw new ClassCastException
-    }
-  }
-
-  /**
-   * Serializes the given response object into a Full[PlainTextResponse] with a content-type of application/json and
-   * an HTTP code of 200
-   */
-  def getJsonResponse[A](response: A): Box[LiftResponse] = {
-    Full(PlainTextResponse(serialize(response), List(("Content-Type", "application/json")), 200))
-  }
 }
