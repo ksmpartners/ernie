@@ -1,12 +1,12 @@
+/**
+ * This source code file is the intellectual property of KSM Technology Partners LLC.  
+ * The contents of this file may not be reproduced, published, or distributed in any
+ * form, except as allowed in a license agreement between KSM Technology Partners LLC
+ * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved. 
+ */
+
 package com.ksmpartners.ernie.model;
 
-/**
- * Created with IntelliJ IDEA.
- * User: aalbrecht
- * Date: 3/14/13
- * Time: 1:19 PM
- * To change this template use File | Settings | File Templates.
- */
 public class StatusResponse {
 
     private JobStatus jobStatus;
