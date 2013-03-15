@@ -9,9 +9,10 @@ package com.ksmpartners.ernie.engine
 
 import actors.Actor
 import collection._
-import com.ksmpartners.ernie.model.JobStatus
+import com.ksmpartners.ernie.model.{ JobStatusMap, JobStatus }
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.util
 
 /**
  * Actor for coordinating report generation.
@@ -46,6 +47,11 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
         case req@ResultRequest(jobId) => {
           val filePath = jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, None))._2
           sender ! ResultResponse(filePath, req)
+        }
+        case req@JobStatusMapRequest() => {
+          val jobStatusMap: util.Map[java.lang.Long, JobStatus] = new util.HashMap[java.lang.Long, JobStatus]()
+          jobIdToResultMap foreach { entry => jobStatusMap.put(entry._1, entry._2._1) }
+          sender ! JobStatusMapResponse(new JobStatusMap(jobStatusMap), req)
         }
         case JobResponse(jobStatus, filePath, req) => {
           log.info("Got notify for jobId {} with status {}", req.jobId, jobStatus)

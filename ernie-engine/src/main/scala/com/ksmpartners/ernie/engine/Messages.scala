@@ -7,7 +7,7 @@
 
 package com.ksmpartners.ernie.engine
 
-import com.ksmpartners.ernie.model.JobStatus
+import com.ksmpartners.ernie.model.{ JobStatusMap, JobStatus }
 
 /** Request that a report be generated */
 case class ReportRequest(rtpDefId: String)
@@ -21,6 +21,10 @@ case class ResultResponse(filePath: Option[String], req: ResultRequest)
 case class StatusRequest(jobId: Long)
 /** The response to the given StatusRequest */
 case class StatusResponse(jobStatus: JobStatus, req: StatusRequest)
+/** Request a map of jobs to their statuses */
+case class JobStatusMapRequest()
+/** The response to the given JobStatusMapRequest */
+case class JobStatusMapResponse(jobStatusMap: JobStatusMap, req: JobStatusMapRequest)
 
 /** Request that the given rptDefId be processed */
 case class JobRequest(rtpDefId: String, jobId: Long)

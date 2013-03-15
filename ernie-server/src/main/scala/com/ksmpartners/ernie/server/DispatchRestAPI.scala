@@ -26,6 +26,7 @@ object DispatchRestAPI extends XMLApiHelper {
    */
   def dispatch: LiftRules.DispatchPF = {
     case req@Req(List("jobs"), _, PutRequest) => () => ServiceRegistry.jobsResource.put(req.body)
+    case Req(List("jobs"), _, GetRequest) => () => ServiceRegistry.jobsResource.get
     case Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
     case Req(List("jobs", jobId, "results", "pdf"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
     case req => {

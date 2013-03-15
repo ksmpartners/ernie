@@ -9,7 +9,8 @@ package com.ksmpartners.ernie.server
 
 import net.liftweb.common.{ Box, Full, Empty }
 import net.liftweb.http._
-import com.ksmpartners.ernie.engine.{ Coordinator, ReportRequest => RReq, ReportResponse => RResp, ResultRequest, ResultResponse, StatusRequest => SReq, StatusResponse => SResp, ShutDownRequest }
+import com.ksmpartners.ernie.engine._
+import com.ksmpartners.ernie.engine.{ ReportRequest => RReq, ReportResponse => RResp, StatusRequest => SReq, StatusResponse => SResp }
 import com.ksmpartners.ernie.model.{ StatusResponse, ReportResponse, ReportRequest }
 import net.liftweb.util.Props
 import java.io.{ FileInputStream, File, IOException }
@@ -20,7 +21,8 @@ trait JobDependencies {
 
   class JobsResource extends JsonTranslator {
     def get = {
-      Full(OkResponse())
+      val response = (coordinator !? JobStatusMapRequest).asInstanceOf[JobStatusMapResponse]
+      getJsonResponse(response.jobStatusMap)
     }
     def put(body: Box[Array[Byte]]) = {
       try {
