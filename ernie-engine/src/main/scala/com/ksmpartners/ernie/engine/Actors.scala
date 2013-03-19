@@ -52,6 +52,10 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
           jobIdToResultMap foreach { entry => jobStatusMap.put(entry._1, entry._2._1) }
           sender ! JobStatusMapResponse(jobStatusMap, req)
         }
+        case req@ReportDefinitionMapRequest() => {
+          val response = (worker !? req).asInstanceOf[ReportDefinitionMapResponse]
+          sender ! response
+        }
         case JobResponse(jobStatus, filePath, req) => {
           log.info("Got notify for jobId {} with status {}", req.jobId, jobStatus)
           jobIdToResultMap += (req.jobId -> (jobStatus, filePath))
@@ -99,6 +103,13 @@ class Worker(pathToRptDefs: String, pathToOutputs: String) extends Actor {
             }
           }
           sender ! JobResponse(resultStatus, resultFile, req)
+        }
+        case req@ReportDefinitionMapRequest() => {
+          val rptDefMap: util.Map[String, String] = new util.HashMap()
+          rptGenerator.getAvailableRptDefs map { file =>
+            rptDefMap.put(if (file.contains(".")) file.substring(0, file.indexOf('.')) else file, file)
+          }
+          sender ! ReportDefinitionMapResponse(rptDefMap, req)
         }
         case ShutDownRequest => {
           stopRptGenerator()

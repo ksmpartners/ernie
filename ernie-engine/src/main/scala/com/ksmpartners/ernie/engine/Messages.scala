@@ -26,6 +26,10 @@ case class StatusResponse(jobStatus: JobStatus, req: StatusRequest)
 case class JobStatusMapRequest()
 /** The response to the given JobStatusMapRequest */
 case class JobStatusMapResponse(jobStatusMap: util.Map[java.lang.Long, JobStatus], req: JobStatusMapRequest)
+/** Request a map of rptDefIds to their file names */
+case class ReportDefinitionMapRequest()
+/** The response to the given ReportDefinitionMapRequest */
+case class ReportDefinitionMapResponse(rptDefMap: util.Map[String, String], req: ReportDefinitionMapRequest)
 
 /** Request that the given rptDefId be processed */
 case class JobRequest(rtpDefId: String, jobId: Long)

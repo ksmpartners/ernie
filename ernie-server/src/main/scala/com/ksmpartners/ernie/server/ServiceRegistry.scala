@@ -7,11 +7,14 @@
 
 package com.ksmpartners.ernie.server
 
-object ServiceRegistry extends JobDependencies {
+object ServiceRegistry extends JobDependencies
+    with DefinitionDependencies {
 
   val jobsResource = new JobsResource
   val jobStatusResource = new JobStatusResource
   val jobResultsResource = new JobResultsResource
+
+  val defsResource = new DefsResource
 
   val shutdownResource = new ShutdownResource
 

@@ -51,6 +51,11 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
   }
 
   /**
+   * List the available report definition files.
+   */
+  def getAvailableRptDefs: List[String] = rptDefDir.listFiles().toList filter { _.isFile } map { _.getName }
+
+  /**
    * Method that runs the .rtpdesign file at the given location rptDefName, and outputs the results to outputFileName
    * as a .pdf
    */

@@ -11,13 +11,9 @@ import net.liftweb.common.{ Box, Full, Empty }
 import net.liftweb.http._
 import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.engine
-import com.ksmpartners.ernie.engine._
-import net.liftweb.util.Props
 import java.io.{ FileInputStream, File, IOException }
 
-trait JobDependencies {
-
-  val coordinator = new Coordinator(Props.get("rpt.def.dir").open_!, Props.get("output.dir").open_!).start()
+trait JobDependencies extends ActorTrait {
 
   class JobsResource extends JsonTranslator {
     def get = {
@@ -61,12 +57,6 @@ trait JobDependencies {
       } else {
         Full(BadResponse())
       }
-    }
-  }
-
-  class ShutdownResource {
-    def shutdown() {
-      coordinator ! engine.ShutDownRequest
     }
   }
 

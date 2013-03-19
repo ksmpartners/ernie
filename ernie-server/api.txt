@@ -35,7 +35,7 @@
 /jobs/<JOB_ID>/result
 
 - GET: Get the resulting PDF for the job associated to the given JOB_ID.
--- PDF
+-- Out: PDF
 
 - PUT: No action.
 
