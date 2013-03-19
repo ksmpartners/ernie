@@ -24,7 +24,7 @@ trait JobDependencies {
       val response = (coordinator !? engine.JobStatusMapRequest()).asInstanceOf[engine.JobStatusMapResponse]
       getJsonResponse(new model.JobStatusMap(response.jobStatusMap))
     }
-    def put(body: Box[Array[Byte]]) = {
+    def post(body: Box[Array[Byte]]) = {
       try {
         val req = deserialize(body.open_!, classOf[model.ReportRequest])
         val response = (coordinator !? engine.ReportRequest(req.getReportDefId)).asInstanceOf[engine.ReportResponse]

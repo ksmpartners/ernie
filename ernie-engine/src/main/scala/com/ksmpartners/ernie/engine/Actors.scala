@@ -45,8 +45,7 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
           sender ! StatusResponse(jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, null))._1, req)
         }
         case req@ResultRequest(jobId) => {
-          val filePath = jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, None))._2
-          sender ! ResultResponse(filePath, req)
+          sender ! ResultResponse(jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, None))._2, req)
         }
         case req@JobStatusMapRequest() => {
           val jobStatusMap: util.Map[java.lang.Long, JobStatus] = new util.HashMap[java.lang.Long, JobStatus]()

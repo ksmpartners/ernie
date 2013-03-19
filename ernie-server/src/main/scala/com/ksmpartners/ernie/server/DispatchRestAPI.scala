@@ -25,10 +25,11 @@ object DispatchRestAPI extends XMLApiHelper {
    * Stateless dispatch.
    */
   def dispatch: LiftRules.DispatchPF = {
-    case req@Req(List("jobs"), _, PutRequest) => () => ServiceRegistry.jobsResource.put(req.body)
-    case Req(List("jobs"), _, GetRequest) => () => ServiceRegistry.jobsResource.get
+    case req@Req(List("jobs"), _, PostRequest)             => () => ServiceRegistry.jobsResource.post(req.body)
+    case Req(List("jobs"), _, GetRequest)                  => () => ServiceRegistry.jobsResource.get
     case Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
-    case Req(List("jobs", jobId, "results", "pdf"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
+    case Req(List("jobs", jobId, "result"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
+    // TODO: Add defs path tree for accessing definition files
     case req => {
       log.error("Got unknown request: {}", req)
       () => Full(NotFoundResponse())

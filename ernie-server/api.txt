@@ -1,0 +1,56 @@
+################################################################################
+# RESTful API for ernie-server.
+################################################################################
+#
+# Legend:
+#
+# - !!! - Code needs to be implemented
+# - <<< - Code needs to be updated
+# - ??? - Design needs to be reviewed/updated
+#
+################################################################################
+
+/jobs
+
+- GET: List the job IDs and URIs for all current jobs. <<< ???
+--Out: JobMap <<< ???
+
+- PUT: No action.
+
+- POST: Post a report request. Schedules job to generate report.
+-- In: ReportRequest
+-- Out: ReportResponse
+
+
+/jobs/<JOB_ID>/status
+
+- GET: Return the current JOB_STATUS for the job associated to the given JOB_ID. 
+-- Out: StatusResponse
+
+- PUT: No action.
+
+- POST: No action.
+
+
+/jobs/<JOB_ID>/result
+
+- GET: Get the resulting PDF for the job associated to the given JOB_ID.
+-- PDF
+
+- PUT: No action.
+
+- POST: No action.
+
+
+/defs
+
+- GET: List the URIs for all available report definitions. !!!
+- PUT: No action.
+- POST: Post a new report definition to the server. !!!
+
+/defs/<RPT_ID>
+
+- GET: Get the report definition content associated to the given RPT_ID. !!!
+- PUT: Replace the addressed report definition,
+         or create it if it doesn't exist. !!!
+- POST: No action.
