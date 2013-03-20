@@ -9,6 +9,9 @@ package com.ksmpartners.ernie.model;
 
 import java.util.Map;
 
+/**
+ * A JSONable class used to send report definition information via HTTP
+ */
 public class ReportDefinitionMapResponse {
 
     private Map<String, String> reportDefMap;

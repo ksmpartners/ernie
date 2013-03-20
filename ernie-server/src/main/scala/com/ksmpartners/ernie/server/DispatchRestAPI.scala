@@ -14,6 +14,9 @@ import scala.xml._
 import net.liftweb.http._
 import org.slf4j.LoggerFactory
 
+/**
+ * Object containing the stateless dispatch definition for an ernie server
+ */
 object DispatchRestAPI extends XMLApiHelper {
 
   private val log = LoggerFactory.getLogger(this.getClass)

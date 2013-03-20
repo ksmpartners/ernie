@@ -13,6 +13,9 @@ import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.engine
 import java.io.{ FileInputStream, File, IOException }
 
+/**
+ * Dependencies for starting and interacting with jobs for the creation of reports
+ */
 trait JobDependencies extends ActorTrait {
 
   class JobsResource extends JsonTranslator {

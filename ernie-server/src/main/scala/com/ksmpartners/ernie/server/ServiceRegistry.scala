@@ -7,6 +7,9 @@
 
 package com.ksmpartners.ernie.server
 
+/**
+ * Object that registers the services used by the stateless dispatch
+ */
 object ServiceRegistry extends JobDependencies
     with DefinitionDependencies {
 

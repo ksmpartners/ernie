@@ -9,6 +9,9 @@ package com.ksmpartners.ernie.server
 
 import com.ksmpartners.ernie.{ model, engine }
 
+/**
+ * Dependencies for interacting with report definitions
+ */
 trait DefinitionDependencies extends ActorTrait {
 
   class DefsResource extends JsonTranslator {

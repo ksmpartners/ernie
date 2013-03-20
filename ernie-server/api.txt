@@ -35,7 +35,7 @@
 /jobs/<JOB_ID>/result
 
 - GET: Get the resulting PDF for the job associated to the given JOB_ID.
--- Out: PDF
+-- Out: Resulting PDF for the given job ID
 
 - PUT: No action.
 
@@ -50,11 +50,18 @@
 - PUT: No action.
 
 - POST: Post a new report definition to the server. !!!
+-- In: New definition file !!!
+-- Out: Resulting URI for the new definition !!!
 
 
 /defs/<RPT_ID>
 
 - GET: Get the report definition content associated to the given RPT_ID. !!!
+-- Out: Report definition file !!!
+
 - PUT: Replace the addressed report definition,
          or create it if it doesn't exist. !!!
+-- In: New definition file !!!
+-- Out: Resulting URI for the new definition !!!
+
 - POST: No action.
