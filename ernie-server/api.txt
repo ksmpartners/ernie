@@ -12,20 +12,20 @@
 
 /jobs
 
-- GET: List the job IDs and URIs for all current jobs. <<< ???
---Out: JobMap <<< ???
+- GET: List the job IDs and URIs for all current jobs.
+--Out: JobsMapResponse
 
 - PUT: No action.
 
 - POST: Post a report request. Schedules job to generate report.
--- In: ReportRequest
+-- In: ReportRequest <<< ??? (Need to add more info [resulting file type])
 -- Out: ReportResponse
 
 
 /jobs/<JOB_ID>/status
 
 - GET: Return the current JOB_STATUS for the job associated to the given JOB_ID. 
--- Out: StatusResponse
+-- Out: StatusResponse ???
 
 - PUT: No action.
 
@@ -44,9 +44,13 @@
 
 /defs
 
-- GET: List the URIs for all available report definitions. !!!
+- GET: List the report IDs and  URIs for all available report definitions.
+-- Out: ReportDefinitionMapResponse
+
 - PUT: No action.
+
 - POST: Post a new report definition to the server. !!!
+
 
 /defs/<RPT_ID>
 

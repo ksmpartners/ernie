@@ -58,6 +58,8 @@ public class TestTest {
         TestUtil.verifySerialization(ReportRequest.class);
         TestUtil.verifySerialization(ReportResponse.class);
         TestUtil.verifySerialization(StatusResponse.class);
+        TestUtil.verifySerialization(ReportDefinitionMapResponse.class);
+        TestUtil.verifySerialization(JobsMapResponse.class);
     }
 
     @Test

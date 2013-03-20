@@ -72,7 +72,10 @@ public class TestUtil {
 
         T newT = deserialize(json, clazz);
 
-        Assert.assertTrue(equal(t,newT), "Pre and post serialization objects are not equal for class " + clazz.getCanonicalName());
+        String newJson = serialize(newT);
+
+        // TODO: Verify that this is a good test.
+        Assert.assertTrue(json.equals(newJson), "Pre and post serialization JSONs are not equal for class " + clazz.getCanonicalName());
     }
 
     /**

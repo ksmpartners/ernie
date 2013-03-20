@@ -16,9 +16,9 @@ import java.io.{ FileInputStream, File, IOException }
 trait JobDependencies extends ActorTrait {
 
   class JobsResource extends JsonTranslator {
-    def get = {
-      val response = (coordinator !? engine.JobStatusMapRequest()).asInstanceOf[engine.JobStatusMapResponse]
-      getJsonResponse(new model.JobStatusMap(response.jobStatusMap))
+    def get(uriPrefix: String) = {
+      val response = (coordinator !? engine.JobsMapRequest(uriPrefix)).asInstanceOf[engine.JobsMapResponse]
+      getJsonResponse(new model.JobsMapResponse(response.jobsMap))
     }
     def post(body: Box[Array[Byte]]) = {
       try {

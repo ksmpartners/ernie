@@ -22,12 +22,12 @@ case class ResultResponse(filePath: Option[String], req: ResultRequest)
 case class StatusRequest(jobId: Long)
 /** The response to the given StatusRequest */
 case class StatusResponse(jobStatus: JobStatus, req: StatusRequest)
-/** Request a map of jobs to their statuses */
-case class JobStatusMapRequest()
-/** The response to the given JobStatusMapRequest */
-case class JobStatusMapResponse(jobStatusMap: util.Map[java.lang.Long, JobStatus], req: JobStatusMapRequest)
+/** Request a map of job IDs to their URIs */
+case class JobsMapRequest(uriPrefix: String)
+/** The response to the given JobsMapRequest */
+case class JobsMapResponse(jobsMap: util.Map[String, String], req: JobsMapRequest)
 /** Request a map of rptDefIds to their file names */
-case class ReportDefinitionMapRequest()
+case class ReportDefinitionMapRequest(uriPrefix: String)
 /** The response to the given ReportDefinitionMapRequest */
 case class ReportDefinitionMapResponse(rptDefMap: util.Map[String, String], req: ReportDefinitionMapRequest)
 

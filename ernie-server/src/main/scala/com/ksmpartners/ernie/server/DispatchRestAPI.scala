@@ -26,11 +26,10 @@ object DispatchRestAPI extends XMLApiHelper {
    */
   def dispatch: LiftRules.DispatchPF = {
     case req@Req(List("jobs"), _, PostRequest) => () => ServiceRegistry.jobsResource.post(req.body)
-    case Req(List("jobs"), _, GetRequest) => () => ServiceRegistry.jobsResource.get
-    case Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
-    case Req(List("jobs", jobId, "result"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
-    // TODO: Add defs path tree for accessing definition files
-    case Req(List("defs"), _, GetRequest) => () => ServiceRegistry.defsResource.get
+    case req@Req(List("jobs"), _, GetRequest) => () => ServiceRegistry.jobsResource.get(req.hostAndPath + "/jobs")
+    case req@Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
+    case req@Req(List("jobs", jobId, "result"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
+    case req@Req(List("defs"), _, GetRequest) => () => ServiceRegistry.defsResource.get(req.hostAndPath + "/defs")
     case req => {
       log.error("Got unknown request: {}", req)
       () => Full(NotFoundResponse())

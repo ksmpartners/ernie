@@ -47,12 +47,15 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
         case req@ResultRequest(jobId) => {
           sender ! ResultResponse(jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, None))._2, req)
         }
-        case req@JobStatusMapRequest() => {
-          val jobStatusMap: util.Map[java.lang.Long, JobStatus] = new util.HashMap[java.lang.Long, JobStatus]()
-          jobIdToResultMap foreach { entry => jobStatusMap.put(entry._1, entry._2._1) }
-          sender ! JobStatusMapResponse(jobStatusMap, req)
+        case req@JobsMapRequest(uriPrefix) => {
+          val jobStatusMap: util.Map[String, String] = new util.HashMap()
+          jobIdToResultMap foreach { entry =>
+            val jobIdString = entry._1.toString
+            jobStatusMap.put(jobIdString, uriPrefix + "/" + jobIdString)
+          }
+          sender ! JobsMapResponse(jobStatusMap, req)
         }
-        case req@ReportDefinitionMapRequest() => {
+        case req@ReportDefinitionMapRequest(uriPrefix) => {
           val response = (worker !? req).asInstanceOf[ReportDefinitionMapResponse]
           sender ! response
         }
@@ -104,10 +107,14 @@ class Worker(pathToRptDefs: String, pathToOutputs: String) extends Actor {
           }
           sender ! JobResponse(resultStatus, resultFile, req)
         }
-        case req@ReportDefinitionMapRequest() => {
+        case req@ReportDefinitionMapRequest(uriPrefix) => {
           val rptDefMap: util.Map[String, String] = new util.HashMap()
           rptGenerator.getAvailableRptDefs map { file =>
-            rptDefMap.put(if (file.contains(".")) file.substring(0, file.indexOf('.')) else file, file)
+            if (file.endsWith(".rptdesign")) {
+              val rptDefId = file.substring(0, file.indexOf('.'))
+              rptDefMap.put(rptDefId, uriPrefix + "/" + rptDefId)
+            } else
+              log.warn("File {} in definition directory doesn't not have proper extension", file)
           }
           sender ! ReportDefinitionMapResponse(rptDefMap, req)
         }
