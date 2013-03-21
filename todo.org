@@ -4,15 +4,20 @@
 #
 ################################################################################
 
-* All projects
-** Redo/Add more unit tests to all projects
-*** Look into framework for unit testing RESTful web service
-** Create util library
+# All projects
+* Redo/Add more unit tests to all projects
+** Look into framework for unit testing RESTful web service API
+* Create util library (ernie-util)
+** Scala util
+*** Put try_ from ReportGenerator into util object
+** Java util
 
-* ernie-model
+# ernie-model
+* Add ReportType enum
 
-* ernie-engine
-** Look into CAS frameworks for Java/Scala
-** Look into BIRT .rptdesign validation
+# ernie-engine
+* Look into CAS frameworks for Java/Scala
+* Look into BIRT .rptdesign validation
 
-* erner-server
+# erner-server
+
