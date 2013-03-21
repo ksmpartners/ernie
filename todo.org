@@ -1,0 +1,18 @@
+################################################################################
+#
+# This file contains TODO items not specific to an individual source file
+#
+################################################################################
+
+* All projects
+** Redo/Add more unit tests to all projects
+*** Look into framework for unit testing RESTful web service
+** Create util library
+
+* ernie-model
+
+* ernie-engine
+** Look into CAS frameworks for Java/Scala
+** Look into BIRT .rptdesign validation
+
+* erner-server
