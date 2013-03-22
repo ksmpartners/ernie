@@ -2,8 +2,10 @@
 *.iws
 *.iml
 *.out
+*.swp
 .settings
 *.log
+ignore.*
 
 target
 .project

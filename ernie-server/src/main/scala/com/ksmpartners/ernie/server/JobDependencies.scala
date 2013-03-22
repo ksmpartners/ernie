@@ -27,7 +27,7 @@ trait JobDependencies extends ActorTrait {
       try {
         val req = deserialize(body.open_!, classOf[model.ReportRequest])
         val response = (coordinator !? engine.ReportRequest(req.getReportDefId)).asInstanceOf[engine.ReportResponse]
-        getJsonResponse(new model.ReportResponse(response.jobId))
+        getJsonResponse(new model.ReportResponse(response.jobId), 201)
       } catch {
         case e: IOException => Full(BadResponse())
       }

@@ -33,6 +33,9 @@ object DispatchRestAPI extends XMLApiHelper {
     case req@Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
     case req@Req(List("jobs", jobId, "result"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
     case req@Req(List("defs"), _, GetRequest) => () => ServiceRegistry.defsResource.get(req.hostAndPath + "/defs")
+    case req@Req(List("defs"), _, PostRequest) => () => Full(OkResponse())
+    case req@Req(List("defs", rptId), _, GetRequest) => () => Full(OkResponse())
+    case req@Req(List("defs", rptId), _, PutRequest) => () => Full(OkResponse())
     case req => {
       log.error("Got unknown request: {}", req)
       () => Full(NotFoundResponse())

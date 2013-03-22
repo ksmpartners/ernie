@@ -4,13 +4,34 @@
 #
 ################################################################################
 
+# Pre development tasks
+* Test environment
+** Set up test server
+*** Test DB?
+* Test framework
+** TestNG for unit tests
+** Find framework for REST API testing
+** JaCoCo for code coverage reports
+** Finalize test process/standards
+*** Unit tests
+**** Min code coverage
+*** System tests
+* Initial state
+** Get project in solid state before starting "real" development
+* Documentation
+
 # All projects
 * Redo/Add more unit tests to all projects
 ** Look into framework for unit testing RESTful web service API
+** Add and set up JaCoCo for code coverage
+*** Verify that JaCoCo works with Scala
 * Create util library (ernie-util)
 ** Scala util
 *** Put try_ from ReportGenerator into util object
 ** Java util
+* Move all references to URIs to server layer
+** Remove all references to URIs from model layer
+** Remove all references to URIs from engine layer
 
 # ernie-model
 * Add ReportType enum

@@ -7,6 +7,9 @@
 
 package com.ksmpartners.ernie.model;
 
+/**
+ * A JSONable class used to send report response information via HTTP
+ */
 public class ReportResponse {
 
     private long jobId;

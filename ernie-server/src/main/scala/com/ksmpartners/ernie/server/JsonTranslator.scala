@@ -49,6 +49,14 @@ trait JsonTranslator {
    * an HTTP code of 200
    */
   def getJsonResponse[A](response: A): Box[LiftResponse] = {
-    Full(PlainTextResponse(serialize(response), List(("Content-Type", "application/json")), 200))
+    getJsonResponse(response, 200)
+  }
+
+  /**
+   * Serializes the given response object into a Full[PlainTextResponse] with a content-type of application/json and
+   * an HTTP code of 200
+   */
+  def getJsonResponse[A](response: A, statusCode: Int): Box[LiftResponse] = {
+    Full(PlainTextResponse(serialize(response), List(("Content-Type", "application/json")), statusCode))
   }
 }
