@@ -5,40 +5,44 @@
 ################################################################################
 
 # Pre development tasks
-* Test environment
-** Set up test server
-*** Test DB?
-* Test framework
-** TestNG for unit tests
-** Find framework for REST API testing
-** JaCoCo for code coverage reports
-** Finalize test process/standards
-*** Unit tests
-**** Min code coverage
-*** System tests
-* Initial state
-** Get project in solid state before starting "real" development
-* Documentation
+[ ]* Build environment
+[ ]** Set up Hudson project
+[ ]*** Set up Husdon with auto build (auto deploy to test?)
+[ ]* Test environment
+[ ]** Set up test server
+[ ]*** Test DB?
+[ ]* Test framework
+[x]** TestNG for unit tests
+[ ]** Find framework for REST API testing
+[x]** JaCoCo for code coverage reports
+[ ]** Finalize test process/standards
+[ ]*** Unit tests
+[ ]**** Min code coverage
+[ ]*** System tests
+[ ]* Initial state
+[ ]** Get project source in solid state before starting "real" development
+[ ]* Documentation
 
 # All projects
-* Redo/Add more unit tests to all projects
-** Look into framework for unit testing RESTful web service API
-** Add and set up JaCoCo for code coverage
-*** Verify that JaCoCo works with Scala
-* Create util library (ernie-util)
-** Scala util
-*** Put try_ from ReportGenerator into util object
-** Java util
-* Move all references to URIs to server layer
-** Remove all references to URIs from model layer
-** Remove all references to URIs from engine layer
+[ ]* Redo/Add more unit tests to all projects
+[ ]** Look into framework for unit testing RESTful web service API
+[x]** Add and set up JaCoCo for code coverage
+[x]*** Verify that JaCoCo works with Scala
+[ ]* Create util library (ernie-util)
+[ ]** Scala util
+[ ]*** Put try_ from ReportGenerator into util object
+[ ]** Java util
+[ ]* Move all references to URIs to server layer
+[ ]** Remove all references to URIs from model layer
+[ ]** Remove all references to URIs from engine layer
 
 # ernie-model
-* Add ReportType enum
+[ ]* Add ReportType enum
 
 # ernie-engine
-* Look into CAS frameworks for Java/Scala
-* Look into BIRT .rptdesign validation
+[ ]* Look into CAS frameworks for Java/Scala
+[ ]* Look into BIRT .rptdesign validation
 
 # erner-server
-
+[ ]* Unit tests
+[ ]** Add unit tests for REST API
