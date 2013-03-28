@@ -75,7 +75,8 @@ public class TestUtil {
         String newJson = serialize(newT);
 
         // TODO: Verify that this is a good test.
-        Assert.assertTrue(json.equals(newJson), "Pre and post serialization JSONs are not equal for class " + clazz.getCanonicalName());
+        Assert.assertTrue(json.equals(newJson), "Pre and post serialization JSONs are not equal for class " +
+            clazz.getCanonicalName());
     }
 
     /**
@@ -221,7 +222,8 @@ public class TestUtil {
             Object result = method.invoke(target, value);
             return result;
         } catch (Exception e) {
-            Assert.fail("Failed invoking method " + method.getName() + " for property " + qName + ": " + e.getMessage());
+            Assert.fail("Failed invoking method " + method.getName() + " for property " + qName + ": " +
+                e.getMessage());
             return null;
         }
     }

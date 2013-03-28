@@ -5,6 +5,7 @@
 ################################################################################
 
 # Pre development tasks
+## All are in Jira as Stories/Sub-tasks
 [ ]* Build environment
 [ ]** Set up Hudson project
 [ ]*** Set up Husdon with auto build (auto deploy to test?)
@@ -17,11 +18,12 @@
 [x]** JaCoCo for code coverage reports
 [ ]** Finalize test process/standards
 [ ]*** Unit tests
-[ ]**** Min code coverage
+[ ]**** Minimum code coverage
 [ ]*** System tests
 [ ]* Initial state
 [ ]** Get project source in solid state before starting "real" development
 [ ]* Documentation
+[ ]** Document all currently existing source
 
 # All projects
 [ ]* Redo/Add more unit tests to all projects
@@ -32,16 +34,20 @@
 [ ]** Scala util
 [ ]*** Put try_ from ReportGenerator into util object
 [ ]** Java util
-[ ]* Move all references to URIs to server layer
-[ ]** Remove all references to URIs from model layer
-[ ]** Remove all references to URIs from engine layer
+[ ]* Move all references to base URIs to server layer
+[ ]** Remove all references to base URIs from model layer
+[ ]** Remove all references to base URIs from engine layer
 
 # ernie-model
-[ ]* Add ReportType enum
+[x]* Add ReportType enum (PDF, HTML, CSV, etc.)
 
 # ernie-engine
-[ ]* Look into CAS frameworks for Java/Scala
+[x]* Look into CAS frameworks for Java/Scala
+[ ]-> Use standard file structure for storing definitions/results
 [ ]* Look into BIRT .rptdesign validation
+[ ]* Add CSV generation to ReportGenerator (CSV Emitter for BIRT)
+[x]** Verify CSV generation package meets license standards
+[x]--> Uses Eclipse Public License
 
 # erner-server
 [ ]* Unit tests

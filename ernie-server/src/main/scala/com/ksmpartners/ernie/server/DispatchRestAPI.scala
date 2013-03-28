@@ -32,10 +32,12 @@ object DispatchRestAPI extends XMLApiHelper {
     case req@Req(List("jobs"), _, GetRequest) => () => ServiceRegistry.jobsResource.get(req.hostAndPath + "/jobs")
     case req@Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
     case req@Req(List("jobs", jobId, "result"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
+    case req@Req(List("jobs", jobId, "result"), _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
     case req@Req(List("defs"), _, GetRequest) => () => ServiceRegistry.defsResource.get(req.hostAndPath + "/defs")
-    case req@Req(List("defs"), _, PostRequest) => () => Full(OkResponse())
-    case req@Req(List("defs", rptId), _, GetRequest) => () => Full(OkResponse())
-    case req@Req(List("defs", rptId), _, PutRequest) => () => Full(OkResponse())
+    case req@Req(List("defs"), _, PostRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+    case req@Req(List("defs", rptId), _, GetRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+    case req@Req(List("defs", rptId), _, PutRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+    case req@Req(List("defs", rptId), _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
     case req => {
       log.error("Got unknown request: {}", req)
       () => Full(NotFoundResponse())

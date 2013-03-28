@@ -21,8 +21,8 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  private val rptDefDir: File = new File(pathToDefinitions)
-  private val outputDir: File = new File(pathToOutputs)
+  private val rptDefDir = new File(pathToDefinitions)
+  private val outputDir = new File(pathToOutputs)
 
   // Validate directories
   if (!(rptDefDir.isDirectory && rptDefDir.canRead) || !(outputDir.isDirectory && outputDir.canWrite)) {

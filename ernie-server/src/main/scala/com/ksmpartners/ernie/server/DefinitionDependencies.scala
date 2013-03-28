@@ -16,7 +16,8 @@ trait DefinitionDependencies extends ActorTrait {
 
   class DefsResource extends JsonTranslator {
     def get(uriPrefix: String) = {
-      val response = (coordinator !? engine.ReportDefinitionMapRequest(uriPrefix)).asInstanceOf[engine.ReportDefinitionMapResponse]
+      val response =
+        (coordinator !? engine.ReportDefinitionMapRequest(uriPrefix)).asInstanceOf[engine.ReportDefinitionMapResponse]
       getJsonResponse(new model.ReportDefinitionMapResponse(response.rptDefMap))
     }
   }
