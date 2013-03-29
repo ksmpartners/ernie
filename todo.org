@@ -2,6 +2,16 @@
 #
 # This file contains TODO items not specific to an individual source file
 #
+#################################################################################
+#
+# Legend:
+#
+# - An item that begins with n number of *'s where n>0 is a task
+# - An item with n number of *'s where n>1 is a sub-task of the previous
+#     item with n-1 number of *'s
+# - An item with n number of -'s followed by a > is a note to the previous
+#     item with n number of *'s
+#
 ################################################################################
 
 # Pre development tasks
@@ -36,14 +46,16 @@
 [ ]** Java util
 [ ]* Move all references to base URIs to server layer
 [ ]** Remove all references to base URIs from model layer
+[ ]--> This may need to remain as part of the responses
 [ ]** Remove all references to base URIs from engine layer
 
 # ernie-model
 [x]* Add ReportType enum (PDF, HTML, CSV, etc.)
 
 # ernie-engine
-[x]* Look into CAS frameworks for Java/Scala
-[ ]-> Use standard file structure for storing definitions/results
+[ ]* Split filesystem management into new class ReportManager
+[x]** Look into CAS frameworks for Java/Scala
+[ ]*** Use standard file structure for storing definitions/results
 [ ]* Look into BIRT .rptdesign validation
 [ ]* Add CSV generation to ReportGenerator (CSV Emitter for BIRT)
 [x]** Verify CSV generation package meets license standards

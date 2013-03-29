@@ -56,8 +56,8 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
   def getAvailableRptDefs: List[String] = rptDefDir.listFiles().toList filter { _.isFile } map { _.getName }
 
   /**
-   * Method that runs the .rtpdesign file at the given location rptDefName, and outputs the results to outputFileName
-   * as a .pdf
+   * Method that runs the .rtpdesign file in the input stream rptDefFileStream, and outputs the results to
+   * outputFileStream as a .pdf
    */
   def runPdfReport(rptDefFileStream: InputStream, outputFileStream: OutputStream) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
