@@ -11,6 +11,9 @@ import _root_.net.liftweb.http
 import http.LiftRules
 import http.provider.HTTPRequest
 import com.ksmpartners.ernie.server.DispatchRestAPI
+import net.liftweb.util.Props
+import net.liftweb.common.Full
+import java.io.FileInputStream
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -20,6 +23,10 @@ class Boot {
   def boot {
 
     LiftRules.early.append(makeUtf8)
+
+    val filename = System.getProperty("ernie.props")
+    if (filename != null)
+      Props.whereToLook = () => ((filename, () => Full(new FileInputStream(filename))) :: Nil)
 
     LiftRules.statelessDispatchTable.prepend(DispatchRestAPI.dispatch)
 

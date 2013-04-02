@@ -5,7 +5,7 @@
  * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
  */
 
-package com.ksmpartners.ernie.engine
+package com.ksmpartners.ernie.engine.report
 
 import org.eclipse.birt.report.engine.api._
 import org.eclipse.birt.core.framework.Platform
@@ -17,19 +17,9 @@ import java.io._
  * <br><br>
  * This Class is not thread safe.
  */
-class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
+class ReportGenerator(reportManager: ReportManager) {
 
   private val log = LoggerFactory.getLogger(this.getClass)
-
-  private val rptDefDir = new File(pathToDefinitions)
-  private val outputDir = new File(pathToOutputs)
-
-  // Validate directories
-  if (!(rptDefDir.isDirectory && rptDefDir.canRead) || !(outputDir.isDirectory && outputDir.canWrite)) {
-    throw new IOException("Input/output directories do not exist or do not have the correct read/write access. " +
-      "Def Dir: " + rptDefDir +
-      ". Output Dir: " + outputDir)
-  }
 
   private var engine: IReportEngine = null
 
@@ -39,8 +29,8 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
   def startup() {
     log.info("Starting Report Engine")
     val ec = new EngineConfig
-
     Platform.startup(ec)
+
     val factory = Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY)
 
     engine = (factory match {
@@ -53,17 +43,17 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
   /**
    * List the available report definition files.
    */
-  def getAvailableRptDefs: List[String] = rptDefDir.listFiles().toList filter { _.isFile } map { _.getName }
+  def getAvailableRptDefs: List[String] = reportManager.getAllDefinitionIds
 
   /**
    * Method that runs the .rtpdesign file in the input stream rptDefFileStream, and outputs the results to
    * outputFileStream as a .pdf
    */
-  def runPdfReport(rptDefFileStream: InputStream, outputFileStream: OutputStream) {
+  def runPdfReport(rptDefInputStream: InputStream, reportOutputStream: OutputStream) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
-    val design = engine.openReportDesign(rptDefFileStream)
+    val design = engine.openReportDesign(rptDefInputStream)
     val renderOption = new PDFRenderOption
-    renderOption.setOutputStream(outputFileStream)
+    renderOption.setOutputStream(reportOutputStream)
     renderOption.setOutputFormat("pdf")
     runReport(design, renderOption)
   }
@@ -72,36 +62,14 @@ class ReportGenerator(pathToDefinitions: String, pathToOutputs: String) {
    * Method that runs the .rtpdesign file at the given location rptDefName, and outputs the results to outputFileName
    * as a .pdf
    */
-  def runPdfReport(rptDefName: String, outputFileName: String): File = {
+  def runPdfReport(rptDefName: String, outputFileName: String) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     log.debug("Generating PDF from report definition {}", rptDefName)
-    val outputFile = new File(outputDir, outputFileName)
-    try_(new FileInputStream(new File(rptDefDir, rptDefName))) { rptDefFileStream =>
-      try_(new FileOutputStream(outputFile)) { outputFileStream =>
-        runPdfReport(rptDefFileStream, outputFileStream)
+    try_(reportManager.getDefinition(rptDefName)) { rptDefStream =>
+      try_(reportManager.putReport(outputFileName)) { rptOutputStream =>
+        runPdfReport(rptDefStream, rptOutputStream)
       }
     }
-    outputFile
-  }
-
-  /**
-   * Method that runs the .rtpdesign file at the given location rptDefName, and outputs the results to outputFileName
-   * as .html
-   */
-  def runHtmlReport(rptDefName: String, outputFileName: String): File = {
-    if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
-    log.debug("Generating HTML from report definition {}", rptDefName)
-    val outputFile = new File(outputDir, outputFileName)
-    try_(new FileInputStream(new File(rptDefDir, rptDefName))) { rptDefFileStream =>
-      try_(new FileOutputStream(outputFile)) { outputFileStream =>
-        val design = engine.openReportDesign(rptDefFileStream)
-        val renderOption = new HTMLRenderOption
-        renderOption.setOutputStream(outputFileStream)
-        renderOption.setOutputFormat("html")
-        runReport(design, renderOption)
-      }
-    }
-    outputFile
   }
 
   /**

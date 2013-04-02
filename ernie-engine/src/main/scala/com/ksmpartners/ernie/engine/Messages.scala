@@ -34,7 +34,7 @@ case class ReportDefinitionMapResponse(rptDefMap: util.Map[String, String], req:
 /** Request that the given rptDefId be processed */
 case class JobRequest(rtpDefId: String, jobId: Long)
 /** The response(s) associated with the given JobRequest */
-case class JobResponse(jobStatus: JobStatus, filePath: Option[String], req: JobRequest)
+case class JobResponse(jobStatus: JobStatus, rptId: Option[String], req: JobRequest)
 /** Request that the Actor be shut down */
 case class ShutDownRequest()
 /** The response that indicates that the Actor's facilities are shut down */

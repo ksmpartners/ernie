@@ -60,6 +60,7 @@
 [ ]* Add CSV generation to ReportGenerator (CSV Emitter for BIRT)
 [x]** Verify CSV generation package meets license standards
 [x]--> Uses Eclipse Public License
+[ ]* Make report generation thread safe
 
 # erner-server
 [ ]* Unit tests

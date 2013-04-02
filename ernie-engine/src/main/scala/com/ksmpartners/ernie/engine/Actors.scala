@@ -10,6 +10,7 @@ package com.ksmpartners.ernie.engine
 import actors.Actor
 import collection._
 import com.ksmpartners.ernie.model.JobStatus
+import com.ksmpartners.ernie.engine.report._
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util
@@ -17,12 +18,12 @@ import java.util
 /**
  * Actor for coordinating report generation.
  */
-class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
+class Coordinator(reportManager: ReportManager) extends Actor {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  private lazy val worker: Worker = new Worker(pathToRptDefs, pathToOutputs)
-  private val jobIdToResultMap = new mutable.HashMap[Long, (JobStatus, Option[String] /* filePath */ )]()
+  private lazy val worker: Worker = new Worker(reportManager)
+  private val jobIdToResultMap = new mutable.HashMap[Long, (JobStatus, Option[String] /* fileName */ )]()
 
   override def start(): Actor = {
     log.debug("in start()")
@@ -37,12 +38,12 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
       react {
         case req@ReportRequest(rptId) => {
           val jobId = getJobId()
-          jobIdToResultMap += (jobId -> (JobStatus.PENDING, null))
+          jobIdToResultMap += (jobId -> (JobStatus.PENDING, None))
           sender ! ReportResponse(jobId, req)
           worker ! JobRequest(rptId, jobId)
         }
         case req@StatusRequest(jobId) => {
-          sender ! StatusResponse(jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, null))._1, req)
+          sender ! StatusResponse(jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, None))._1, req)
         }
         case req@ResultRequest(jobId) => {
           sender ! ResultResponse(jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, None))._2, req)
@@ -59,12 +60,13 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
           val response = (worker !? req).asInstanceOf[ReportDefinitionMapResponse]
           sender ! response
         }
-        case JobResponse(jobStatus, filePath, req) => {
+        case JobResponse(jobStatus, rptId, req) => {
           log.info("Got notify for jobId {} with status {}", req.jobId, jobStatus)
-          jobIdToResultMap += (req.jobId -> (jobStatus, filePath))
+          jobIdToResultMap += (req.jobId -> (jobStatus, rptId))
         }
-        case ShutDownRequest => {
-          worker !? ShutDownRequest
+        case ShutDownRequest() => {
+          worker !? ShutDownRequest()
+          sender ! ShutDownResponse()
           exit()
         }
         case msg => log.info("Received unexpected message: {}", msg)
@@ -84,10 +86,10 @@ class Coordinator(pathToRptDefs: String, pathToOutputs: String) extends Actor {
 /**
  * Actor that is paired with a Coordinator, and executes report requests.
  */
-class Worker(pathToRptDefs: String, pathToOutputs: String) extends Actor {
+class Worker(reportManager: ReportManager) extends Actor {
 
   private val log = LoggerFactory.getLogger(this.getClass)
-  private lazy val rptGenerator = new ReportGenerator(pathToRptDefs, pathToOutputs)
+  private lazy val rptGenerator = new ReportGenerator(reportManager)
 
   def act {
     log.debug("in act()")
@@ -96,31 +98,27 @@ class Worker(pathToRptDefs: String, pathToOutputs: String) extends Actor {
         case req@JobRequest(rptId, jobId) => {
           sender ! JobResponse(JobStatus.IN_PROGRESS, null, req)
           var resultStatus = JobStatus.COMPLETE
-          var resultFile: Option[String] = None
+          var resultFileName: Option[String] = None
           try {
-            resultFile = Some(runPdfReport(rptId, jobId).getAbsolutePath)
+            resultFileName = Some(runPdfReport(rptId, jobId))
           } catch {
             case ex: Exception => {
               log.error("Caught exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED
             }
           }
-          sender ! JobResponse(resultStatus, resultFile, req)
+          sender ! JobResponse(resultStatus, resultFileName, req)
         }
         case req@ReportDefinitionMapRequest(uriPrefix) => {
           val rptDefMap: util.Map[String, String] = new util.HashMap()
-          rptGenerator.getAvailableRptDefs map { file =>
-            if (file.endsWith(".rptdesign")) {
-              val rptDefId = file.substring(0, file.indexOf('.'))
-              rptDefMap.put(rptDefId, uriPrefix + "/" + rptDefId)
-            } else
-              log.warn("File {} in definition directory doesn't not have proper extension", file)
+          rptGenerator.getAvailableRptDefs map { rptDefId =>
+            rptDefMap.put(rptDefId, uriPrefix + "/" + rptDefId)
           }
           sender ! ReportDefinitionMapResponse(rptDefMap, req)
         }
-        case ShutDownRequest => {
+        case ShutDownRequest() => {
           stopRptGenerator()
-          sender ! ShutDownResponse
+          sender ! ShutDownResponse()
           exit()
         }
         case msg => log.info("Received unexpected message: {}", msg)
@@ -135,13 +133,13 @@ class Worker(pathToRptDefs: String, pathToOutputs: String) extends Actor {
     this
   }
 
-  private def runPdfReport(rptId: String, jobId: Long): File = {
+  private def runPdfReport(rptId: String, jobId: Long): String = {
     log.debug("Running report {}...", rptId)
-    val rptDefName = rptId + ".rptdesign"
-    val rptOutputName = "REPORT_" + jobId + ".pdf"
-    val outputFile = rptGenerator.runPdfReport(rptDefName, rptOutputName)
+    val rptDefName = rptId
+    val rptOutputName = "REPORT_" + jobId
+    rptGenerator.runPdfReport(rptDefName, rptOutputName)
     log.debug("Done report {}...", rptId)
-    outputFile
+    rptOutputName
   }
 
   private def startRptGenerator() {
