@@ -10,6 +10,7 @@ package com.ksmpartners.ernie.engine.report
 import collection.mutable
 import java.io._
 import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.model.ReportType
 
 class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extends ReportManager {
 
@@ -70,9 +71,14 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     new FileOutputStream(file)
   }
 
-  override def putReport(rptId: String): OutputStream = {
+  override def putReport(rptId: String, rptType: ReportType): OutputStream = {
     loadFilesIfNeeded()
-    val file = new File(outputDir, rptId + ".pdf")
+    val ext = rptType match {
+      case ReportType.CSV => ".csv"
+      case ReportType.HTML => ".html"
+      case ReportType.PDF => ".pdf"
+    }
+    val file = new File(outputDir, rptId + ext)
     log.info("Putting new report: ", file)
     definitions += (rptId -> file)
     new FileOutputStream(file)
@@ -80,12 +86,34 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
 
   override def deleteDefinition(defId: String) {
     loadFilesIfNeeded()
-    definitions -= defId
+    log.info("Deleting definition file {}", defId)
+    if (definitions.contains(defId)) {
+      val file = definitions.get(defId).get
+      if (file.delete()) {
+        log.info("Definition file {} was deleted successfully.", defId)
+        definitions -= defId
+      } else {
+        log.warn("Definition file {} did not delete successfully.", defId)
+      }
+    } else {
+      log.warn("Definition file {} does not exist, skipping delete.", defId)
+    }
   }
 
   override def deleteReport(rptId: String) {
     loadFilesIfNeeded()
-    reports -= rptId
+    log.info("Deleting report file {}", rptId)
+    if (reports.contains(rptId)) {
+      val file = reports.get(rptId).get
+      if (!file.delete()) {
+        log.info("Report file {} was deleted successfully.", rptId)
+        reports -= rptId
+      } else {
+        log.warn("Report file {} did not delete successfully.", rptId)
+      }
+    } else {
+      log.warn("Report file {} does not exist, skipping delete.", rptId)
+    }
   }
 
   private def loadFilesIfNeeded() {

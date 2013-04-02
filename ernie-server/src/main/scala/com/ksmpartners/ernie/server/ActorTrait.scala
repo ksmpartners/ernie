@@ -9,18 +9,18 @@ package com.ksmpartners.ernie.server
 
 import com.ksmpartners.ernie.engine
 import com.ksmpartners.ernie.engine.Coordinator
-import engine.report.{ FileReportManager }
+import engine.report.FileReportManager
 import net.liftweb.util.Props
 
 /**
  * Trait that contains and maintains the actor(s) for coordinating report creation
  */
 trait ActorTrait {
-  val coordinator = new Coordinator(new FileReportManager(Props.get("rpt.def.dir").open_!, Props.get("output.dir").open_!)).start()
+  protected val coordinator = new Coordinator(new FileReportManager(Props.get("rpt.def.dir").open_!, Props.get("output.dir").open_!)).start()
 
   class ShutdownResource {
     def shutdown() {
-      coordinator ! engine.ShutDownRequest
+      coordinator ! engine.ShutDownRequest()
     }
   }
 }

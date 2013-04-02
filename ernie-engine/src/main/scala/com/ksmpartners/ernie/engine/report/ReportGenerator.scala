@@ -11,6 +11,7 @@ import org.eclipse.birt.report.engine.api._
 import org.eclipse.birt.core.framework.Platform
 import org.slf4j.LoggerFactory
 import java.io._
+import com.ksmpartners.ernie.model.ReportType
 
 /**
  * Class used to generate BIRT reports
@@ -66,7 +67,7 @@ class ReportGenerator(reportManager: ReportManager) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     log.debug("Generating PDF from report definition {}", rptDefName)
     try_(reportManager.getDefinition(rptDefName)) { rptDefStream =>
-      try_(reportManager.putReport(outputFileName)) { rptOutputStream =>
+      try_(reportManager.putReport(outputFileName, ReportType.PDF)) { rptOutputStream =>
         runPdfReport(rptDefStream, rptOutputStream)
       }
     }

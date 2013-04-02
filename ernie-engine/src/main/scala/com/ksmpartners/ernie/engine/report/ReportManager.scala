@@ -8,6 +8,7 @@
 package com.ksmpartners.ernie.engine.report
 
 import java.io.{ OutputStream, InputStream }
+import com.ksmpartners.ernie.model.ReportType
 
 /**
  * Trait that contains methods for managing reports and definitions
@@ -47,10 +48,11 @@ trait ReportManager {
    */
   def putDefinition(defId: String): OutputStream
   /**
-   * Returns an OutputStream into which content can be put. This content will be attached to rptId.
+   * Returns an OutputStream into which content can be put. This content will be attached to rptId
+   * with the type of rptType.
    * If rptId already exists, its content is replaced with the new content
    */
-  def putReport(rptId: String): OutputStream
+  def putReport(rptId: String, rptType: ReportType): OutputStream
 
   /**
    * Deletes the given definition

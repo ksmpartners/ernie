@@ -10,6 +10,7 @@ package com.ksmpartners.ernie.engine.report
 import org.testng.annotations.{ BeforeMethod, Test }
 import org.testng.Assert
 import java.io.IOException
+import com.ksmpartners.ernie.model.ReportType
 
 class MemoryReportManagerTest {
 
@@ -32,7 +33,7 @@ class MemoryReportManagerTest {
 
   @Test
   def testPut() {
-    val bosR = reportManager.putReport("rpt_6")
+    val bosR = reportManager.putReport("rpt_6", ReportType.CSV)
     Assert.assertFalse(reportManager.hasReport("rpt_6"))
     bosR.close()
     Assert.assertTrue(reportManager.hasReport("rpt_6"))

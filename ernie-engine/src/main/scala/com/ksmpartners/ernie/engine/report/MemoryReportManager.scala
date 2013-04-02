@@ -9,6 +9,7 @@ package com.ksmpartners.ernie.engine.report
 
 import java.io._
 import scala.collection._
+import com.ksmpartners.ernie.model.ReportType
 
 /**
  * Implementation of ReportManager that stores reports and definitions in memory
@@ -52,7 +53,7 @@ class MemoryReportManager extends ReportManager {
     })
   }
 
-  override def putReport(rptId: String): OutputStream = {
+  override def putReport(rptId: String, rptType: ReportType): OutputStream = {
     new LocalBOS(rptId, { (id, content) =>
       putReport(id, content)
     })
@@ -75,11 +76,11 @@ class MemoryReportManager extends ReportManager {
 
   }
 
-  def putDefinition(defId: String, content: Array[Byte]): Unit = {
+  def putDefinition(defId: String, content: Array[Byte]) {
     definitions += (defId -> content)
   }
 
-  def putReport(rptId: String, content: Array[Byte]): Unit = {
+  def putReport(rptId: String, content: Array[Byte]) {
     reports += (rptId -> content)
   }
 

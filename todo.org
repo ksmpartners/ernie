@@ -16,11 +16,13 @@
 
 # Pre development tasks
 ## All are in Jira as Stories/Sub-tasks
-[ ]* Build environment
-[ ]** Set up Hudson project
-[ ]*** Set up Husdon with auto build (auto deploy to test?)
-[ ]* Test environment
-[ ]** Set up test server
+[x]* Build environment
+[x]** Set up Hudson project
+[x]*** Set up Husdon with auto build (auto deploy to test?)
+[x]---> Currently set up to auto deploy to dev
+[x]* Test environment
+[x]-> Set up dev environement
+[x]** Set up test server
 [ ]*** Test DB?
 [ ]* Test framework
 [x]** TestNG for unit tests
@@ -37,6 +39,7 @@
 
 # All projects
 [ ]* Redo/Add more unit tests to all projects
+[ ]** Fix BIRT unit test error: Calling Platform.startup() twice fails
 [ ]** Look into framework for unit testing RESTful web service API
 [x]** Add and set up JaCoCo for code coverage
 [x]*** Verify that JaCoCo works with Scala
