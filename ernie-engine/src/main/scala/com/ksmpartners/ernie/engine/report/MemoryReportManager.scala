@@ -76,10 +76,18 @@ class MemoryReportManager extends ReportManager {
 
   }
 
+  /**
+   * Puts the given content in memory and attaches it to defId.
+   * If defId already exists, its content is replaced with the new content
+   */
   def putDefinition(defId: String, content: Array[Byte]) {
     definitions += (defId -> content)
   }
 
+  /**
+   * Puts the given content in memory and attaches it to rptId.
+   * If rptId already exists, its content is replaced with the new content
+   */
   def putReport(rptId: String, content: Array[Byte]) {
     reports += (rptId -> content)
   }

@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestTest {
+public class SerializationTest {
 
     @Test
     public void testTestClass()

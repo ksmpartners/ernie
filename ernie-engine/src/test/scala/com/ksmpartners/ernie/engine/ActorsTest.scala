@@ -19,6 +19,7 @@ class ActorsTest {
   private var reportManager: MemoryReportManager = null
   private var coordinator: Coordinator = null
 
+  // TODO: Fix error when calling Platform.startup() twice
   //  @BeforeClass
   def setup() {
     reportManager = new MemoryReportManager

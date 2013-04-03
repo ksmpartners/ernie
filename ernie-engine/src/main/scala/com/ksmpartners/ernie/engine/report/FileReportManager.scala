@@ -12,6 +12,9 @@ import java.io._
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.model.ReportType
 
+/**
+ * Implementation of ReportManager that stores and loads reports and definitions from the filesystem
+ */
 class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extends ReportManager {
 
   private val log: Logger = LoggerFactory.getLogger(this.getClass)
@@ -116,11 +119,18 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     }
   }
 
+  /**
+   * Method that loads definition and report files from the filesystem if needed
+   */
   private def loadFilesIfNeeded() {
+    // TODO: Redefine "needed" // Use time since last check?
     if (definitions.isEmpty || reports.isEmpty)
       doLoadFiles()
   }
 
+  /**
+   * Helper method that that does that actual loading of the files
+   */
   private def doLoadFiles() {
     rptDefDir.listFiles().filter({ _.isFile }).foreach({ file =>
       definitions += (file.getName.replaceFirst("[.][^.]+$", "") -> file)

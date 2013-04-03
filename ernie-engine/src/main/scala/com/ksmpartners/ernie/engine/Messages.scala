@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.engine
 
 import com.ksmpartners.ernie.model.{ ReportType, JobStatus }
 
-/** Request that a report be generated with the given output type */
+/** Request that the report defId be generated resulting in an output of type rptType */
 case class ReportRequest(defId: String, rptType: ReportType)
 /** The response to the given ReportRequest */
 case class ReportResponse(jobId: Long, req: ReportRequest)
@@ -21,9 +21,9 @@ case class ResultResponse(rptId: Option[String], req: ResultRequest)
 case class StatusRequest(jobId: Long)
 /** The response to the given StatusRequest */
 case class StatusResponse(jobStatus: JobStatus, req: StatusRequest)
-/** Request a map of job IDs to their URIs */
+/** Request a list of the currently known jobIds */
 case class JobsListRequest()
-/** The response to the given JobsMapRequest */
+/** The response to the given JobsListRequest */
 case class JobsListResponse(jobsList: Array[String], req: JobsListRequest)
 
 /** Request that the definition defId be generated into a rptType document */
