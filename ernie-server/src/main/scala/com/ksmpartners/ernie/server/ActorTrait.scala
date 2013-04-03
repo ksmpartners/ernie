@@ -16,7 +16,8 @@ import net.liftweb.util.Props
  * Trait that contains and maintains the actor(s) for coordinating report creation
  */
 trait ActorTrait {
-  protected val coordinator = new Coordinator(new FileReportManager(Props.get("rpt.def.dir").open_!, Props.get("output.dir").open_!)).start()
+  protected val reportManager = new FileReportManager(Props.get("rpt.def.dir").open_!, Props.get("output.dir").open_!)
+  protected val coordinator = new Coordinator(reportManager).start()
 
   class ShutdownResource {
     def shutdown() {

@@ -29,6 +29,11 @@
 	    <version>4.2.0</version>
         </dependency>
         <dependency>
+ 	     <groupId>org.eclipse.birt.report.engine.emitter.csv</groupId>
+ 	     <artifactId>org.eclipse.birt.report.engine.emitter.csv</artifactId>
+ 	     <version>1.0.0.201110121016</version>
+        </dependency>
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>

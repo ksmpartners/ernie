@@ -12,6 +12,7 @@ import org.eclipse.birt.core.framework.Platform
 import org.slf4j.LoggerFactory
 import java.io._
 import com.ksmpartners.ernie.model.ReportType
+import org.eclipse.birt.report.engine.emitter.csv.CSVRenderOption
 
 /**
  * Class used to generate BIRT reports
@@ -47,30 +48,47 @@ class ReportGenerator(reportManager: ReportManager) {
   def getAvailableRptDefs: List[String] = reportManager.getAllDefinitionIds
 
   /**
-   * Method that runs the .rtpdesign file in the input stream rptDefFileStream, and outputs the results to
-   * outputFileStream as a .pdf
-   */
-  def runPdfReport(rptDefInputStream: InputStream, reportOutputStream: OutputStream) {
-    if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
-    val design = engine.openReportDesign(rptDefInputStream)
-    val renderOption = new PDFRenderOption
-    renderOption.setOutputStream(reportOutputStream)
-    renderOption.setOutputFormat("pdf")
-    runReport(design, renderOption)
-  }
-
-  /**
    * Method that runs the .rtpdesign file at the given location rptDefName, and outputs the results to outputFileName
    * as a .pdf
    */
-  def runPdfReport(rptDefName: String, outputFileName: String) {
+  def runReport(rptDefName: String, outputFileName: String, rptType: ReportType) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     log.debug("Generating PDF from report definition {}", rptDefName)
     try_(reportManager.getDefinition(rptDefName)) { rptDefStream =>
-      try_(reportManager.putReport(outputFileName, ReportType.PDF)) { rptOutputStream =>
-        runPdfReport(rptDefStream, rptOutputStream)
+      try_(reportManager.putReport(outputFileName, rptType)) { rptOutputStream =>
+        runReport(rptDefStream, rptOutputStream, rptType)
       }
     }
+  }
+
+  /**
+   * Method that runs the .rtpdesign file in the input stream rptDefFileStream, and outputs the results to
+   * outputFileStream as rptType
+   */
+  def runReport(rptDefInputStream: InputStream, reportOutputStream: OutputStream, rptType: ReportType) {
+    if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
+    val design = engine.openReportDesign(rptDefInputStream)
+    var renderOption: RenderOption = null
+    rptType match {
+      case ReportType.PDF => {
+        renderOption = new PDFRenderOption
+        renderOption.setOutputFormat("pdf")
+      }
+      case ReportType.CSV => {
+        renderOption = new CSVRenderOption
+        renderOption.setOutputFormat("csv")
+      }
+      case ReportType.HTML => {
+        renderOption = new HTMLRenderOption
+        renderOption.setOutputFormat("html")
+      }
+      case t => {
+        log.error("Invalid report type: {}", t)
+        throw new IllegalArgumentException("Invalid report type: " + t)
+      }
+    }
+    renderOption.setOutputStream(reportOutputStream)
+    runReport(design, renderOption)
   }
 
   /**

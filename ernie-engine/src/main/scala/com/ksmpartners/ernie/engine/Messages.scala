@@ -7,32 +7,27 @@
 
 package com.ksmpartners.ernie.engine
 
-import com.ksmpartners.ernie.model.JobStatus
-import java.util
+import com.ksmpartners.ernie.model.{ ReportType, JobStatus }
 
-/** Request that a report be generated */
-case class ReportRequest(rtpDefId: String)
+/** Request that a report be generated with the given output type */
+case class ReportRequest(defId: String, rptType: ReportType)
 /** The response to the given ReportRequest */
 case class ReportResponse(jobId: Long, req: ReportRequest)
 /** Request the resulting file for the given jobId */
 case class ResultRequest(jobId: Long)
 /** The response to the given ResultRequest */
-case class ResultResponse(filePath: Option[String], req: ResultRequest)
+case class ResultResponse(rptId: Option[String], req: ResultRequest)
 /** Request the status for the given jobId */
 case class StatusRequest(jobId: Long)
 /** The response to the given StatusRequest */
 case class StatusResponse(jobStatus: JobStatus, req: StatusRequest)
 /** Request a map of job IDs to their URIs */
-case class JobsMapRequest(uriPrefix: String)
+case class JobsListRequest()
 /** The response to the given JobsMapRequest */
-case class JobsMapResponse(jobsMap: util.Map[String, String], req: JobsMapRequest)
-/** Request a map of rptDefIds to their file names */
-case class ReportDefinitionMapRequest(uriPrefix: String)
-/** The response to the given ReportDefinitionMapRequest */
-case class ReportDefinitionMapResponse(rptDefMap: util.Map[String, String], req: ReportDefinitionMapRequest)
+case class JobsListResponse(jobsList: Array[String], req: JobsListRequest)
 
-/** Request that the given rptDefId be processed */
-case class JobRequest(rtpDefId: String, jobId: Long)
+/** Request that the definition defId be generated into a rptType document */
+case class JobRequest(defId: String, rptType: ReportType, jobId: Long)
 /** The response(s) associated with the given JobRequest */
 case class JobResponse(jobStatus: JobStatus, rptId: Option[String], req: JobRequest)
 /** Request that the Actor be shut down */

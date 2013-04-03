@@ -50,20 +50,21 @@
 [ ]* Move all references to base URIs to server layer
 [ ]** Remove all references to base URIs from model layer
 [ ]--> This may need to remain as part of the responses
-[ ]** Remove all references to base URIs from engine layer
+[x]** Remove all references to base URIs from engine layer
 
 # ernie-model
 [x]* Add ReportType enum (PDF, HTML, CSV, etc.)
 
 # ernie-engine
-[ ]* Split filesystem management into new class ReportManager
+[x]* Split filesystem management into new class ReportManager
 [x]** Look into CAS frameworks for Java/Scala
-[ ]*** Use standard file structure for storing definitions/results
+[x]*** Use standard file structure for storing definitions/results
 [ ]* Look into BIRT .rptdesign validation
 [ ]* Add CSV generation to ReportGenerator (CSV Emitter for BIRT)
 [x]** Verify CSV generation package meets license standards
 [x]--> Uses Eclipse Public License
-[ ]* Make report generation thread safe
+[x]* Make report generation thread safe
+[x]-> Interacting solely through the Coordinator is sufficient for thread safety
 
 # erner-server
 [ ]* Unit tests

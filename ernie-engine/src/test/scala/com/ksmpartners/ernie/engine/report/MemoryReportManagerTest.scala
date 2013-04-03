@@ -14,7 +14,7 @@ import com.ksmpartners.ernie.model.ReportType
 
 class MemoryReportManagerTest {
 
-  var reportManager: MemoryReportManager = new MemoryReportManager
+  private var reportManager: MemoryReportManager = new MemoryReportManager
 
   @BeforeMethod
   def setup() {

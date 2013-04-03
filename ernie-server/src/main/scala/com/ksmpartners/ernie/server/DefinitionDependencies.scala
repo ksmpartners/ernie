@@ -8,6 +8,7 @@
 package com.ksmpartners.ernie.server
 
 import com.ksmpartners.ernie.{ model, engine }
+import java.util
 
 /**
  * Dependencies for interacting with report definitions
@@ -16,9 +17,11 @@ trait DefinitionDependencies extends ActorTrait {
 
   class DefsResource extends JsonTranslator {
     def get(uriPrefix: String) = {
-      val response =
-        (coordinator !? engine.ReportDefinitionMapRequest(uriPrefix)).asInstanceOf[engine.ReportDefinitionMapResponse]
-      getJsonResponse(new model.ReportDefinitionMapResponse(response.rptDefMap))
+      val defMap: util.Map[String, String] = new util.HashMap
+      reportManager.getAllDefinitionIds.foreach({ defId =>
+        defMap.put(defId, uriPrefix + "/" + defId)
+      })
+      getJsonResponse(new model.ReportDefinitionMapResponse(defMap))
     }
   }
 

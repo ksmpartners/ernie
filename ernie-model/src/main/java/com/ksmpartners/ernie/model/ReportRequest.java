@@ -12,20 +12,30 @@ package com.ksmpartners.ernie.model;
  */
 public class ReportRequest {
 
-    private String reportDefId;
+    private String defId;
+    private ReportType rptType;
 
     public ReportRequest() {}
 
-    public ReportRequest(String reportDefId) {
-        this.reportDefId = reportDefId;
+    public ReportRequest(String defId, ReportType rptType) {
+        this.defId = defId;
+        this.rptType = rptType;
     }
 
-    public void setReportDefId(String reportDefId) {
-        this.reportDefId = reportDefId;
+    public void setDefId(String defId) {
+        this.defId = defId;
     }
 
-    public String getReportDefId() {
-        return reportDefId;
+    public String getDefId() {
+        return defId;
+    }
+
+    public void setRptType(ReportType rptType) {
+        this.rptType = rptType;
+    }
+
+    public ReportType getRptType() {
+        return rptType;
     }
 
 }

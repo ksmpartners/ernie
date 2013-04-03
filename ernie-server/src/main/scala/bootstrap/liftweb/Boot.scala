@@ -14,7 +14,7 @@ import com.ksmpartners.ernie.server.DispatchRestAPI
 import net.liftweb.util.Props
 import net.liftweb.common.Full
 import java.io.FileInputStream
-import org.slf4j.{LoggerFactory, Logger}
+import org.slf4j.{ LoggerFactory, Logger }
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -22,7 +22,7 @@ import org.slf4j.{LoggerFactory, Logger}
  */
 class Boot {
 
-  val log: Logger = LoggerFactory.getLogger(this.getClass)
+  private val log: Logger = LoggerFactory.getLogger(this.getClass)
 
   def boot {
 
@@ -38,7 +38,7 @@ class Boot {
 
     LiftRules.statelessDispatchTable.prepend(DispatchRestAPI.dispatch)
 
-    LiftRules.unloadHooks.prepend(() => DispatchRestAPI.shutdown)
+    LiftRules.unloadHooks.prepend(() => DispatchRestAPI.shutdown())
   }
 
   /**

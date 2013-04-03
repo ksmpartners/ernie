@@ -11,25 +11,36 @@ import net.liftweb.common.{ Box, Full, Empty }
 import net.liftweb.http._
 import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.engine
-import java.io.{ FileInputStream, File, IOException }
+import java.io.IOException
+import java.util
+import org.slf4j.{ LoggerFactory, Logger }
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
  */
 trait JobDependencies extends ActorTrait {
 
+  private val log: Logger = LoggerFactory.getLogger(this.getClass)
+
   class JobsResource extends JsonTranslator {
     def get(uriPrefix: String) = {
-      val response = (coordinator !? engine.JobsMapRequest(uriPrefix)).asInstanceOf[engine.JobsMapResponse]
-      getJsonResponse(new model.JobsMapResponse(response.jobsMap))
+      val response = (coordinator !? engine.JobsListRequest()).asInstanceOf[engine.JobsListResponse]
+      val jobsMap: util.Map[String, String] = new util.HashMap
+      response.jobsList.foreach({ jobId =>
+        jobsMap.put(jobId, uriPrefix + "/" + jobId)
+      })
+      getJsonResponse(new model.JobsMapResponse(jobsMap))
     }
     def post(body: Box[Array[Byte]]) = {
       try {
         val req = deserialize(body.open_!, classOf[model.ReportRequest])
-        val response = (coordinator !? engine.ReportRequest(req.getReportDefId)).asInstanceOf[engine.ReportResponse]
+        val response = (coordinator !? engine.ReportRequest(req.getDefId, req.getRptType)).asInstanceOf[engine.ReportResponse]
         getJsonResponse(new model.ReportResponse(response.jobId), 201)
       } catch {
-        case e: IOException => Full(BadResponse())
+        case e: IOException => {
+          log.error("Caught exception while handling request: {}", e)
+          Full(BadResponse())
+        }
       }
     }
   }
@@ -45,17 +56,16 @@ trait JobDependencies extends ActorTrait {
     def get(jobId: String) = {
       val response = (coordinator !? engine.ResultRequest(jobId.toLong)).asInstanceOf[engine.ResultResponse]
 
-      if (response.filePath.isDefined) {
-        val file = new File(response.filePath.get)
-        val fileStream = new FileInputStream(file)
+      if (response.rptId.isDefined) {
+        val fileStream = reportManager.getReport(response.rptId.get)
         val header: List[(String, String)] =
           ("Content-type" -> "application/pdf") ::
-            ("Content-length" -> file.length.toString) ::
-            ("Content-disposition" -> ("attachment; filename=\"" + file.getName + "\"")) :: Nil
+            ("Content-length" -> fileStream.available.toString) ::
+            ("Content-disposition" -> ("attachment; filename=\"" + response.rptId.get + ".pdf\"")) :: Nil
         Full(StreamingResponse(
           fileStream,
           () => { fileStream.close() }, // On end method.
-          file.length,
+          fileStream.available,
           header, Nil, 200))
       } else {
         Full(BadResponse())

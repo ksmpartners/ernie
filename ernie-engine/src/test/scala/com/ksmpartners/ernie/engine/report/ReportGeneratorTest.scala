@@ -11,11 +11,12 @@ import org.testng.annotations.{ AfterClass, Test, BeforeClass }
 import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, File, FileInputStream }
 import java.net.URL
 import org.testng.Assert
+import com.ksmpartners.ernie.model.ReportType
 
 class ReportGeneratorTest {
 
-  var reportGenerator: ReportGenerator = null
-  var reportManager: MemoryReportManager = null
+  private var reportGenerator: ReportGenerator = null
+  private var reportManager: MemoryReportManager = null
 
   @BeforeClass
   def setup() {
@@ -38,7 +39,7 @@ class ReportGeneratorTest {
   @Test
   def canRunDefFromStream() {
     val bos = new ByteArrayOutputStream()
-    reportGenerator.runPdfReport(reportManager.getDefinition("test_def"), bos)
+    reportGenerator.runReport(reportManager.getDefinition("test_def"), bos, ReportType.PDF)
     Assert.assertTrue(bos.toByteArray.length > 0)
   }
 
@@ -49,20 +50,20 @@ class ReportGeneratorTest {
 
   @Test
   def canRunExistingDef() {
-    reportGenerator.runPdfReport("test_def", "test_rpt")
+    reportGenerator.runReport("test_def", "test_rpt", ReportType.PDF)
     Assert.assertTrue(reportManager.hasReport("test_rpt"))
   }
 
   @Test(expectedExceptions = Array(classOf[IllegalStateException]))
   def cantRunExistingReportWithStoppedGenerator() {
     val rptGen = new ReportGenerator(new MemoryReportManager)
-    rptGen.runPdfReport("test1", "test2")
+    rptGen.runReport("test1", "test2", ReportType.PDF)
   }
 
   @Test(expectedExceptions = Array(classOf[IllegalStateException]))
   def cantRunStreamReportWithStoppedGenerator() {
     val rptGen = new ReportGenerator(new MemoryReportManager)
-    rptGen.runPdfReport(new ByteArrayInputStream(Array[Byte](1)), new ByteArrayOutputStream())
+    rptGen.runReport(new ByteArrayInputStream(Array[Byte](1)), new ByteArrayOutputStream(), ReportType.PDF)
   }
 
 }

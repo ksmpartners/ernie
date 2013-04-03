@@ -9,6 +9,7 @@ package com.ksmpartners.ernie.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksmpartners.ernie.model.JobStatus;
+import com.ksmpartners.ernie.model.ReportType;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -284,6 +285,7 @@ public class TestUtil {
         testValues.put(Set.class, Mockito.anySet());
         testValues.put(Map.class, Mockito.anyMap());
         testValues.put(JobStatus.class, JobStatus.PENDING);
+        testValues.put(ReportType.class, ReportType.PDF);
     }
 
     private static class Pair {
