@@ -80,7 +80,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     }
     val file = new File(outputDir, rptId + ext)
     log.info("Putting new report: ", file)
-    definitions += (rptId -> file)
+    reports += (rptId -> file)
     new FileOutputStream(file)
   }
 
