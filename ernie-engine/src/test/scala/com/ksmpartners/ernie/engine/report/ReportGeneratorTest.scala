@@ -50,8 +50,12 @@ class ReportGeneratorTest {
 
   @Test
   def canRunExistingDef() {
-    reportGenerator.runReport("test_def", "test_rpt", ReportType.PDF)
-    Assert.assertTrue(reportManager.hasReport("test_rpt"))
+    reportGenerator.runReport("test_def", "test_rpt_pdf", ReportType.PDF)
+    reportGenerator.runReport("test_def", "test_rpt_csv", ReportType.CSV)
+    reportGenerator.runReport("test_def", "test_rpt_html", ReportType.HTML)
+    Assert.assertTrue(reportManager.hasReport("test_rpt_pdf"))
+    Assert.assertTrue(reportManager.hasReport("test_rpt_csv"))
+    Assert.assertTrue(reportManager.hasReport("test_rpt_html"))
   }
 
   @Test(expectedExceptions = Array(classOf[IllegalStateException]))

@@ -10,7 +10,7 @@ package com.ksmpartners.ernie.model;
 /**
  * A JSONable class used to send a report request via HTTP
  */
-public class ReportRequest {
+public class ReportRequest extends ModelObject {
 
     private String defId;
     private ReportType rptType;

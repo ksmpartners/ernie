@@ -72,4 +72,13 @@ public class SerializationTest {
         Assert.assertFalse(TestUtil.equal("test string", Integer.valueOf(1)));
     }
 
+    @Test
+    public void testCType() {
+        Assert.assertEquals(new JobsMapResponse().cType(), "application/vnd.ksmpartners.ernie.jobsmapresponse+json");
+        Assert.assertEquals(new ReportDefinitionMapResponse().cType(), "application/vnd.ksmpartners.ernie.reportdefinitionmapresponse+json");
+        Assert.assertEquals(new ReportRequest().cType(), "application/vnd.ksmpartners.ernie.reportrequest+json");
+        Assert.assertEquals(new ReportResponse().cType(), "application/vnd.ksmpartners.ernie.reportresponse+json");
+        Assert.assertEquals(new StatusResponse().cType(), "application/vnd.ksmpartners.ernie.statusresponse+json");
+    }
+
 }

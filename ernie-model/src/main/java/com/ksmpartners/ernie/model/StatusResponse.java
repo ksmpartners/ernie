@@ -10,7 +10,7 @@ package com.ksmpartners.ernie.model;
 /**
  * A JSONable class used to send job status information via HTTP
  */
-public class StatusResponse {
+public class StatusResponse extends ModelObject {
 
     private JobStatus jobStatus;
 

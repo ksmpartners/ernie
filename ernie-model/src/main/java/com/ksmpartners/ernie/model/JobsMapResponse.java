@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * A JSONable class used to send jobs information via HTTP
  */
-public class JobsMapResponse {
+public class JobsMapResponse extends ModelObject {
 
     private Map<String, String> jobsMap;
 
