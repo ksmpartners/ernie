@@ -47,9 +47,9 @@ class MemoryReportManagerTest {
   @Test()
   def testGet() {
     val buf: Array[Byte] = new Array(5)
-    reportManager.getDefinition("def_1").read(buf)
+    reportManager.getDefinition("def_1").get.read(buf)
     Assert.assertEquals(buf, "DEF_1".getBytes)
-    reportManager.getReport("rpt_1").read(buf)
+    reportManager.getReport("rpt_1").get.read(buf)
     Assert.assertEquals(buf, "RPT_1".getBytes)
   }
 
@@ -109,14 +109,10 @@ class MemoryReportManagerTest {
       List("rpt_1", "rpt_2", "rpt_3", "rpt_4", "rpt_5"))
   }
 
-  @Test(expectedExceptions = Array(classOf[IOException]))
-  def missingReportThrowsExceptionOnGet() {
-    reportManager.getReport("FAIL")
-  }
-
-  @Test(expectedExceptions = Array(classOf[IOException]))
-  def missingDefinitionThrowsExceptionOnGet() {
-    reportManager.getDefinition("FAIL")
+  @Test
+  def missingReportOrDefinitionReturnsNone() {
+    Assert.assertEquals(reportManager.getReport("FAIL"), None)
+    Assert.assertEquals(reportManager.getDefinition("FAIL"), None)
   }
 
 }

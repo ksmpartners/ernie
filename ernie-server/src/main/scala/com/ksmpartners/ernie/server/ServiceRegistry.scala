@@ -11,7 +11,10 @@ package com.ksmpartners.ernie.server
  * Object that registers the services used by the stateless dispatch
  */
 object ServiceRegistry extends JobDependencies
-    with DefinitionDependencies {
+    with DefinitionDependencies
+    with ReportActorDependencies
+    with CoordinatorProvider
+    with FileReportManagerProvider {
 
   val jobsResource = new JobsResource
   val jobStatusResource = new JobStatusResource

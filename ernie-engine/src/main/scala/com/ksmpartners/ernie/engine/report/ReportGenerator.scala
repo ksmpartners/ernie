@@ -54,7 +54,7 @@ class ReportGenerator(reportManager: ReportManager) {
   def runReport(rptDefName: String, outputFileName: String, rptType: ReportType) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     log.debug("Generating PDF from report definition {}", rptDefName)
-    try_(reportManager.getDefinition(rptDefName)) { rptDefStream =>
+    try_(reportManager.getDefinition(rptDefName).get) { rptDefStream =>
       try_(reportManager.putReport(outputFileName, rptType)) { rptOutputStream =>
         runReport(rptDefStream, rptOutputStream, rptType)
       }

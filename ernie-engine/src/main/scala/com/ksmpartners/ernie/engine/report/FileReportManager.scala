@@ -29,45 +29,47 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
       ". Output Dir: " + outputDir)
   }
 
-  private val definitions: mutable.Map[String, File] = new mutable.HashMap()
-  private val reports: mutable.Map[String, File] = new mutable.HashMap()
+  private lazy val definitions: mutable.Map[String, File] = {
+    val newMap = new mutable.HashMap[String, File]()
+    rptDefDir.listFiles().filter({ _.isFile }).foreach({ file =>
+      newMap += (file.getName.replaceFirst("[.][^.]+$", "") -> file)
+    })
+    newMap
+  }
+
+  private lazy val reports: mutable.Map[String, File] = {
+    val newMap = new mutable.HashMap[String, File]()
+    outputDir.listFiles().filter({ _.isFile }).foreach({ file =>
+      newMap += (file.getName.replaceFirst("[.][^.]+$", "") -> file)
+    })
+    newMap
+  }
 
   override def getAllDefinitionIds: List[String] = {
-    loadFilesIfNeeded()
     definitions.keys.toList
   }
 
   override def getAllReportIds: List[String] = {
-    loadFilesIfNeeded()
     reports.keys.toList
   }
 
   override def hasDefinition(defId: String): Boolean = {
-    loadFilesIfNeeded()
     definitions.contains(defId)
   }
 
   override def hasReport(rptId: String): Boolean = {
-    loadFilesIfNeeded()
     reports.contains(rptId)
   }
 
-  override def getDefinition(defId: String): InputStream = {
-    loadFilesIfNeeded()
-    if (!definitions.contains(defId))
-      throw new IOException("Definition does not exist for defId " + defId)
-    new FileInputStream(definitions.get(defId).get)
+  override def getDefinition(defId: String): Option[InputStream] = {
+    definitions.get(defId).map({ new FileInputStream(_) })
   }
 
-  override def getReport(rptId: String): InputStream = {
-    loadFilesIfNeeded()
-    if (!reports.contains(rptId))
-      throw new IOException("Report does not exist for rptId " + rptId)
-    new FileInputStream(reports.get(rptId).get)
+  override def getReport(rptId: String): Option[InputStream] = {
+    reports.get(rptId).map({ new FileInputStream(_) })
   }
 
   override def putDefinition(defId: String): OutputStream = {
-    loadFilesIfNeeded()
     val file = new File(rptDefDir, defId + ".rptdesign")
     log.info("Putting new definition: ", file)
     definitions += (defId -> file)
@@ -75,7 +77,6 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
   }
 
   override def putReport(rptId: String, rptType: ReportType): OutputStream = {
-    loadFilesIfNeeded()
     val ext = rptType match {
       case ReportType.CSV => ".csv"
       case ReportType.HTML => ".html"
@@ -88,7 +89,6 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
   }
 
   override def deleteDefinition(defId: String) {
-    loadFilesIfNeeded()
     log.info("Deleting definition file {}", defId)
     if (definitions.contains(defId)) {
       val file = definitions.get(defId).get
@@ -104,11 +104,10 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
   }
 
   override def deleteReport(rptId: String) {
-    loadFilesIfNeeded()
     log.info("Deleting report file {}", rptId)
     if (reports.contains(rptId)) {
       val file = reports.get(rptId).get
-      if (!file.delete()) {
+      if (file.delete()) {
         log.info("Report file {} was deleted successfully.", rptId)
         reports -= rptId
       } else {
@@ -117,27 +116,6 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     } else {
       log.warn("Report file {} does not exist, skipping delete.", rptId)
     }
-  }
-
-  /**
-   * Method that loads definition and report files from the filesystem if needed
-   */
-  private def loadFilesIfNeeded() {
-    // TODO: Redefine "needed" // Use time since last check?
-    if (definitions.isEmpty || reports.isEmpty)
-      doLoadFiles()
-  }
-
-  /**
-   * Helper method that that does that actual loading of the files
-   */
-  private def doLoadFiles() {
-    rptDefDir.listFiles().filter({ _.isFile }).foreach({ file =>
-      definitions += (file.getName.replaceFirst("[.][^.]+$", "") -> file)
-    })
-    outputDir.listFiles().filter({ _.isFile }).foreach({ file =>
-      reports += (file.getName.replaceFirst("[.][^.]+$", "") -> file)
-    })
   }
 
 }

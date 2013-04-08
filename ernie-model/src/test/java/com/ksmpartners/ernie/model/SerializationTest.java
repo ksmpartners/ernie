@@ -74,11 +74,11 @@ public class SerializationTest {
 
     @Test
     public void testCType() {
-        Assert.assertEquals(new JobsMapResponse().cType(), "application/vnd.ksmpartners.ernie.jobsmapresponse+json");
-        Assert.assertEquals(new ReportDefinitionMapResponse().cType(), "application/vnd.ksmpartners.ernie.reportdefinitionmapresponse+json");
-        Assert.assertEquals(new ReportRequest().cType(), "application/vnd.ksmpartners.ernie.reportrequest+json");
-        Assert.assertEquals(new ReportResponse().cType(), "application/vnd.ksmpartners.ernie.reportresponse+json");
-        Assert.assertEquals(new StatusResponse().cType(), "application/vnd.ksmpartners.ernie.statusresponse+json");
+        Assert.assertEquals(new JobsMapResponse().cType(), "application/vnd.ksmpartners.ernie+json");
+        Assert.assertEquals(new ReportDefinitionMapResponse().cType(), "application/vnd.ksmpartners.ernie+json");
+        Assert.assertEquals(new ReportRequest().cType(), "application/vnd.ksmpartners.ernie+json");
+        Assert.assertEquals(new ReportResponse().cType(), "application/vnd.ksmpartners.ernie+json");
+        Assert.assertEquals(new StatusResponse().cType(), "application/vnd.ksmpartners.ernie+json");
     }
 
 }

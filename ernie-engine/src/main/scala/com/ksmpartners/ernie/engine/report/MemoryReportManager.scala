@@ -35,16 +35,12 @@ class MemoryReportManager extends ReportManager {
     reports.contains(rptId)
   }
 
-  override def getDefinition(defId: String): InputStream = {
-    if (!definitions.contains(defId))
-      throw new IOException("Definition does not exist for defId " + defId)
-    new ByteArrayInputStream(definitions.get(defId).get)
+  override def getDefinition(defId: String): Option[InputStream] = {
+    definitions.get(defId).map({ new ByteArrayInputStream(_) })
   }
 
-  override def getReport(rptId: String): InputStream = {
-    if (!reports.contains(rptId))
-      throw new IOException("Report does not exist for rptId " + rptId)
-    new ByteArrayInputStream(reports.get(rptId).get)
+  override def getReport(rptId: String): Option[InputStream] = {
+    reports.get(rptId).map({ new ByteArrayInputStream(_) })
   }
 
   override def putDefinition(defId: String): OutputStream = {

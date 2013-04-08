@@ -36,6 +36,7 @@
 [ ]** Get project source in solid state before starting "real" development
 [ ]* Documentation
 [ ]** Document all currently existing source
+[ ]--> Some documentation needs to be rewritten
 
 # All projects
 [ ]* Redo/Add more unit tests to all projects
@@ -69,3 +70,4 @@
 # erner-server
 [ ]* Unit tests
 [ ]** Add unit tests for REST API
+[ ]* Finish adding documentation to new code

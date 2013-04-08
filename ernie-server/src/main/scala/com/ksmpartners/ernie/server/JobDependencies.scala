@@ -18,10 +18,14 @@ import org.slf4j.{ LoggerFactory, Logger }
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
  */
-trait JobDependencies extends ActorTrait {
+trait JobDependencies {
+  this: RequiresCoordinator with RequiresReportManager =>
 
   private val log: Logger = LoggerFactory.getLogger(this.getClass)
 
+  /**
+   * Resource for handling HTTP requests at /jobs
+   */
   class JobsResource extends JsonTranslator {
     def get(uriPrefix: String) = {
       val response = (coordinator !? engine.JobsListRequest()).asInstanceOf[engine.JobsListResponse]
@@ -45,6 +49,9 @@ trait JobDependencies extends ActorTrait {
     }
   }
 
+  /**
+   * Resource for handling HTTP requests at /jobs/<JOB_ID>/status
+   */
   class JobStatusResource extends JsonTranslator {
     def get(jobId: String) = {
       val response = (coordinator !? engine.StatusRequest(jobId.toLong)).asInstanceOf[engine.StatusResponse]
@@ -52,12 +59,15 @@ trait JobDependencies extends ActorTrait {
     }
   }
 
+  /**
+   * Resource for handling HTTP requests at /jobs/<JOB_ID>/result
+   */
   class JobResultsResource {
     def get(jobId: String) = {
       val response = (coordinator !? engine.ResultRequest(jobId.toLong)).asInstanceOf[engine.ResultResponse]
 
       if (response.rptId.isDefined) {
-        val fileStream = reportManager.getReport(response.rptId.get)
+        val fileStream = reportManager.getReport(response.rptId.get).get
         val header: List[(String, String)] =
           ("Content-type" -> "application/pdf") ::
             ("Content-length" -> fileStream.available.toString) ::

@@ -36,11 +36,11 @@ trait ReportManager {
   /**
    * Get an InputStream containing the content for definition defId
    */
-  def getDefinition(defId: String): InputStream
+  def getDefinition(defId: String): Option[InputStream]
   /**
    * Get an InputStream containing the content for report rptId
    */
-  def getReport(rptId: String): InputStream
+  def getReport(rptId: String): Option[InputStream]
 
   /**
    * Returns an OutputStream into which content can be put. This content will be attached to defId.

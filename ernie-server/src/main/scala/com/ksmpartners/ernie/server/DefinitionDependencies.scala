@@ -7,14 +7,18 @@
 
 package com.ksmpartners.ernie.server
 
-import com.ksmpartners.ernie.{ model, engine }
+import com.ksmpartners.ernie.model
 import java.util
 
 /**
  * Dependencies for interacting with report definitions
  */
-trait DefinitionDependencies extends ActorTrait {
+trait DefinitionDependencies {
+  this: RequiresReportManager =>
 
+  /**
+   * Resource for handling HTTP requests at /defs
+   */
   class DefsResource extends JsonTranslator {
     def get(uriPrefix: String) = {
       val defMap: util.Map[String, String] = new util.HashMap

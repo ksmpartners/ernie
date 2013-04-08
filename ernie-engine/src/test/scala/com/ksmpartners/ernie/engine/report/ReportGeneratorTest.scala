@@ -39,7 +39,7 @@ class ReportGeneratorTest {
   @Test
   def canRunDefFromStream() {
     val bos = new ByteArrayOutputStream()
-    reportGenerator.runReport(reportManager.getDefinition("test_def"), bos, ReportType.PDF)
+    reportGenerator.runReport(reportManager.getDefinition("test_def").get, bos, ReportType.PDF)
     Assert.assertTrue(bos.toByteArray.length > 0)
   }
 

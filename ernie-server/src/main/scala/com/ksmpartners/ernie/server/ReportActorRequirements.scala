@@ -5,18 +5,15 @@
  * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
  */
 
-package com.ksmpartners.ernie.model;
+package com.ksmpartners.ernie.server
 
-/**
- * Interface used to designate that a class is serializable to JSON using Jackson
- */
-public abstract class ModelObject {
+import com.ksmpartners.ernie.engine.Coordinator
+import com.ksmpartners.ernie.engine.report.ReportManager
 
-    /**
-     * Method that returns the custom MIME type of the serialized object
-     */
-    public String cType() {
-        return "application/vnd.ksmpartners.ernie+json";
-    }
+trait RequiresCoordinator {
+  def coordinator: Coordinator
+}
 
+trait RequiresReportManager {
+  def reportManager: ReportManager
 }
