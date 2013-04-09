@@ -8,8 +8,6 @@
 package com.ksmpartners.ernie.server
 
 import java.util.Properties
-import org.slf4j.{ LoggerFactory, Logger }
-import java.io.{ FileInputStream, File }
 
 /** Constants object for centralizing the names of the properties in the system configuration **/
 object PropertyNames {

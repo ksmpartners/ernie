@@ -7,7 +7,7 @@
 
 package com.ksmpartners.ernie.server
 
-import net.liftweb.common.{ Box, Full, Empty }
+import net.liftweb.common.{ Box, Full }
 import net.liftweb.http._
 import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.engine
@@ -41,7 +41,7 @@ trait JobDependencies extends RequiresCoordinator
     /**
      * Sends the given ReportRequest to the Coordinator to be scheduled
      *
-     * @returns the jobId returned by the Coordinator associated with the request
+     * @return the jobId returned by the Coordinator associated with the request
      */
     def post(body: Box[Array[Byte]]) = {
       try {

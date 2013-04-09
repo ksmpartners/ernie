@@ -11,9 +11,6 @@ import _root_.net.liftweb.http
 import http.LiftRules
 import http.provider.HTTPRequest
 import com.ksmpartners.ernie.server.DispatchRestAPI
-import net.liftweb.util.Props
-import net.liftweb.common.Full
-import java.io.FileInputStream
 import org.slf4j.{ LoggerFactory, Logger }
 
 /**

@@ -7,8 +7,8 @@
 
 package com.ksmpartners.ernie.server
 
-import net.liftweb.http.rest.{ RestHelper, XMLApiHelper }
-import net.liftweb.common.{ Box, Empty, Failure, Full, Logger }
+import net.liftweb.http.rest.XMLApiHelper
+import net.liftweb.common.Full
 
 import scala.xml._
 import net.liftweb.http._
