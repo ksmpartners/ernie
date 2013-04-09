@@ -48,4 +48,8 @@ object DispatchRestAPI extends XMLApiHelper {
     ServiceRegistry.shutdownResource.shutdown()
   }
 
+  def init() {
+    ServiceRegistry.init()
+  }
+
 }

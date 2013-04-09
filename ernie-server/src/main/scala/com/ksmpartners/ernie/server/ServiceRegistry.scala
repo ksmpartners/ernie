@@ -12,6 +12,7 @@ import com.ksmpartners.ernie.engine.Coordinator
 import com.ksmpartners.ernie.server.PropertyNames._
 import java.util.Properties
 import java.io.{ FileInputStream, File }
+import org.slf4j.{ LoggerFactory, Logger }
 
 /**
  * Object that registers the services used by the stateless dispatch
@@ -22,6 +23,8 @@ object ServiceRegistry extends JobDependencies
     with RequiresCoordinator
     with RequiresReportManager
     with RequiresProperties {
+
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.ServiceRegistry")
 
   protected val properties: Properties = {
 
@@ -50,9 +53,20 @@ object ServiceRegistry extends JobDependencies
     props
   }
 
-  protected val reportManager: ReportManager =
-    new FileReportManager(properties.get(RPT_DEFS_DIR_PROP).toString,
-      properties.get(OUTPUT_DIR_PROP).toString)
+  protected val reportManager: ReportManager = {
+
+    if (!properties.stringPropertyNames().contains(RPT_DEFS_DIR_PROP)) {
+      throw new RuntimeException("Properties file does not contain property " + RPT_DEFS_DIR_PROP)
+    }
+    if (!properties.stringPropertyNames().contains(OUTPUT_DIR_PROP)) {
+      throw new RuntimeException("Properties file does not contain property " + OUTPUT_DIR_PROP)
+    }
+
+    val rptDefsDir = properties.get(RPT_DEFS_DIR_PROP).toString
+    val outputDir = properties.get(OUTPUT_DIR_PROP).toString
+
+    new FileReportManager(rptDefsDir, outputDir)
+  }
 
   protected val coordinator: Coordinator = new Coordinator(reportManager).start().asInstanceOf[Coordinator]
 
@@ -63,5 +77,11 @@ object ServiceRegistry extends JobDependencies
   val defsResource = new DefsResource
 
   val shutdownResource = new ShutdownResource
+
+  def init() {
+    log.info("BEGIN Initializing ServiceRegistry...")
+    log.info("Loaded properties: {}", properties.toString)
+    log.info("END Initializing ServiceRegistry...")
+  }
 
 }
