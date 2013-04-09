@@ -18,8 +18,8 @@ import org.slf4j.{ LoggerFactory, Logger }
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
  */
-trait JobDependencies {
-  this: RequiresCoordinator with RequiresReportManager =>
+trait JobDependencies extends RequiresCoordinator
+    with RequiresReportManager {
 
   private val log: Logger = LoggerFactory.getLogger(this.getClass)
 
@@ -27,6 +27,9 @@ trait JobDependencies {
    * Resource for handling HTTP requests at /jobs
    */
   class JobsResource extends JsonTranslator {
+    /**
+     * Returns a Box[ListResponse] containing a map of jobId to URI for that jobId
+     */
     def get(uriPrefix: String) = {
       val response = (coordinator !? engine.JobsListRequest()).asInstanceOf[engine.JobsListResponse]
       val jobsMap: util.Map[String, String] = new util.HashMap
@@ -35,6 +38,11 @@ trait JobDependencies {
       })
       getJsonResponse(new model.JobsMapResponse(jobsMap))
     }
+    /**
+     * Sends the given ReportRequest to the Coordinator to be scheduled
+     *
+     * @returns the jobId returned by the Coordinator associated with the request
+     */
     def post(body: Box[Array[Byte]]) = {
       try {
         val req = deserialize(body.open_!, classOf[model.ReportRequest])
@@ -53,6 +61,9 @@ trait JobDependencies {
    * Resource for handling HTTP requests at /jobs/<JOB_ID>/status
    */
   class JobStatusResource extends JsonTranslator {
+    /**
+     * Returns a Box[ListResponse] containing status for the given jobId
+     */
     def get(jobId: String) = {
       val response = (coordinator !? engine.StatusRequest(jobId.toLong)).asInstanceOf[engine.StatusResponse]
       getJsonResponse(new model.StatusResponse(response.jobStatus))
@@ -63,6 +74,9 @@ trait JobDependencies {
    * Resource for handling HTTP requests at /jobs/<JOB_ID>/result
    */
   class JobResultsResource {
+    /**
+     * Returns a Box[StreamingResponse] containing the result content for the given jobId
+     */
     def get(jobId: String) = {
       val response = (coordinator !? engine.ResultRequest(jobId.toLong)).asInstanceOf[engine.ResultResponse]
 

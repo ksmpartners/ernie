@@ -28,14 +28,6 @@ class Boot {
 
     LiftRules.early.append(makeUtf8)
 
-    val filename = System.getProperty("ernie.props")
-    if (filename != null) {
-      log.warn("System property ernie.props was set to {}.", filename)
-      Props.whereToLook = () => ((filename, () => Full(new FileInputStream(filename))) :: Nil)
-    } else {
-      log.warn("System property ernie.props was not set. Using default configs.")
-    }
-
     LiftRules.statelessDispatchTable.prepend(DispatchRestAPI.dispatch)
 
     LiftRules.unloadHooks.prepend(() => DispatchRestAPI.shutdown())

@@ -12,13 +12,15 @@ import com.ksmpartners.ernie.engine
 /**
  * Trait that contains and maintains the actor(s) for coordinating report creation
  */
-trait ReportActorDependencies {
-  this: RequiresCoordinator =>
+trait ReportActorDependencies extends RequiresCoordinator {
 
   /**
    * Resource for handling the shutdown process of the Actors
    */
   class ShutdownResource {
+    /**
+     * Sends a shutdown request to the coordinator
+     */
     def shutdown() {
       coordinator ! engine.ShutDownRequest()
     }

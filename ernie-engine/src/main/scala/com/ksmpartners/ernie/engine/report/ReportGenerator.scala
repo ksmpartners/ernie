@@ -124,7 +124,7 @@ class ReportGenerator(reportManager: ReportManager) {
    * }
    *
    */
-  private def try_[A <% Closeable](ac: A)(f: A => Unit) {
+  private def try_[A <: Closeable](ac: A)(f: A => Unit) {
     try {
       f(ac)
     } finally {

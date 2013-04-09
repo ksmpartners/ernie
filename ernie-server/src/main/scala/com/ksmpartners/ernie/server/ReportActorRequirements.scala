@@ -10,10 +10,16 @@ package com.ksmpartners.ernie.server
 import com.ksmpartners.ernie.engine.Coordinator
 import com.ksmpartners.ernie.engine.report.ReportManager
 
+/**
+ * Trait that indicates a requirement on a Coordinator
+ */
 trait RequiresCoordinator {
-  val coordinator: Coordinator
+  protected val coordinator: Coordinator
 }
 
+/**
+ * Trait that indicates a requirement on a ReportManager
+ */
 trait RequiresReportManager {
-  val reportManager: ReportManager
+  protected val reportManager: ReportManager
 }

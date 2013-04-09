@@ -13,8 +13,7 @@ import java.util
 /**
  * Dependencies for interacting with report definitions
  */
-trait DefinitionDependencies {
-  this: RequiresReportManager =>
+trait DefinitionDependencies extends RequiresReportManager {
 
   /**
    * Resource for handling HTTP requests at /defs
