@@ -11,9 +11,9 @@ import com.ksmpartners.ernie.engine.Coordinator
 import com.ksmpartners.ernie.engine.report.ReportManager
 
 trait RequiresCoordinator {
-  def coordinator: Coordinator
+  val coordinator: Coordinator
 }
 
 trait RequiresReportManager {
-  def reportManager: ReportManager
+  val reportManager: ReportManager
 }

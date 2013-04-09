@@ -13,9 +13,9 @@ import net.liftweb.util.Props
 
 trait CoordinatorProvider extends RequiresCoordinator
     with FileReportManagerProvider {
-  def coordinator: Coordinator = new Coordinator(reportManager).start().asInstanceOf[Coordinator]
+  val coordinator: Coordinator = new Coordinator(reportManager).start().asInstanceOf[Coordinator]
 }
 
 trait FileReportManagerProvider extends RequiresReportManager {
-  def reportManager: ReportManager = new FileReportManager(Props.get("rpt.def.dir").get, Props.get("output.dir").get)
+  val reportManager: ReportManager = new FileReportManager(Props.get("rpt.def.dir").get, Props.get("output.dir").get)
 }
