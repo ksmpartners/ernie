@@ -7,38 +7,58 @@
 
 package com.ksmpartners.ernie.engine.report
 
-import org.testng.annotations.{ BeforeMethod, Test }
+import org.testng.annotations.{ AfterClass, BeforeClass, BeforeMethod, Test }
 import org.testng.Assert
 import com.ksmpartners.ernie.model.ReportType
+import java.io._
 
-class MemoryReportManagerTest {
+class FileReportManagerTest {
 
-  private var reportManager: MemoryReportManager = new MemoryReportManager
+  private var reportManager: FileReportManager = null
+  private var tempInputDir: File = null
+  private var tempOutputDir: File = null
+
+  @BeforeClass
+  def setup() {
+    tempInputDir = createTempDirectory()
+    tempOutputDir = createTempDirectory()
+    reportManager = new FileReportManager(tempInputDir.getAbsolutePath, tempOutputDir.getAbsolutePath)
+  }
+
+  @AfterClass
+  def teardown() {
+    recDel(tempInputDir)
+    recDel(tempOutputDir)
+  }
 
   @BeforeMethod
-  def setup() {
-    reportManager = new MemoryReportManager
-    reportManager.putDefinition("def_1", "DEF_1".getBytes)
-    reportManager.putDefinition("def_2", "DEF_2".getBytes)
-    reportManager.putDefinition("def_3", "DEF_3".getBytes)
-    reportManager.putDefinition("def_4", "DEF_4".getBytes)
-    reportManager.putDefinition("def_5", "DEF_5".getBytes)
-    reportManager.putReport("rpt_1", "RPT_1".getBytes)
-    reportManager.putReport("rpt_2", "RPT_2".getBytes)
-    reportManager.putReport("rpt_3", "RPT_3".getBytes)
-    reportManager.putReport("rpt_4", "RPT_4".getBytes)
-    reportManager.putReport("rpt_5", "RPT_5".getBytes)
+  def setupMethod() {
+
+    for (i <- 1 to 5) {
+      try_(reportManager.putDefinition("def_" + i)) { stream =>
+        stream.write(("DEF_" + i).getBytes)
+      }
+      try_(reportManager.putReport("rpt_" + i, ReportType.CSV)) { stream =>
+        stream.write(("RPT_" + i).getBytes)
+      }
+
+    }
+
   }
 
   @Test
   def testPut() {
-    val bosR = reportManager.putReport("rpt_6", ReportType.CSV)
-    Assert.assertFalse(reportManager.hasReport("rpt_6"))
+    var bosR = reportManager.putReport("rpt_6", ReportType.PDF)
+    Assert.assertTrue(reportManager.hasReport("rpt_6"))
     bosR.close()
     Assert.assertTrue(reportManager.hasReport("rpt_6"))
+    bosR = reportManager.putReport("rpt_7", ReportType.HTML)
+    Assert.assertTrue(reportManager.hasReport("rpt_7"))
+    bosR.close()
+    Assert.assertTrue(reportManager.hasReport("rpt_7"))
 
     val bosD = reportManager.putDefinition("def_6")
-    Assert.assertFalse(reportManager.hasDefinition("def_6"))
+    Assert.assertTrue(reportManager.hasDefinition("def_6"))
     bosD.close()
     Assert.assertTrue(reportManager.hasDefinition("def_6"))
   }
@@ -114,4 +134,60 @@ class MemoryReportManagerTest {
     Assert.assertEquals(reportManager.getDefinition("FAIL"), None)
   }
 
+  @Test
+  def canLoadExistingDirectories() {
+    val rptManager = new FileReportManager(tempInputDir.getAbsolutePath, tempOutputDir.getAbsolutePath)
+    Assert.assertTrue(rptManager.hasDefinition("def_1"))
+    Assert.assertTrue(rptManager.hasDefinition("def_2"))
+    Assert.assertTrue(rptManager.hasDefinition("def_3"))
+    Assert.assertTrue(rptManager.hasDefinition("def_4"))
+    Assert.assertTrue(rptManager.hasDefinition("def_5"))
+    Assert.assertTrue(rptManager.hasReport("rpt_1"))
+    Assert.assertTrue(rptManager.hasReport("rpt_2"))
+    Assert.assertTrue(rptManager.hasReport("rpt_3"))
+    Assert.assertTrue(rptManager.hasReport("rpt_4"))
+    Assert.assertTrue(rptManager.hasReport("rpt_5"))
+  }
+
+  private def createTempDirectory(): File = {
+
+    var temp: File = null
+
+    temp = File.createTempFile("temp", System.nanoTime.toString)
+
+    if (!(temp.delete())) {
+      throw new IOException("Could not delete temp file: " + temp.getAbsolutePath)
+    }
+
+    if (!(temp.mkdir())) {
+      throw new IOException("Could not create temp directory: " + temp.getAbsolutePath)
+    }
+
+    temp
+  }
+
+  def recDel(file: File) {
+    if (file.isDirectory) {
+      for (f <- file.listFiles()) {
+        recDel(f)
+      }
+      if (!file.delete())
+        throw new FileNotFoundException("Failed to delete file: " + file)
+    } else {
+      if (!file.delete())
+        throw new FileNotFoundException("Failed to delete file: " + file)
+    }
+  }
+
+  private def try_[A <: Closeable](ac: A)(f: A => Unit) {
+    try {
+      f(ac)
+    } finally {
+      try {
+        ac.close()
+      } catch {
+        case e =>
+      }
+    }
+  }
 }

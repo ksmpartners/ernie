@@ -26,16 +26,16 @@ class Coordinator(reportManager: ReportManager) extends Actor {
   override def start(): Actor = {
     log.debug("in start()")
     super.start()
-    worker.start
+    worker.start()
     this
   }
 
-  def act {
+  def act() {
     log.debug("in act()")
     loop {
       react {
         case req@ReportRequest(rptId, rptType) => {
-          val jobId = getJobId()
+          val jobId = generateJobId()
           jobIdToResultMap += (jobId -> (JobStatus.PENDING, None))
           sender ! ReportResponse(jobId, req)
           worker ! JobRequest(rptId, rptType, jobId)
@@ -66,7 +66,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
 
   private var currJobId = System.currentTimeMillis()
 
-  private def getJobId(): Long = {
+  private def generateJobId(): Long = {
     currJobId += 1
     currJobId
   }
@@ -81,7 +81,7 @@ class Worker(reportManager: ReportManager) extends Actor {
   private val log = LoggerFactory.getLogger(this.getClass)
   private lazy val rptGenerator = new ReportGenerator(reportManager)
 
-  def act {
+  def act() {
     log.debug("in act()")
     loop {
       react {
@@ -125,11 +125,11 @@ class Worker(reportManager: ReportManager) extends Actor {
   }
 
   private def startRptGenerator() {
-    rptGenerator.startup
+    rptGenerator.startup()
   }
 
   private def stopRptGenerator() {
-    rptGenerator.shutdown
+    rptGenerator.shutdown()
   }
 
 }

@@ -35,11 +35,11 @@ object ServiceRegistry extends JobDependencies
     }
 
     val propsFile = new File(propsPath)
-    if (!propsFile.exists()) {
+    if (!propsFile.exists) {
       throw new RuntimeException("Properties file " + propsPath + " does not exist.")
     }
 
-    if (!propsFile.canRead()) {
+    if (!propsFile.canRead) {
       throw new RuntimeException("Properties file " + propsPath + " is not readable; check file privileges.")
     }
     val props = new Properties()

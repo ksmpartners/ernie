@@ -70,4 +70,4 @@
 # erner-server
 [ ]* Unit tests
 [ ]** Add unit tests for REST API
-[ ]* Finish adding documentation to new code
+[x]* Finish adding documentation to new code

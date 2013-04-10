@@ -71,7 +71,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
 
   override def putDefinition(defId: String): OutputStream = {
     val file = new File(rptDefDir, defId + ".rptdesign")
-    log.info("Putting new definition: ", file)
+    log.info("Putting new definition: {}", file)
     definitions += (defId -> file)
     new FileOutputStream(file)
   }
@@ -83,7 +83,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
       case ReportType.PDF => ".pdf"
     }
     val file = new File(outputDir, rptId + ext)
-    log.info("Putting new report: ", file)
+    log.info("Putting new report: {}", file)
     reports += (rptId -> file)
     new FileOutputStream(file)
   }

@@ -92,10 +92,12 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
-                        </goals>
+                        <id>main-scalac</id>
+                        <goals><goal>compile</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>test-scalac</id>
+                        <goals><goal>testCompile</goal></goals>
                     </execution>
                 </executions>
             </plugin>
@@ -134,4 +136,57 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>coverage</id>
+            <dependencies>
+                <dependency>
+                    <groupId>reaktor</groupId>
+                    <artifactId>scct</artifactId>
+                    <version>2.9.2</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.6</version>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <scct.project.name>${project.name}</scct.project.name>
+                                <scct.coverage.file>${project.build.outputDirectory}/coverage.data</scct.coverage.file>
+                                <scct.report.dir>${project.build.directory}/coverage-report</scct.report.dir>
+                                <scct.source.dir>${project.build.sourceDirectory}</scct.source.dir>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.scala-tools</groupId>
+                        <artifactId>maven-scala-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>main-scalac</id>
+                                <configuration>
+                                    <args>
+                                        <args>-P:scct:projectId:${project.name}</args>
+                                        <args>-P:scct:basedir:${project.basedir}</args>
+                                    </args>
+                                    <compilerPlugins>
+                                        <compilerPlugin>
+                                            <groupId>reaktor</groupId>
+                                            <artifactId>scct</artifactId>
+                                            <version>2.9.2</version>
+                                        </compilerPlugin>
+                                    </compilerPlugins>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

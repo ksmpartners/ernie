@@ -98,8 +98,8 @@ class ReportGenerator(reportManager: ReportManager) {
     log.debug("BEGIN Running report...")
     val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
     task.setRenderOption(option)
-    task.run
-    task.close
+    task.run()
+    task.close()
     log.debug("END Running report...")
   }
 

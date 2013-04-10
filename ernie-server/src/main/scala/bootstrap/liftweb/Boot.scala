@@ -21,7 +21,7 @@ class Boot {
 
   private val log: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def boot {
+  def boot() {
 
     LiftRules.early.append(makeUtf8)
 

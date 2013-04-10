@@ -23,7 +23,7 @@ class ActorsTest {
   //  @BeforeClass
   def setup() {
     reportManager = new MemoryReportManager
-    val url: URL = Thread.currentThread().getContextClassLoader().getResource("test_def.rptdesign")
+    val url: URL = Thread.currentThread().getContextClassLoader.getResource("test_def.rptdesign")
     val file = new File(url.getPath)
     var fis: FileInputStream = null
     try {
