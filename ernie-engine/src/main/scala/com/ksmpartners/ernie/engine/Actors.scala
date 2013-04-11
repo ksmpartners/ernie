@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
  */
 class Coordinator(reportManager: ReportManager) extends Actor {
 
-  private val log = LoggerFactory.getLogger(this.getClass)
+  private val log = LoggerFactory.getLogger(classOf[Coordinator])
 
   private lazy val worker: Worker = new Worker(reportManager)
   private val jobIdToResultMap = new mutable.HashMap[Long, (JobStatus, Option[String] /* rptId */ )]()
@@ -78,7 +78,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
  */
 class Worker(reportManager: ReportManager) extends Actor {
 
-  private val log = LoggerFactory.getLogger(this.getClass)
+  private val log = LoggerFactory.getLogger(classOf[Worker])
   private lazy val rptGenerator = new ReportGenerator(reportManager)
 
   def act() {

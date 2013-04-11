@@ -17,7 +17,7 @@ import com.ksmpartners.ernie.model.ReportType
  */
 class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extends ReportManager {
 
-  private val log: Logger = LoggerFactory.getLogger(this.getClass)
+  private val log: Logger = LoggerFactory.getLogger(classOf[FileReportManager])
 
   private val rptDefDir = new File(pathToDefinitions)
   private val outputDir = new File(pathToOutputs)

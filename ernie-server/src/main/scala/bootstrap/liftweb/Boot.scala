@@ -19,7 +19,7 @@ import org.slf4j.{ LoggerFactory, Logger }
  */
 class Boot {
 
-  private val log: Logger = LoggerFactory.getLogger(this.getClass)
+  private val log: Logger = LoggerFactory.getLogger(classOf[Boot])
 
   def boot() {
 

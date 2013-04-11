@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory
  */
 object DispatchRestAPI extends XMLApiHelper {
 
-  private val log = LoggerFactory.getLogger(this.getClass)
+  private val log = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DispatchRestAPI")
 
   // Required override, though not used
   def createTag(contents: NodeSeq) = <api>{ contents }</api>

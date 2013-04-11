@@ -21,7 +21,7 @@ import org.slf4j.{ LoggerFactory, Logger }
 trait JobDependencies extends RequiresCoordinator
     with RequiresReportManager {
 
-  private val log: Logger = LoggerFactory.getLogger(this.getClass)
+  private val log: Logger = LoggerFactory.getLogger(classOf[JobDependencies])
 
   /**
    * Resource for handling HTTP requests at /jobs

@@ -21,7 +21,7 @@ import org.eclipse.birt.report.engine.emitter.csv.CSVRenderOption
  */
 class ReportGenerator(reportManager: ReportManager) {
 
-  private val log = LoggerFactory.getLogger(this.getClass)
+  private val log = LoggerFactory.getLogger(classOf[ReportGenerator])
 
   private var engine: IReportEngine = null
 
