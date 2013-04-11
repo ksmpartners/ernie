@@ -7,7 +7,7 @@
 
 package com.ksmpartners.ernie.server
 
-import com.ksmpartners.ernie.engine.report.{ FileReportManager, ReportManager }
+import com.ksmpartners.ernie.engine.report.{ BirtReportGeneratorFactory, FileReportManager, ReportManager }
 import com.ksmpartners.ernie.engine.Coordinator
 import com.ksmpartners.ernie.server.PropertyNames._
 import java.util.Properties
@@ -55,10 +55,10 @@ object ServiceRegistry extends JobDependencies
 
   protected val reportManager: ReportManager = {
 
-    if (!properties.stringPropertyNames().contains(RPT_DEFS_DIR_PROP)) {
+    if (!properties.stringPropertyNames.contains(RPT_DEFS_DIR_PROP)) {
       throw new RuntimeException("Properties file does not contain property " + RPT_DEFS_DIR_PROP)
     }
-    if (!properties.stringPropertyNames().contains(OUTPUT_DIR_PROP)) {
+    if (!properties.stringPropertyNames.contains(OUTPUT_DIR_PROP)) {
       throw new RuntimeException("Properties file does not contain property " + OUTPUT_DIR_PROP)
     }
 
@@ -68,7 +68,11 @@ object ServiceRegistry extends JobDependencies
     new FileReportManager(rptDefsDir, outputDir)
   }
 
-  protected val coordinator: Coordinator = new Coordinator(reportManager).start().asInstanceOf[Coordinator]
+  protected val coordinator: Coordinator = {
+    val coord = new Coordinator(reportManager) with BirtReportGeneratorFactory
+    coord.start()
+    coord
+  }
 
   val jobsResource = new JobsResource
   val jobStatusResource = new JobStatusResource

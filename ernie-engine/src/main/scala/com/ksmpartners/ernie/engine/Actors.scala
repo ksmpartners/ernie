@@ -17,10 +17,11 @@ import org.slf4j.LoggerFactory
  * Actor for coordinating report generation.
  */
 class Coordinator(reportManager: ReportManager) extends Actor {
+  this: ReportGeneratorFactory =>
 
   private val log = LoggerFactory.getLogger(classOf[Coordinator])
 
-  private lazy val worker: Worker = new Worker(reportManager)
+  private lazy val worker: Worker = new Worker(getReportGenerator(reportManager))
   private val jobIdToResultMap = new mutable.HashMap[Long, (JobStatus, Option[String] /* rptId */ )]()
 
   override def start(): Actor = {
@@ -64,7 +65,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
     }
   }
 
-  private var currJobId = System.currentTimeMillis()
+  private var currJobId = System.currentTimeMillis
 
   private def generateJobId(): Long = {
     currJobId += 1
@@ -76,10 +77,9 @@ class Coordinator(reportManager: ReportManager) extends Actor {
 /**
  * Actor that is paired with a Coordinator, and executes report requests.
  */
-class Worker(reportManager: ReportManager) extends Actor {
+class Worker(rptGenerator: ReportGenerator) extends Actor {
 
   private val log = LoggerFactory.getLogger(classOf[Worker])
-  private lazy val rptGenerator = new ReportGenerator(reportManager)
 
   def act() {
     log.debug("in act()")

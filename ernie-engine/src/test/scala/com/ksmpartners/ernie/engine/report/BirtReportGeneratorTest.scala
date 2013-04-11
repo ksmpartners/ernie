@@ -13,7 +13,7 @@ import java.net.URL
 import org.testng.Assert
 import com.ksmpartners.ernie.model.ReportType
 
-class ReportGeneratorTest {
+class BirtReportGeneratorTest {
 
   private var reportGenerator: ReportGenerator = null
   private var reportManager: MemoryReportManager = null
@@ -21,13 +21,13 @@ class ReportGeneratorTest {
   @BeforeClass
   def setup() {
     reportManager = new MemoryReportManager
-    val url: URL = Thread.currentThread().getContextClassLoader().getResource("test_def.rptdesign")
+    val url: URL = Thread.currentThread.getContextClassLoader.getResource("test_def.rptdesign")
     val file = new File(url.getPath)
     val fis = new FileInputStream(file)
-    val byteArr = new Array[Byte](file.length().asInstanceOf[Int])
+    val byteArr = new Array[Byte](file.length.asInstanceOf[Int])
     fis.read(byteArr)
     reportManager.putDefinition("test_def", byteArr)
-    reportGenerator = new ReportGenerator(reportManager)
+    reportGenerator = new BirtReportGenerator(reportManager)
     reportGenerator.startup()
   }
 
@@ -60,13 +60,13 @@ class ReportGeneratorTest {
 
   @Test(expectedExceptions = Array(classOf[IllegalStateException]))
   def cantRunExistingReportWithStoppedGenerator() {
-    val rptGen = new ReportGenerator(new MemoryReportManager)
+    val rptGen = new BirtReportGenerator(new MemoryReportManager)
     rptGen.runReport("test1", "test2", ReportType.PDF)
   }
 
   @Test(expectedExceptions = Array(classOf[IllegalStateException]))
   def cantRunStreamReportWithStoppedGenerator() {
-    val rptGen = new ReportGenerator(new MemoryReportManager)
+    val rptGen = new BirtReportGenerator(new MemoryReportManager)
     rptGen.runReport(new ByteArrayInputStream(Array[Byte](1)), new ByteArrayOutputStream(), ReportType.PDF)
   }
 

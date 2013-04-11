@@ -7,133 +7,36 @@
 
 package com.ksmpartners.ernie.engine.report
 
-import org.eclipse.birt.report.engine.api._
-import org.eclipse.birt.core.framework.Platform
-import org.slf4j.LoggerFactory
 import java.io._
 import com.ksmpartners.ernie.model.ReportType
-import org.eclipse.birt.report.engine.emitter.csv.CSVRenderOption
 
 /**
- * Class used to generate BIRT reports
- * <br><br>
- * This Class is not thread safe.
+ * Trait that contains methods for generating reports.
  */
-class ReportGenerator(reportManager: ReportManager) {
-
-  private val log = LoggerFactory.getLogger(classOf[ReportGenerator])
-
-  private var engine: IReportEngine = null
+trait ReportGenerator {
 
   /**
    * Method to be called before any reports can be generated
    */
-  def startup() {
-    log.info("Starting Report Engine")
-    val ec = new EngineConfig
-    Platform.startup(ec)
-
-    val factory = Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY)
-
-    engine = (factory match {
-      case fact: IReportEngineFactory => fact
-      case _ => throw new ClassCastException
-    }).createReportEngine(ec)
-
-  }
+  def startup()
 
   /**
-   * List the available report definition files.
+   * Get the list of available definitions
    */
-  def getAvailableRptDefs: List[String] = reportManager.getAllDefinitionIds
+  def getAvailableRptDefs: List[String]
 
   /**
-   * Method that runs the .rtpdesign file at the given location rptDefName, and outputs the results to outputFileName
-   * as a .pdf
+   * Run the given defId and store the output in rptId as rptType
    */
-  def runReport(rptDefName: String, outputFileName: String, rptType: ReportType) {
-    if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
-    log.debug("Generating PDF from report definition {}", rptDefName)
-    try_(reportManager.getDefinition(rptDefName).get) { rptDefStream =>
-      try_(reportManager.putReport(outputFileName, rptType)) { rptOutputStream =>
-        runReport(rptDefStream, rptOutputStream, rptType)
-      }
-    }
-  }
+  def runReport(defId: String, rptId: String, rptType: ReportType)
 
   /**
-   * Method that runs the .rtpdesign file in the input stream rptDefFileStream, and outputs the results to
-   * outputFileStream as rptType
+   * Run the given defInputStream and store the output in rptOutputStream as rptType
    */
-  def runReport(rptDefInputStream: InputStream, reportOutputStream: OutputStream, rptType: ReportType) {
-    if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
-    val design = engine.openReportDesign(rptDefInputStream)
-    var renderOption: RenderOption = null
-    rptType match {
-      case ReportType.PDF => {
-        renderOption = new PDFRenderOption
-        renderOption.setOutputFormat("pdf")
-      }
-      case ReportType.CSV => {
-        renderOption = new CSVRenderOption
-        renderOption.setOutputFormat("csv")
-      }
-      case ReportType.HTML => {
-        renderOption = new HTMLRenderOption
-        renderOption.setOutputFormat("html")
-      }
-      case t => {
-        log.error("Invalid report type: {}", t)
-        throw new IllegalArgumentException("Invalid report type: " + t)
-      }
-    }
-    renderOption.setOutputStream(reportOutputStream)
-    runReport(design, renderOption)
-  }
-
-  /**
-   * Method that creates and runs a BIRT task based on the given design and options
-   */
-  private def runReport(design: IReportRunnable, option: RenderOption) {
-    log.debug("BEGIN Running report...")
-    val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
-    task.setRenderOption(option)
-    task.run()
-    task.close()
-    log.debug("END Running report...")
-  }
+  def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType)
 
   /**
    * Method to be called after all the reports have been run.
    */
-  def shutdown() {
-    log.info("BEGIN Shutting down Report Engine")
-    engine.destroy()
-    Platform.shutdown()
-    engine = null
-    log.info("END Shutting down Report Engine")
-  }
-
-  // TODO: Create util package/class/object
-  /**
-   * Method that mimics Java 1.7's try-with-resources
-   *
-   * Usage:
-   * try_(new Closable...) { closableInstance =>
-   *   closableInstance.doSomething()
-   * }
-   *
-   */
-  private def try_[A <: Closeable](ac: A)(f: A => Unit) {
-    try {
-      f(ac)
-    } finally {
-      try {
-        ac.close()
-      } catch {
-        case e =>
-      }
-    }
-  }
-
+  def shutdown()
 }

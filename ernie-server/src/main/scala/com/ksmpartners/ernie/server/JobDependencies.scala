@@ -50,7 +50,7 @@ trait JobDependencies extends RequiresCoordinator
         getJsonResponse(new model.ReportResponse(response.jobId), 201)
       } catch {
         case e: IOException => {
-          log.error("Caught exception while handling request: {}", e)
+          log.error("Caught exception while handling request: {}", e.getMessage)
           Full(BadResponse())
         }
       }

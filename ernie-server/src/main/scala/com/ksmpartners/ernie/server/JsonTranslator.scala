@@ -29,20 +29,14 @@ trait JsonTranslator {
    * Deserializes the given JSON String into an object of the type clazz represents
    */
   def deserialize[A <: ModelObject](json: String, clazz: Class[A]): A = {
-    mapper.readValue(json, clazz) match {
-      case a: A => a
-      case _ => throw new ClassCastException
-    }
+    mapper.readValue(json, clazz)
   }
 
   /**
    * Deserializes the given JSON Array[Byte] into an object of the type clazz represents
    */
   def deserialize[A <: ModelObject](json: Array[Byte], clazz: Class[A]): A = {
-    mapper.readValue(json, clazz) match {
-      case a: A => a
-      case _ => throw new ClassCastException
-    }
+    mapper.readValue(json, clazz)
   }
 
   /**
