@@ -83,9 +83,9 @@ trait JobDependencies extends RequiresCoordinator
       if (response.rptId.isDefined) {
         val fileStream = reportManager.getReport(response.rptId.get).get
         val header: List[(String, String)] =
-          ("Content-type" -> "application/pdf") ::
-            ("Content-length" -> fileStream.available.toString) ::
-            ("Content-disposition" -> ("attachment; filename=\"" + response.rptId.get + ".pdf\"")) :: Nil
+          ("Content-Type" -> "application/pdf") ::
+            ("Content-Length" -> fileStream.available.toString) ::
+            ("Content-Disposition" -> ("attachment; filename=\"" + response.rptId.get + ".pdf\"")) :: Nil
         Full(StreamingResponse(
           fileStream,
           () => { fileStream.close() }, // On end method.
