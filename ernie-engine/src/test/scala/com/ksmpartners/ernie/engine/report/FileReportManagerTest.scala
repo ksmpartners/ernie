@@ -10,6 +10,7 @@ package com.ksmpartners.ernie.engine.report
 import org.testng.annotations.{ AfterClass, BeforeClass, BeforeMethod, Test }
 import org.testng.Assert
 import com.ksmpartners.ernie.model.ReportType
+import com.ksmpartners.ernie.util.FileUtils._
 import java.io._
 
 class FileReportManagerTest {
@@ -176,18 +177,6 @@ class FileReportManagerTest {
     } else {
       if (!file.delete())
         throw new FileNotFoundException("Failed to delete file: " + file)
-    }
-  }
-
-  private def try_[A <: Closeable](ac: A)(f: A => Unit) {
-    try {
-      f(ac)
-    } finally {
-      try {
-        ac.close()
-      } catch {
-        case e =>
-      }
     }
   }
 }

@@ -11,6 +11,7 @@ import com.ksmpartners.ernie.engine.{ ShutDownRequest, Coordinator }
 import com.ksmpartners.ernie.engine.report.{ MemoryReportManager, ReportGenerator, ReportManager, ReportGeneratorFactory }
 import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.model.ReportType
+import com.ksmpartners.ernie.util.FileUtils._
 import java.io.{ Closeable, OutputStream, InputStream }
 import org.testng.annotations.{ AfterTest, BeforeTest, Test }
 import net.liftweb.common.Full
@@ -157,17 +158,5 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
     isStarted = false
-  }
-
-  private def try_[A <: Closeable](ac: A)(f: A => Unit) {
-    try {
-      f(ac)
-    } finally {
-      try {
-        ac.close()
-      } catch {
-        case e =>
-      }
-    }
   }
 }

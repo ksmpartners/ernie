@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import java.io._
 import com.ksmpartners.ernie.model.ReportType
 import org.eclipse.birt.report.engine.emitter.csv.CSVRenderOption
+import com.ksmpartners.ernie.util.FileUtils._
 
 /**
  * Class used to generate BIRT reports
@@ -112,28 +113,6 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     Platform.shutdown()
     engine = null
     log.info("END Shutting down Report Engine")
-  }
-
-  // TODO: Create util package/class/object
-  /**
-   * Method that mimics Java 1.7's try-with-resources
-   *
-   * Usage:
-   * try_(new Closable...) { closableInstance =>
-   *   closableInstance.doSomething()
-   * }
-   *
-   */
-  private def try_[A <: Closeable](ac: A)(f: A => Unit) {
-    try {
-      f(ac)
-    } finally {
-      try {
-        ac.close()
-      } catch {
-        case e =>
-      }
-    }
   }
 
 }
