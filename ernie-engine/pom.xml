@@ -27,6 +27,12 @@
 	    <groupId>org.eclipse.birt.runtime</groupId>
 	    <artifactId>org.eclipse.birt.runtime</artifactId>
 	    <version>4.2.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+                    <artifactId>org.apache.xerces</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
  	     <groupId>org.eclipse.birt.report.engine.emitter.csv</groupId>

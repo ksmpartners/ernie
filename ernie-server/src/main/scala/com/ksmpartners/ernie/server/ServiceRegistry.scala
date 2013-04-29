@@ -28,7 +28,7 @@ object ServiceRegistry extends JobDependencies
 
   protected val properties: Properties = {
 
-    val propsPath = System.getProperties.getProperty(PROPERTIES_FILE_NAME_PROP)
+    val propsPath = System.getProperty(PROPERTIES_FILE_NAME_PROP)
 
     if (null == propsPath) {
       throw new RuntimeException("System property " + PROPERTIES_FILE_NAME_PROP + " is undefined")

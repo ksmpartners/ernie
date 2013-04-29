@@ -8,7 +8,9 @@
 package com.ksmpartners.ernie.server
 
 import net.liftweb.http.rest.XMLApiHelper
-import net.liftweb.common.Full
+import net.liftweb.common.{ Box, Full }
+import com.ksmpartners.ernie.server.filter.AuthUtil._
+import com.ksmpartners.ernie.server.filter.SAMLConstants._
 
 import scala.xml._
 import net.liftweb.http._
@@ -33,7 +35,7 @@ object DispatchRestAPI extends XMLApiHelper {
     case req@Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
     case req@Req(List("jobs", jobId, "result"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
     case req@Req(List("jobs", jobId, "result"), _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
-    case req@Req(List("defs"), _, GetRequest) => () => ServiceRegistry.defsResource.get("/defs")
+    case req@Req(List("defs"), _, GetRequest) => () => authFilter(req, READ_ROLE)(() => ServiceRegistry.defsResource.get("/defs"))
     case req@Req(List("defs"), _, PostRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
     case req@Req(List("defs", rptId), _, GetRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
     case req@Req(List("defs", rptId), _, PutRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
@@ -42,6 +44,10 @@ object DispatchRestAPI extends XMLApiHelper {
       log.error("Got unknown request: {}", req)
       () => Full(NotFoundResponse())
     }
+  }
+
+  private def authFilter(req: Req, role: String)(f: () => Box[LiftResponse]): Box[LiftResponse] = {
+    if (isUserInRole(req, role)) f.apply() else Full(ForbiddenResponse("User is not authorized to perform that action"))
   }
 
   def shutdown() {
