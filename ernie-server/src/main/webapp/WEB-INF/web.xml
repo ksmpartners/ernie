@@ -6,10 +6,10 @@ PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
 
 <web-app>
     <filter>
-        <filter-name>SAMLFilter</filter-name>
-        <display-name>SAML Filter</display-name>
-        <description>The Filter that intercepts SAML requests</description>
-        <filter-class>com.ksmpartners.ernie.server.filter.SAMLFilter</filter-class>
+        <filter-name>FilterWrapper</filter-name>
+        <display-name>Filter Wrapper</display-name>
+        <description>The Filter that wraps delegation to authentication filter(s)</description>
+        <filter-class>com.ksmpartners.ernie.server.filter.FilterWrapper</filter-class>
     </filter>
     <filter>
         <filter-name>LiftFilter</filter-name>
@@ -20,7 +20,7 @@ PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
 
 
     <filter-mapping>
-        <filter-name>SAMLFilter</filter-name>
+        <filter-name>FilterWrapper</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>

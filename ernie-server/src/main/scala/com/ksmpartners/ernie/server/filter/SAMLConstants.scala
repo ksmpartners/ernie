@@ -12,7 +12,6 @@ package com.ksmpartners.ernie.server.filter
  */
 object SAMLConstants {
   val AUTH_HEADER_PROP = "Authorization"
-  // TODO: Make these configurable?
   val USER_NAME_PROP = "userName"
   val ROLES_PROP = "ernieRole"
 
