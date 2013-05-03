@@ -12,6 +12,7 @@ import org.testng.Assert
 import com.ksmpartners.ernie.model.ReportType
 import com.ksmpartners.ernie.util.FileUtils._
 import java.io._
+import collection.{ immutable, mutable }
 
 class FileReportManagerTest {
 
@@ -36,10 +37,18 @@ class FileReportManagerTest {
   def setupMethod() {
 
     for (i <- 1 to 5) {
-      try_(reportManager.putDefinition("def_" + i)) { stream =>
+      var entity = new mutable.HashMap[String, Any]()
+      entity += (ReportManager.DEF_ID -> ("def_" + i))
+      entity += (ReportManager.CREATED_USER -> "default")
+      try_(reportManager.putDefinition(entity)) { stream =>
         stream.write(("DEF_" + i).getBytes)
       }
-      try_(reportManager.putReport("rpt_" + i, ReportType.CSV)) { stream =>
+      entity = new mutable.HashMap[String, Any]()
+      entity += (ReportManager.RPT_ID -> ("rpt_" + i))
+      entity += (ReportManager.SOURCE_DEF_ID -> ("def_" + i))
+      entity += (ReportManager.REPORT_TYPE -> ReportType.CSV)
+      entity += (ReportManager.CREATED_USER -> "default")
+      try_(reportManager.putReport(entity)) { stream =>
         stream.write(("RPT_" + i).getBytes)
       }
 
@@ -48,17 +57,49 @@ class FileReportManagerTest {
   }
 
   @Test
+  def testDefinition() {
+    val definition = reportManager.getDefinition("def_1").get
+    Assert.assertEquals(definition.getCreatedUser, "default")
+    Assert.assertEquals(definition.getDefDescription, "")
+    Assert.assertEquals(definition.getParamNames.size, 0)
+    Assert.assertEquals(definition.getDefId, "def_1")
+  }
+
+  @Test
+  def testReport() {
+    val report = reportManager.getReport("rpt_1").get
+    Assert.assertEquals(report.getCreatedUser, "default")
+    Assert.assertEquals(report.getRptId, "rpt_1")
+    Assert.assertEquals(report.getSourceDefId, "def_1")
+    Assert.assertEquals(report.getReportType, ReportType.CSV)
+    Assert.assertEquals(report.getParams.size, 0)
+  }
+
+  @Test
   def testPut() {
-    var bosR = reportManager.putReport("rpt_6", ReportType.PDF)
+    var entity = new mutable.HashMap[String, Any]()
+    entity += (ReportManager.RPT_ID -> "rpt_6")
+    entity += (ReportManager.SOURCE_DEF_ID -> "def_6")
+    entity += (ReportManager.REPORT_TYPE -> ReportType.PDF)
+    entity += (ReportManager.CREATED_USER -> "default")
+    var bosR = reportManager.putReport(entity)
     Assert.assertTrue(reportManager.hasReport("rpt_6"))
     bosR.close()
     Assert.assertTrue(reportManager.hasReport("rpt_6"))
-    bosR = reportManager.putReport("rpt_7", ReportType.HTML)
+
+    entity += (ReportManager.RPT_ID -> "rpt_7")
+    entity += (ReportManager.SOURCE_DEF_ID -> "def_7")
+    entity += (ReportManager.REPORT_TYPE -> ReportType.HTML)
+    entity += (ReportManager.CREATED_USER -> "default")
+    bosR = reportManager.putReport(entity)
     Assert.assertTrue(reportManager.hasReport("rpt_7"))
     bosR.close()
     Assert.assertTrue(reportManager.hasReport("rpt_7"))
 
-    val bosD = reportManager.putDefinition("def_6")
+    entity = new mutable.HashMap[String, Any]()
+    entity += (ReportManager.DEF_ID -> "def_6")
+    entity += (ReportManager.CREATED_USER -> "default")
+    val bosD = reportManager.putDefinition(entity)
     Assert.assertTrue(reportManager.hasDefinition("def_6"))
     bosD.close()
     Assert.assertTrue(reportManager.hasDefinition("def_6"))
@@ -67,9 +108,11 @@ class FileReportManagerTest {
   @Test()
   def testGet() {
     val buf: Array[Byte] = new Array(5)
-    reportManager.getDefinition("def_1").get.read(buf)
+    val definition = reportManager.getDefinition("def_1").get
+    reportManager.getDefinitionContent(definition).get.read(buf)
     Assert.assertEquals(buf, "DEF_1".getBytes)
-    reportManager.getReport("rpt_1").get.read(buf)
+    val report = reportManager.getReport("rpt_1").get
+    reportManager.getReportContent(report).get.read(buf)
     Assert.assertEquals(buf, "RPT_1".getBytes)
   }
 

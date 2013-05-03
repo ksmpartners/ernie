@@ -10,13 +10,15 @@ package com.ksmpartners.ernie.server
 import com.ksmpartners.ernie.engine.{ ShutDownRequest, Coordinator }
 import com.ksmpartners.ernie.engine.report.{ MemoryReportManager, ReportGenerator, ReportManager, ReportGeneratorFactory }
 import com.ksmpartners.ernie.model
-import com.ksmpartners.ernie.model.ReportType
+import model.{ DefinitionEntity, ReportType }
 import com.ksmpartners.ernie.util.FileUtils._
 import java.io.{ Closeable, OutputStream, InputStream }
 import org.testng.annotations.{ AfterTest, BeforeTest, Test }
 import net.liftweb.common.Full
 import net.liftweb.http.{ StreamingResponse, PlainTextResponse, BadResponse }
 import org.testng.Assert
+import java.util.Date
+import collection.mutable
 
 class JobDependenciesTest extends JobDependencies with JsonTranslator {
 
@@ -31,7 +33,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   @BeforeTest
   def setup() {
     val byteArr = Array[Byte](1, 2, 3)
-    reportManager.putDefinition("test_def", byteArr)
+    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(new Date(), "test_def", "default", null, ""))
   }
 
   @AfterTest
@@ -144,8 +146,13 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
   def runReport(defId: String, rptId: String, rptType: ReportType) {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
-    try_(reportManager.putReport(rptId, rptType)) { os =>
-      os.write(rptId.getBytes())
+    var entity = new mutable.HashMap[String, Any]()
+    entity += (ReportManager.RPT_ID -> rptId)
+    entity += (ReportManager.SOURCE_DEF_ID -> "def")
+    entity += (ReportManager.REPORT_TYPE -> rptType)
+    entity += (ReportManager.CREATED_USER -> "default")
+    try_(reportManager.putReport(entity)) { os =>
+      os.write(rptId.getBytes)
     }
   }
 

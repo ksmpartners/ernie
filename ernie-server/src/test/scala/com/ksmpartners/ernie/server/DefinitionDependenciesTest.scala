@@ -11,6 +11,8 @@ import com.ksmpartners.ernie.engine.report.MemoryReportManager
 import org.testng.annotations.{ Test, BeforeClass }
 import org.testng.Assert
 import net.liftweb.http.PlainTextResponse
+import com.ksmpartners.ernie.model.DefinitionEntity
+import java.util.Date
 
 class DefinitionDependenciesTest extends DefinitionDependencies {
 
@@ -19,7 +21,7 @@ class DefinitionDependenciesTest extends DefinitionDependencies {
   @BeforeClass
   def setup() {
     val byteArr = Array[Byte](1, 2, 3)
-    reportManager.putDefinition("test_def", byteArr)
+    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(new Date(), "test_def", "default", null, ""))
   }
 
   @Test

@@ -9,7 +9,10 @@ package com.ksmpartners.ernie.engine.report
 
 import java.io._
 import scala.collection._
-import com.ksmpartners.ernie.model.ReportType
+import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType }
+import com.ksmpartners.ernie.engine.report.ReportManager._
+import java.util.Date
+import java.util
 
 /**
  * Implementation of ReportManager that stores reports and definitions in memory
@@ -18,6 +21,9 @@ class MemoryReportManager extends ReportManager {
 
   private val definitions: mutable.Map[String, Array[Byte]] = new mutable.HashMap()
   private val reports: mutable.Map[String, Array[Byte]] = new mutable.HashMap()
+
+  private val definitionEntities: mutable.Map[String, DefinitionEntity] = new mutable.HashMap()
+  private val reportEntities: mutable.Map[String, ReportEntity] = new mutable.HashMap()
 
   override def getAllDefinitionIds: List[String] = {
     definitions.keys.toList
@@ -35,32 +41,52 @@ class MemoryReportManager extends ReportManager {
     reports.contains(rptId)
   }
 
-  override def getDefinition(defId: String): Option[InputStream] = {
+  override def getDefinition(defId: String): Option[Definition] = {
+    definitionEntities.get(defId).map({ ent => new Definition(ent) })
+  }
+
+  override def getDefinitionContent(defId: String): Option[InputStream] = {
     definitions.get(defId).map({ new ByteArrayInputStream(_) })
   }
 
-  override def getReport(rptId: String): Option[InputStream] = {
+  override def getDefinitionContent(definition: Definition): Option[InputStream] = {
+    getDefinitionContent(definition.getDefId)
+  }
+
+  override def getReport(rptId: String): Option[Report] = {
+    reportEntities.get(rptId).map({ ent => new Report(ent) })
+  }
+
+  override def getReportContent(rptId: String): Option[InputStream] = {
     reports.get(rptId).map({ new ByteArrayInputStream(_) })
   }
 
-  override def putDefinition(defId: String): OutputStream = {
-    new LocalBOS(defId, { (id, content) =>
-      putDefinition(id, content)
+  override def getReportContent(report: Report): Option[InputStream] = {
+    getReportContent(report.getRptId)
+  }
+
+  override def putDefinition(entity: Map[String, Any]): OutputStream = {
+    val definitionEntity = getDefinitionEntity(entity)
+    new LocalBOS(definitionEntity.getDefId, { (id, content) =>
+      putDefinition(id, content, definitionEntity)
     })
   }
 
-  override def putReport(rptId: String, rptType: ReportType): OutputStream = {
-    new LocalBOS(rptId, { (id, content) =>
-      putReport(id, content)
+  override def putReport(entity: Map[String, Any]): OutputStream = {
+    val rptEntity = getReportEntity(entity)
+    new LocalBOS(rptEntity.getRptId, { (id, content) =>
+      putReport(id, content, rptEntity)
     })
   }
 
   override def deleteDefinition(defId: String) {
     definitions -= defId
+    definitionEntities -= defId
   }
 
   override def deleteReport(rptId: String) {
     reports -= rptId
+    reportEntities -= rptId
   }
 
   private class LocalBOS(id: String, f: (String, Array[Byte]) => Unit) extends ByteArrayOutputStream {
@@ -76,7 +102,8 @@ class MemoryReportManager extends ReportManager {
    * Puts the given content in memory and attaches it to defId.
    * If defId already exists, its content is replaced with the new content
    */
-  def putDefinition(defId: String, content: Array[Byte]) {
+  def putDefinition(defId: String, content: Array[Byte], defEnt: DefinitionEntity) {
+    definitionEntities += (defId -> defEnt)
     definitions += (defId -> content)
   }
 
@@ -84,7 +111,8 @@ class MemoryReportManager extends ReportManager {
    * Puts the given content in memory and attaches it to rptId.
    * If rptId already exists, its content is replaced with the new content
    */
-  def putReport(rptId: String, content: Array[Byte]) {
+  def putReport(rptId: String, content: Array[Byte], rptEnt: ReportEntity) {
+    reportEntities += (rptId -> rptEnt)
     reports += (rptId -> content)
   }
 

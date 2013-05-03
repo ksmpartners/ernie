@@ -64,7 +64,7 @@ class SAMLFilter extends Filter {
 
     // Header value fits format: SAML ENCODED_TOKEN
     // ENCODED_TOKEN = DEFLATED + Base64 encoded
-    // Need to Unencode, then INFLATE
+    // Need to Decode, then INFLATE
     val encodedSamlToken = samlTokenHeader.substring(samlTokenHeader.indexOf(" "), samlTokenHeader.length)
     val deflatedSamlToken = Base64Util.decode(encodedSamlToken.getBytes("UTF-8"))
 

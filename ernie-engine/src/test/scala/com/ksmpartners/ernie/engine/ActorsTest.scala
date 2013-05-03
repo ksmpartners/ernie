@@ -12,14 +12,14 @@ import java.io._
 import report._
 import java.net.URL
 import org.testng.Assert
-import com.ksmpartners.ernie.model.{ ReportType, JobStatus }
+import com.ksmpartners.ernie.model.{ DefinitionEntity, ReportType, JobStatus }
+import java.util.Date
 
 class ActorsTest {
 
   private var reportManager: MemoryReportManager = null
   private var coordinator: Coordinator = null
 
-  // TODO: Fix error when calling Platform.startup() twice
   @BeforeClass
   def setup() {
     reportManager = new MemoryReportManager
@@ -30,7 +30,7 @@ class ActorsTest {
       fis = new FileInputStream(file)
       val byteArr = new Array[Byte](file.length().asInstanceOf[Int])
       fis.read(byteArr)
-      reportManager.putDefinition("test_def", byteArr)
+      reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(new Date(), "test_def", "default", null, ""))
       coordinator = new Coordinator(reportManager) with TestReportGeneratorFactory
       coordinator.start()
     } finally {

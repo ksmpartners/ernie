@@ -11,7 +11,8 @@ import org.testng.annotations.{ AfterClass, Test, BeforeClass }
 import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, File, FileInputStream }
 import java.net.URL
 import org.testng.Assert
-import com.ksmpartners.ernie.model.ReportType
+import com.ksmpartners.ernie.model.{ DefinitionEntity, ReportType }
+import java.util.Date
 
 class BirtReportGeneratorTest {
 
@@ -26,7 +27,7 @@ class BirtReportGeneratorTest {
     val fis = new FileInputStream(file)
     val byteArr = new Array[Byte](file.length.asInstanceOf[Int])
     fis.read(byteArr)
-    reportManager.putDefinition("test_def", byteArr)
+    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(new Date(), "test_def", "default", null, ""))
     reportGenerator = new BirtReportGenerator(reportManager)
     reportGenerator.startup()
   }
@@ -39,7 +40,7 @@ class BirtReportGeneratorTest {
   @Test
   def canRunDefFromStream() {
     val bos = new ByteArrayOutputStream()
-    reportGenerator.runReport(reportManager.getDefinition("test_def").get, bos, ReportType.PDF)
+    reportGenerator.runReport(reportManager.getDefinitionContent("test_def").get, bos, ReportType.PDF)
     Assert.assertTrue(bos.toByteArray.length > 0)
   }
 

@@ -13,9 +13,24 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class SerializationTest {
+
+    @Test
+    public void testDefinitionEntity() {
+        DefinitionEntity ent = TestUtil.deserialize("{\"createdDate\":0," +
+                "\"defId\":\"TEST_1\"," +
+                "\"createdUser\":\"USER_1\"," +
+                "\"paramNames\":null," +
+                "\"defDescription\":\"TEST DESCRIPTION\"}", DefinitionEntity.class);
+        Assert.assertEquals(ent.getCreatedDate(), new Date(0));
+        Assert.assertEquals(ent.getDefId(), "TEST_1");
+        Assert.assertEquals(ent.getCreatedUser(), "USER_1");
+        Assert.assertEquals(ent.getParamNames(), null);
+        Assert.assertEquals(ent.getDefDescription(), "TEST DESCRIPTION");
+    }
 
     @Test
     public void testTestClass()
@@ -60,6 +75,7 @@ public class SerializationTest {
         TestUtil.verifySerialization(StatusResponse.class);
         TestUtil.verifySerialization(ReportDefinitionMapResponse.class);
         TestUtil.verifySerialization(JobsMapResponse.class);
+        TestUtil.verifySerialization(DefinitionEntity.class);
     }
 
     @Test

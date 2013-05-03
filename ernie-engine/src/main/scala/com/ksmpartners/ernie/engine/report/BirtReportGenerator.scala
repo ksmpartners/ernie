@@ -14,6 +14,7 @@ import java.io._
 import com.ksmpartners.ernie.model.ReportType
 import org.eclipse.birt.report.engine.emitter.csv.CSVRenderOption
 import com.ksmpartners.ernie.util.FileUtils._
+import scala.collection._
 
 /**
  * Class used to generate BIRT reports
@@ -55,8 +56,13 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
   def runReport(defId: String, rptId: String, rptType: ReportType) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     log.debug("Generating PDF from report definition {}", defId)
-    try_(reportManager.getDefinition(defId).get) { defInputStream =>
-      try_(reportManager.putReport(rptId, rptType)) { rptOutputStream =>
+    try_(reportManager.getDefinitionContent(defId).get) { defInputStream =>
+      val entity: mutable.Map[String, Any] = new mutable.HashMap()
+      entity += (ReportManager.RPT_ID -> rptId)
+      entity += (ReportManager.SOURCE_DEF_ID -> defId)
+      entity += (ReportManager.REPORT_TYPE -> rptType)
+      entity += (ReportManager.CREATED_USER -> "default")
+      try_(reportManager.putReport(entity)) { rptOutputStream =>
         runReport(defInputStream, rptOutputStream, rptType)
       }
     }

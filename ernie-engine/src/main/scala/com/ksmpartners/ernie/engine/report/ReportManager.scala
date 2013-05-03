@@ -8,7 +8,11 @@
 package com.ksmpartners.ernie.engine.report
 
 import java.io.{ OutputStream, InputStream }
-import com.ksmpartners.ernie.model.ReportType
+import scala.collection._
+import com.ksmpartners.ernie.model.{ ReportType, ReportEntity, DefinitionEntity }
+import com.ksmpartners.ernie.engine.report.ReportManager._
+import java.util.Date
+import java.util
 
 /**
  * Trait that contains methods for managing reports and definitions
@@ -34,25 +38,44 @@ trait ReportManager {
   def hasReport(rptId: String): Boolean
 
   /**
-   * Get an InputStream containing the content for definition defId
+   * Get a Definition object whose ID is defId
    */
-  def getDefinition(defId: String): Option[InputStream]
+  def getDefinition(defId: String): Option[Definition]
   /**
-   * Get an InputStream containing the content for report rptId
+   * Get an InputStream containing the content for defId
    */
-  def getReport(rptId: String): Option[InputStream]
+  def getDefinitionContent(defId: String): Option[InputStream]
+  /**
+   * Get an InputStream containing the content for definition
+   */
+  def getDefinitionContent(definition: Definition): Option[InputStream]
+  /**
+   * Get a Report object whose ID is rptId
+   */
+  def getReport(rptId: String): Option[Report]
+  /**
+   * Get an InputStream containing the content for rptId
+   */
+  def getReportContent(rptId: String): Option[InputStream]
+  /**
+   * Get an InputStream containing the content for report
+   */
+  def getReportContent(report: Report): Option[InputStream]
 
   /**
-   * Returns an OutputStream into which content can be put. This content will be attached to defId.
-   * If defId already exists, its content is replaced with the new content
+   * Returns an OutputStream into which content can be put. The entity must contain information about the
+   * definition being added. Required fields are: DEF_ID and CREATED_USER. Optional fields are: PARAM_NAMES
+   * and DESCRIPTION.
+   * If DEF_ID already exists, the definition content will be replaced with the new content
    */
-  def putDefinition(defId: String): OutputStream
+  def putDefinition(entity: Map[String, Any]): OutputStream
   /**
-   * Returns an OutputStream into which content can be put. This content will be attached to rptId
-   * with the type of rptType.
-   * If rptId already exists, its content is replaced with the new content
+   * Returns an OutputStream into which content can be put. The entity must contain information about the
+   * definition being added. Required fields are: RPT_ID, SOURCE_DEF_ID, REPORT_TYPE, and CREATED_USER. Optional fields
+   * are: PARAM_MAP and RETENTION_DATE.
+   * If RPT_ID already exists, the definition content will be replaced with the new content
    */
-  def putReport(rptId: String, rptType: ReportType): OutputStream
+  def putReport(entity: Map[String, Any]): OutputStream
 
   /**
    * Deletes the given definition
@@ -63,4 +86,67 @@ trait ReportManager {
    */
   def deleteReport(rptId: String)
 
+  protected def getDefinitionEntity(entity: Map[String, Any]): DefinitionEntity = {
+    if (!entity.contains(DEF_ID))
+      throw new IllegalArgumentException("Entity must contain DEF_ID")
+    if (!entity.contains(CREATED_USER))
+      throw new IllegalArgumentException("Entity must contain CREATED_USER")
+    val defEnt = new DefinitionEntity()
+
+    defEnt.setCreatedDate(new Date())
+    defEnt.setDefId(entity.get(DEF_ID).get.asInstanceOf[String])
+    defEnt.setCreatedUser(entity.get(CREATED_USER).get.asInstanceOf[String])
+    defEnt.setDefDescription(entity.getOrElse(DESCRIPTION, "").asInstanceOf[String])
+    if (entity.contains(PARAM_NAMES)) {
+      val params = entity.get(PARAM_NAMES).get.asInstanceOf[List[String]]
+      val paramList = new util.ArrayList[String]()
+      for (param <- params) {
+        paramList.add(param)
+      }
+      defEnt.setParamNames(paramList)
+    }
+    defEnt
+  }
+
+  protected def getReportEntity(entity: Map[String, Any]): ReportEntity = {
+    if (!entity.contains(RPT_ID))
+      throw new IllegalArgumentException("Entity must contain DEF_ID")
+    if (!entity.contains(SOURCE_DEF_ID))
+      throw new IllegalArgumentException("Entity must contain SOURCE_DEF_ID")
+    if (!entity.contains(REPORT_TYPE))
+      throw new IllegalArgumentException("Entity must contain REPORT_TYPE")
+    if (!entity.contains(CREATED_USER))
+      throw new IllegalArgumentException("Entity must contain CREATED_USER")
+    val rptEnt = new ReportEntity()
+
+    rptEnt.setCreatedDate(new Date())
+    rptEnt.setRptId(entity.get(RPT_ID).get.asInstanceOf[String])
+    rptEnt.setSourceDefId(entity.get(SOURCE_DEF_ID).get.asInstanceOf[String])
+    rptEnt.setReportType(entity.get(REPORT_TYPE).get.asInstanceOf[ReportType])
+    rptEnt.setCreatedUser(entity.get(CREATED_USER).get.asInstanceOf[String])
+    rptEnt.setRetentionDate(entity.getOrElse(RETENTION_DATE, new Date()).asInstanceOf[Date])
+    if (entity.contains(PARAM_MAP)) {
+      val paramMap = entity.get(PARAM_MAP).get.asInstanceOf[Map[String, String]]
+      val params: util.Map[String, String] = new util.HashMap()
+      for (entry <- paramMap) {
+        params.put(entry._1, entry._2)
+      }
+      rptEnt.setParams(params)
+    }
+    rptEnt
+  }
+
+}
+
+object ReportManager {
+  val DEF_ID = "defId"
+  val RPT_ID = "rptId"
+  val CREATED_DATE = "createdDate"
+  val CREATED_USER = "createdUser"
+  val PARAM_NAMES = "paramNames"
+  val PARAM_MAP = "paramMap"
+  val DESCRIPTION = "description"
+  val RETENTION_DATE = "retentionDate"
+  val REPORT_TYPE = "fileType"
+  val SOURCE_DEF_ID = "sourceDefId"
 }

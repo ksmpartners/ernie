@@ -17,6 +17,9 @@ import javax.servlet.http.HttpServletRequest
  */
 object AuthUtil {
 
+  /**
+   * Determines if requesting user is in the provided role
+   */
   def isUserInRole(req: Req, role: String): Boolean = {
     val httpRequest: HTTPRequest = req.request
     if (httpRequest == null)

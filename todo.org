@@ -69,6 +69,7 @@
 [x]--> Uses Eclipse Public License
 [x]* Make report generation thread safe
 [x]-> Interacting solely through the Coordinator is sufficient for thread safety
+[x]* Fix file deletion in FileReportManager
 
 # erner-server
 [ ]* Unit tests
