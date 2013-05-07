@@ -13,7 +13,7 @@ import report._
 import java.net.URL
 import org.testng.Assert
 import com.ksmpartners.ernie.model.{ DefinitionEntity, ReportType, JobStatus }
-import java.util.Date
+import org.joda.time.DateTime
 
 class ActorsTest {
 
@@ -30,7 +30,7 @@ class ActorsTest {
       fis = new FileInputStream(file)
       val byteArr = new Array[Byte](file.length().asInstanceOf[Int])
       fis.read(byteArr)
-      reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(new Date(), "test_def", "default", null, ""))
+      reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, ""))
       coordinator = new Coordinator(reportManager) with TestReportGeneratorFactory
       coordinator.start()
     } finally {

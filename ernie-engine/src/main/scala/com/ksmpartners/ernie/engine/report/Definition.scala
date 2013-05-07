@@ -8,7 +8,7 @@
 package com.ksmpartners.ernie.engine.report
 
 import com.ksmpartners.ernie.model.DefinitionEntity
-import java.util.Date
+import org.joda.time.DateTime
 
 /**
  * Immutable wrapper class for sharing DefinitionEntity data
@@ -20,7 +20,7 @@ class Definition protected[report] (defEntity: DefinitionEntity) {
     if (jParamNames == null) new Array(0) else jParamNames.toArray.map({ _.toString })
   }
 
-  def getCreatedDate: Date = defEntity.getCreatedDate
+  def getCreatedDate: DateTime = defEntity.getCreatedDate
 
   def getDefId: String = defEntity.getDefId
 
@@ -29,5 +29,15 @@ class Definition protected[report] (defEntity: DefinitionEntity) {
   def getParamNames: Array[String] = paramNames
 
   def getDefDescription: String = defEntity.getDefDescription
+
+  def getEntity: DefinitionEntity = {
+    val defEnt = new DefinitionEntity()
+    defEnt.setCreatedDate(defEntity.getCreatedDate)
+    defEnt.setCreatedUser(defEntity.getCreatedUser)
+    defEnt.setDefDescription(defEntity.getDefDescription)
+    defEnt.setDefId(defEntity.getDefId)
+    defEnt.setParamNames(defEntity.getParamNames)
+    defEnt
+  }
 
 }

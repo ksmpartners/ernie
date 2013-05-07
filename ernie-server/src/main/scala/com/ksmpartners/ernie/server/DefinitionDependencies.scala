@@ -9,6 +9,8 @@ package com.ksmpartners.ernie.server
 
 import com.ksmpartners.ernie.model
 import java.util
+import net.liftweb.common.Full
+import net.liftweb.http.BadResponse
 
 /**
  * Dependencies for interacting with report definitions
@@ -25,6 +27,21 @@ trait DefinitionDependencies extends RequiresReportManager {
         defMap.put(defId, uriPrefix + "/" + defId)
       })
       getJsonResponse(new model.ReportDefinitionMapResponse(defMap))
+    }
+  }
+
+  /**
+   * Resource for handling HTTP requests at /defs/<DEF_ID>
+   */
+  class DefDetailResource extends JsonTranslator {
+    def get(defId: String) = {
+      val defEnt = reportManager.getDefinition(defId)
+      if (defEnt.isDefined) {
+        val defEntity = defEnt.get.getEntity
+        getJsonResponse(defEntity)
+      } else {
+        Full(BadResponse())
+      }
     }
   }
 

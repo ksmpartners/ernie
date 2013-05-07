@@ -12,13 +12,13 @@ import com.ksmpartners.ernie.engine.report.{ MemoryReportManager, ReportGenerato
 import com.ksmpartners.ernie.model
 import model.{ DefinitionEntity, ReportType }
 import com.ksmpartners.ernie.util.FileUtils._
-import java.io.{ Closeable, OutputStream, InputStream }
+import java.io.{ OutputStream, InputStream }
 import org.testng.annotations.{ AfterTest, BeforeTest, Test }
 import net.liftweb.common.Full
 import net.liftweb.http.{ StreamingResponse, PlainTextResponse, BadResponse }
 import org.testng.Assert
-import java.util.Date
 import collection.mutable
+import org.joda.time.DateTime
 
 class JobDependenciesTest extends JobDependencies with JsonTranslator {
 
@@ -33,7 +33,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   @BeforeTest
   def setup() {
     val byteArr = Array[Byte](1, 2, 3)
-    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(new Date(), "test_def", "default", null, ""))
+    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, ""))
   }
 
   @AfterTest

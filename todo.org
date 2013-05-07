@@ -37,6 +37,7 @@
 [ ]* Documentation
 [x]** Document all currently existing source
 [x]--> Some documentation needs to be rewritten
+[ ]* Implement Dates in JSON as ISO-8601(not longs)
 
 # All projects
 [ ]* Redo/Add more unit tests to all projects

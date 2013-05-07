@@ -7,7 +7,6 @@
 
 package com.ksmpartners.ernie.server
 
-import net.liftweb.http.rest.XMLApiHelper
 import net.liftweb.common.{ Box, Full }
 import com.ksmpartners.ernie.server.filter.AuthUtil._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
@@ -15,11 +14,12 @@ import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import scala.xml._
 import net.liftweb.http._
 import org.slf4j.LoggerFactory
+import rest.RestHelper
 
 /**
  * Object containing the stateless dispatch definition for an ernie server
  */
-object DispatchRestAPI extends XMLApiHelper {
+object DispatchRestAPI extends RestHelper {
 
   private val log = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DispatchRestAPI")
 
@@ -37,9 +37,9 @@ object DispatchRestAPI extends XMLApiHelper {
     case req@Req(List("jobs", jobId, "result"), _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
     case req@Req(List("defs"), _, GetRequest) => () => authFilter(req, READ_ROLE)(() => ServiceRegistry.defsResource.get("/defs"))
     case req@Req(List("defs"), _, PostRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
-    case req@Req(List("defs", rptId), _, GetRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
-    case req@Req(List("defs", rptId), _, PutRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
-    case req@Req(List("defs", rptId), _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+    case req@Req(List("defs", defId), _, GetRequest) => () => authFilter(req, READ_ROLE)(() => ServiceRegistry.defDetailResource.get(defId))
+    case req@Req(List("defs", defId), _, PutRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+    case req@Req(List("defs", defId), _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
     case req => {
       log.error("Got unknown request: {}", req)
       () => Full(NotFoundResponse())

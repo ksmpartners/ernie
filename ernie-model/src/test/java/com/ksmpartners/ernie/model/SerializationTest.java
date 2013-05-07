@@ -9,23 +9,23 @@ package com.ksmpartners.ernie.model;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ksmpartners.ernie.util.TestUtil;
+import org.joda.time.format.ISODateTimeFormat;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class SerializationTest {
 
     @Test
     public void testDefinitionEntity() {
-        DefinitionEntity ent = TestUtil.deserialize("{\"createdDate\":0," +
+        DefinitionEntity ent = TestUtil.deserialize("{\"createdDate\":\"2013-02-02T10:23:13.000-05:00\"," +
                 "\"defId\":\"TEST_1\"," +
                 "\"createdUser\":\"USER_1\"," +
                 "\"paramNames\":null," +
                 "\"defDescription\":\"TEST DESCRIPTION\"}", DefinitionEntity.class);
-        Assert.assertEquals(ent.getCreatedDate(), new Date(0));
+        Assert.assertEquals(ent.getCreatedDate(), ISODateTimeFormat.dateTime().parseDateTime("2013-02-02T10:23:13.000-05:00"));
         Assert.assertEquals(ent.getDefId(), "TEST_1");
         Assert.assertEquals(ent.getCreatedUser(), "USER_1");
         Assert.assertEquals(ent.getParamNames(), null);

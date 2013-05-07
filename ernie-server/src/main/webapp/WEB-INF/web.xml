@@ -18,7 +18,6 @@ PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
         <filter-class>net.liftweb.http.LiftFilter</filter-class>
     </filter>
 
-
     <filter-mapping>
         <filter-name>FilterWrapper</filter-name>
         <url-pattern>/*</url-pattern>

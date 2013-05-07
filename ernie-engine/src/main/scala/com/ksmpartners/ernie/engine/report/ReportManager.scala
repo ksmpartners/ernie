@@ -11,8 +11,8 @@ import java.io.{ OutputStream, InputStream }
 import scala.collection._
 import com.ksmpartners.ernie.model.{ ReportType, ReportEntity, DefinitionEntity }
 import com.ksmpartners.ernie.engine.report.ReportManager._
-import java.util.Date
 import java.util
+import org.joda.time.DateTime
 
 /**
  * Trait that contains methods for managing reports and definitions
@@ -86,14 +86,25 @@ trait ReportManager {
    */
   def deleteReport(rptId: String)
 
-  protected def getDefinitionEntity(entity: Map[String, Any]): DefinitionEntity = {
+  /**
+   * Returns a DefinitionEntity object containing the contents of entity. The entity must contain information about the
+   * definition being added.
+   * Required fields are:
+   * - DEF_ID (String)
+   * - CREATED_USER (String)
+   *
+   * Optional fields are:
+   * - PARAM_NAMES (List[String])
+   * - DESCRIPTION (String)
+   */
+  protected def createDefinitionEntity(entity: Map[String, Any]): DefinitionEntity = {
     if (!entity.contains(DEF_ID))
       throw new IllegalArgumentException("Entity must contain DEF_ID")
     if (!entity.contains(CREATED_USER))
       throw new IllegalArgumentException("Entity must contain CREATED_USER")
     val defEnt = new DefinitionEntity()
 
-    defEnt.setCreatedDate(new Date())
+    defEnt.setCreatedDate(DateTime.now())
     defEnt.setDefId(entity.get(DEF_ID).get.asInstanceOf[String])
     defEnt.setCreatedUser(entity.get(CREATED_USER).get.asInstanceOf[String])
     defEnt.setDefDescription(entity.getOrElse(DESCRIPTION, "").asInstanceOf[String])
@@ -108,7 +119,20 @@ trait ReportManager {
     defEnt
   }
 
-  protected def getReportEntity(entity: Map[String, Any]): ReportEntity = {
+  /**
+   * Returns a ReportEntity containing the contents of entity. The entity must contain information about the
+   * definition being added.
+   * Required fields are:
+   * - RPT_ID (String)
+   * - SOURCE_DEF_ID (String)
+   * - REPORT_TYPE (ReportType)
+   * - CREATED_USER (String)
+   *
+   * Optional fields are:
+   * - PARAM_MAP (Map[String, String])
+   * - RETENTION_DATE (DateTime)
+   */
+  protected def createReportEntity(entity: Map[String, Any]): ReportEntity = {
     if (!entity.contains(RPT_ID))
       throw new IllegalArgumentException("Entity must contain DEF_ID")
     if (!entity.contains(SOURCE_DEF_ID))
@@ -119,12 +143,12 @@ trait ReportManager {
       throw new IllegalArgumentException("Entity must contain CREATED_USER")
     val rptEnt = new ReportEntity()
 
-    rptEnt.setCreatedDate(new Date())
+    rptEnt.setCreatedDate(DateTime.now())
     rptEnt.setRptId(entity.get(RPT_ID).get.asInstanceOf[String])
     rptEnt.setSourceDefId(entity.get(SOURCE_DEF_ID).get.asInstanceOf[String])
     rptEnt.setReportType(entity.get(REPORT_TYPE).get.asInstanceOf[ReportType])
     rptEnt.setCreatedUser(entity.get(CREATED_USER).get.asInstanceOf[String])
-    rptEnt.setRetentionDate(entity.getOrElse(RETENTION_DATE, new Date()).asInstanceOf[Date])
+    rptEnt.setRetentionDate(entity.getOrElse(RETENTION_DATE, DateTime.now()).asInstanceOf[DateTime])
     if (entity.contains(PARAM_MAP)) {
       val paramMap = entity.get(PARAM_MAP).get.asInstanceOf[Map[String, String]]
       val params: util.Map[String, String] = new util.HashMap()
@@ -135,9 +159,11 @@ trait ReportManager {
     }
     rptEnt
   }
-
 }
 
+/**
+ * Companion Object containing constants for ReportManager
+ */
 object ReportManager {
   val DEF_ID = "defId"
   val RPT_ID = "rptId"

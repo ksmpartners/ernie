@@ -106,7 +106,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
   }
 
   override def putDefinition(entity: Map[String, Any]): OutputStream = {
-    val defEnt = getDefinitionEntity(entity)
+    val defEnt = createDefinitionEntity(entity)
     val defId = defEnt.getDefId
     val defEntFile = new File(rptDefDir, defId + ".entity")
     try_(new FileOutputStream(defEntFile)) { fos =>
@@ -120,7 +120,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
   }
 
   override def putReport(entity: Map[String, Any]): OutputStream = {
-    val rptEnt = getReportEntity(entity)
+    val rptEnt = createReportEntity(entity)
     val rptType = rptEnt.getReportType
     val rptId = rptEnt.getRptId
     val rptEntFile = new File(outputDir, rptId + ".entity")

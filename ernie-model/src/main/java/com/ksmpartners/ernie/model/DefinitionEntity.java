@@ -7,15 +7,20 @@
 
 package com.ksmpartners.ernie.model;
 
-import java.util.Date;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.ksmpartners.ernie.util.ISODateDeserializer;
+import com.ksmpartners.ernie.util.ISODateSerializer;
+import org.joda.time.DateTime;
+
 import java.util.List;
 
 /**
  * A JSONable class used to serialize definition meta-data to disk
  */
-public class DefinitionEntity {
+public class DefinitionEntity extends ModelObject {
 
-    private Date createdDate;
+    private DateTime createdDate;
     private String defId;
     private String createdUser;
     private List<String> paramNames;
@@ -23,7 +28,7 @@ public class DefinitionEntity {
 
     public DefinitionEntity() {}
 
-    public DefinitionEntity(Date createdDate, String defId, String createdUser, List<String> paramNames, String defDescription) {
+    public DefinitionEntity(DateTime createdDate, String defId, String createdUser, List<String> paramNames, String defDescription) {
         this.createdDate = createdDate;
         this.defId = defId;
         this.createdUser = createdUser;
@@ -31,11 +36,13 @@ public class DefinitionEntity {
         this.defDescription = defDescription;
     }
 
-    public Date getCreatedDate() {
+    @JsonSerialize(using = ISODateSerializer.class)
+    public DateTime getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(Date createdDate) {
+    @JsonDeserialize(using = ISODateDeserializer.class)
+    public void setCreatedDate(DateTime createdDate) {
         this.createdDate = createdDate;
     }
 

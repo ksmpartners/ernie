@@ -79,6 +79,7 @@ object ServiceRegistry extends JobDependencies
   val jobResultsResource = new JobResultsResource
 
   val defsResource = new DefsResource
+  val defDetailResource = new DefDetailResource
 
   val shutdownResource = new ShutdownResource
 

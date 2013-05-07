@@ -7,16 +7,21 @@
 
 package com.ksmpartners.ernie.model;
 
-import java.util.Date;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.ksmpartners.ernie.util.ISODateDeserializer;
+import com.ksmpartners.ernie.util.ISODateSerializer;
+import org.joda.time.DateTime;
+
 import java.util.Map;
 
 /**
  * A JSONable class used to serialize report meta-data to disk
  */
-public class ReportEntity {
+public class ReportEntity extends ModelObject {
 
-    private Date createdDate;
-    private Date retentionDate;
+    private DateTime createdDate;
+    private DateTime retentionDate;
     private String rptId;
     private String sourceDefId;
     private String createdUser;
@@ -25,7 +30,7 @@ public class ReportEntity {
 
     public ReportEntity() {}
 
-    public ReportEntity(Date createdDate, Date retentionDate, String rptId, String sourceDefId, String createdUser, Map<String, String> params, ReportType reportType) {
+    public ReportEntity(DateTime createdDate, DateTime retentionDate, String rptId, String sourceDefId, String createdUser, Map<String, String> params, ReportType reportType) {
         this.createdDate = createdDate;
         this.retentionDate = retentionDate;
         this.rptId = rptId;
@@ -35,19 +40,23 @@ public class ReportEntity {
         this.reportType = reportType;
     }
 
-    public Date getCreatedDate() {
+    @JsonSerialize(using = ISODateSerializer.class)
+    public DateTime getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(Date createdDate) {
+    @JsonDeserialize(using = ISODateDeserializer.class)
+    public void setCreatedDate(DateTime createdDate) {
         this.createdDate = createdDate;
     }
 
-    public Date getRetentionDate() {
+    @JsonSerialize(using = ISODateSerializer.class)
+    public DateTime getRetentionDate() {
         return retentionDate;
     }
 
-    public void setRetentionDate(Date retentionDate) {
+    @JsonDeserialize(using = ISODateDeserializer.class)
+    public void setRetentionDate(DateTime retentionDate) {
         this.retentionDate = retentionDate;
     }
 

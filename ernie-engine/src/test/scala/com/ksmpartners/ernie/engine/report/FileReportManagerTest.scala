@@ -12,7 +12,7 @@ import org.testng.Assert
 import com.ksmpartners.ernie.model.ReportType
 import com.ksmpartners.ernie.util.FileUtils._
 import java.io._
-import collection.{ immutable, mutable }
+import collection.mutable
 
 class FileReportManagerTest {
 

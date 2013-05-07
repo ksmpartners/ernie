@@ -8,8 +8,8 @@
 package com.ksmpartners.ernie.engine.report
 
 import com.ksmpartners.ernie.model.{ ReportType, ReportEntity }
-import java.util.Date
 import scala.collection._
+import org.joda.time.DateTime
 
 /**
  * Immutable wrapper class for sharing ReportEntity data
@@ -27,9 +27,9 @@ class Report protected[report] (rptEntity: ReportEntity) {
     paramsMap
   }
 
-  def getCreatedDate: Date = rptEntity.getCreatedDate
+  def getCreatedDate: DateTime = rptEntity.getCreatedDate
 
-  def getRetentionDate: Date = rptEntity.getRetentionDate
+  def getRetentionDate: DateTime = rptEntity.getRetentionDate
 
   def getRptId: String = rptEntity.getRptId
 
@@ -40,5 +40,17 @@ class Report protected[report] (rptEntity: ReportEntity) {
   def getReportType: ReportType = rptEntity.getReportType
 
   def getParams: Map[String, String] = params
+
+  def getEntity: ReportEntity = {
+    val rptEnt = new ReportEntity()
+    rptEnt.setCreatedDate(rptEntity.getCreatedDate)
+    rptEnt.setCreatedUser(rptEntity.getCreatedUser)
+    rptEnt.setParams(rptEntity.getParams)
+    rptEnt.setReportType(rptEntity.getReportType)
+    rptEnt.setRetentionDate(rptEntity.getRetentionDate)
+    rptEnt.setRptId(rptEntity.getRptId)
+    rptEnt.setSourceDefId(rptEntity.getSourceDefId)
+    rptEnt
+  }
 
 }

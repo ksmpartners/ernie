@@ -9,10 +9,7 @@ package com.ksmpartners.ernie.engine.report
 
 import java.io._
 import scala.collection._
-import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType }
-import com.ksmpartners.ernie.engine.report.ReportManager._
-import java.util.Date
-import java.util
+import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity }
 
 /**
  * Implementation of ReportManager that stores reports and definitions in memory
@@ -66,14 +63,14 @@ class MemoryReportManager extends ReportManager {
   }
 
   override def putDefinition(entity: Map[String, Any]): OutputStream = {
-    val definitionEntity = getDefinitionEntity(entity)
+    val definitionEntity = createDefinitionEntity(entity)
     new LocalBOS(definitionEntity.getDefId, { (id, content) =>
       putDefinition(id, content, definitionEntity)
     })
   }
 
   override def putReport(entity: Map[String, Any]): OutputStream = {
-    val rptEntity = getReportEntity(entity)
+    val rptEntity = createReportEntity(entity)
     new LocalBOS(rptEntity.getRptId, { (id, content) =>
       putReport(id, content, rptEntity)
     })
