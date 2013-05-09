@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.server
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.liftweb.common.{ Full, Box }
-import net.liftweb.http.{ PlainTextResponse, LiftResponse }
+import net.liftweb.http.{ Req, PlainTextResponse, LiftResponse }
 import com.ksmpartners.ernie.model.ModelObject
 
 /**
@@ -54,4 +54,7 @@ trait JsonTranslator {
   def getJsonResponse[A <: ModelObject](response: A, statusCode: Int): Box[LiftResponse] = {
     Full(PlainTextResponse(serialize(response), List(("Content-Type", response.cType())), statusCode))
   }
+
+  def acceptsErnieJson(req: Req): Boolean = req.weightedAccept.find(_.matches(ModelObject.TYPE_PREFIX -> ModelObject.TYPE_POSTFIX)).isDefined
+
 }

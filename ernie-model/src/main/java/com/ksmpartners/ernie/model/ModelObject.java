@@ -12,11 +12,14 @@ package com.ksmpartners.ernie.model;
  */
 public abstract class ModelObject {
 
+    public static final String TYPE_PREFIX = "application";
+    public static final String TYPE_POSTFIX = "vnd.ksmpartners.ernie+json";
+
     /**
      * Method that returns the custom MIME type of the serialized object
      */
     public String cType() {
-        return "application/vnd.ksmpartners.ernie+json";
+        return TYPE_PREFIX + "/" + TYPE_POSTFIX;
     }
 
 }
