@@ -102,8 +102,8 @@ trait ReportManager {
       throw new IllegalArgumentException("Entity must contain DEF_ID")
     if (!entity.contains(CREATED_USER))
       throw new IllegalArgumentException("Entity must contain CREATED_USER")
-    val defEnt = new DefinitionEntity()
 
+    val defEnt = new DefinitionEntity()
     defEnt.setCreatedDate(DateTime.now())
     defEnt.setDefId(entity.get(DEF_ID).get.asInstanceOf[String])
     defEnt.setCreatedUser(entity.get(CREATED_USER).get.asInstanceOf[String])
@@ -141,13 +141,14 @@ trait ReportManager {
       throw new IllegalArgumentException("Entity must contain REPORT_TYPE")
     if (!entity.contains(CREATED_USER))
       throw new IllegalArgumentException("Entity must contain CREATED_USER")
-    val rptEnt = new ReportEntity()
 
+    val rptEnt = new ReportEntity()
     rptEnt.setCreatedDate(DateTime.now())
     rptEnt.setRptId(entity.get(RPT_ID).get.asInstanceOf[String])
     rptEnt.setSourceDefId(entity.get(SOURCE_DEF_ID).get.asInstanceOf[String])
     rptEnt.setReportType(entity.get(REPORT_TYPE).get.asInstanceOf[ReportType])
     rptEnt.setCreatedUser(entity.get(CREATED_USER).get.asInstanceOf[String])
+    // TODO: Set up default retention date.
     rptEnt.setRetentionDate(entity.getOrElse(RETENTION_DATE, DateTime.now()).asInstanceOf[DateTime])
     if (entity.contains(PARAM_MAP)) {
       val paramMap = entity.get(PARAM_MAP).get.asInstanceOf[Map[String, String]]

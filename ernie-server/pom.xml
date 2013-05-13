@@ -35,7 +35,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
+         <dependency>
             <groupId>net.liftweb</groupId>
             <artifactId>lift-webkit_2.9.1</artifactId>
             <version>2.4</version>
@@ -76,6 +76,18 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-security-xml</artifactId>
             <version>2.7.4</version>
+        </dependency>
+        <dependency>
+	    <groupId>net.liftweb</groupId>
+	    <artifactId>lift-testkit_2.9.1</artifactId>
+	    <version>2.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+	    <groupId>org.scala-tools.testing</groupId>
+	    <artifactId>specs_2.9.1</artifactId>
+	    <version>1.6.9</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

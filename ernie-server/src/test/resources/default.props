@@ -1,0 +1,6 @@
+# Default application properties
+# Not a permanent production solution.
+# A more robust solution would be to externalize properties files.
+
+rpt.def.dir=./src/test/resources/in
+output.dir=./src/test/resources/out

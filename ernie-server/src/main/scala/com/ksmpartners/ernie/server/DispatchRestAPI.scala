@@ -11,7 +11,6 @@ import net.liftweb.common.{ Box, Full }
 import com.ksmpartners.ernie.server.filter.AuthUtil._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
 
-import scala.xml._
 import net.liftweb.http._
 import org.slf4j.LoggerFactory
 import rest.RestHelper
@@ -24,23 +23,23 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
 
   private val log = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DispatchRestAPI")
 
-  // Required override, though not used
-  def createTag(contents: NodeSeq) = <api>{ contents }</api>
+  serve("jobs" :: Nil prefix {
+    case req@Req(Nil, _, PostRequest) => authFilter(req, WRITE_ROLE)_ compose ctypeFilter(req)_ apply ServiceRegistry.jobsResource.post(req.body)
+    case req@Req(Nil, _, GetRequest) => authFilter(req, READ_ROLE)_ compose ctypeFilter(req)_ apply ServiceRegistry.jobsResource.get("/jobs")
+    case req@Req(jobId :: "status" :: Nil, _, GetRequest) => authFilter(req, READ_ROLE)_ compose ctypeFilter(req)_ apply ServiceRegistry.jobStatusResource.get(jobId)
+    case req@Req(jobId :: "result" :: Nil, _, GetRequest) => authFilter(req, READ_ROLE)_ apply ServiceRegistry.jobResultsResource.get(jobId)
+    case req@Req(jobId :: "result" :: Nil, _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+  })
 
-  /**
-   * Stateless dispatch.
-   */
-  def dispatch: LiftRules.DispatchPF = {
-    case req@Req(List("jobs"), _, PostRequest) => () => ServiceRegistry.jobsResource.post(req.body)
-    case req@Req(List("jobs"), _, GetRequest) => () => ServiceRegistry.jobsResource.get("/jobs")
-    case req@Req(List("jobs", jobId, "status"), _, GetRequest) => () => ServiceRegistry.jobStatusResource.get(jobId)
-    case req@Req(List("jobs", jobId, "result"), _, GetRequest) => () => ServiceRegistry.jobResultsResource.get(jobId)
-    case req@Req(List("jobs", jobId, "result"), _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
-    case req@Req(List("defs"), _, GetRequest) => (authFilter(req, READ_ROLE)_ compose ctypeFilter(req)_)({ ServiceRegistry.defsResource.get("/defs") })
-    case req@Req(List("defs"), _, PostRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
-    case req@Req(List("defs", defId), _, GetRequest) => (authFilter(req, READ_ROLE)_ compose ctypeFilter(req)_)({ ServiceRegistry.defDetailResource.get(defId) })
-    case req@Req(List("defs", defId), _, PutRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
-    case req@Req(List("defs", defId), _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+  serve("defs" :: Nil prefix {
+    case req@Req(Nil, _, GetRequest) => authFilter(req, READ_ROLE)_ compose ctypeFilter(req)_ apply ServiceRegistry.defsResource.get("/defs")
+    case req@Req(Nil, _, PostRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+    case req@Req(defId :: Nil, _, GetRequest) => authFilter(req, READ_ROLE)_ compose ctypeFilter(req)_ apply ServiceRegistry.defDetailResource.get(defId)
+    case req@Req(defId :: Nil, _, PutRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+    case req@Req(defId :: Nil, _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+  })
+
+  serve {
     case req => {
       log.error("Got unknown request: {}", req)
       () => Full(NotFoundResponse())
@@ -65,7 +64,7 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
    * @return the function f, or a NotAcceptableResponse if the user does not accept the correct ctype
    */
   private def ctypeFilter(req: Req)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = {
-    if (acceptsErnieJson(req)) f else () => Full(NotAcceptableResponse("Accept header does not contain " + ModelObject.TYPE_PREFIX + "/" + ModelObject.TYPE_POSTFIX))
+    if (acceptsErnieJson(req)) f else () => Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_PREFIX + "/" + ModelObject.TYPE_POSTFIX))
   }
 
   def shutdown() {

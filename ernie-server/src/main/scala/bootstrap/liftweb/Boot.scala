@@ -27,7 +27,7 @@ class Boot {
 
     DispatchRestAPI.init()
 
-    LiftRules.statelessDispatchTable.prepend(DispatchRestAPI.dispatch)
+    LiftRules.statelessDispatchTable.prepend(DispatchRestAPI)
 
     LiftRules.unloadHooks.prepend(() => DispatchRestAPI.shutdown())
   }
