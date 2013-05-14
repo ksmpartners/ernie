@@ -10,6 +10,7 @@ package com.ksmpartners.ernie.server.filter
 import javax.servlet._
 import http.{ HttpServletRequest, HttpServletRequestWrapper }
 import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.server.PropertyNames._
 
 /**
  * Filter that delegates filtering based on the value of authentication.mode variable
@@ -21,7 +22,7 @@ class FilterWrapper extends Filter {
   private var wrappedFilter: Filter = null
 
   def init(config: FilterConfig) {
-    val authMode = System.getProperty("authentication.mode")
+    val authMode = System.getProperty(AUTH_MODE_PROP)
 
     authMode match {
       case "SAML" => wrappedFilter = new SAMLFilter

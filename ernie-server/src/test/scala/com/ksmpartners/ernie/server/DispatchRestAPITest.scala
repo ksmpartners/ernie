@@ -11,8 +11,9 @@ import org.testng.annotations._
 import net.liftweb.mockweb.{ MockWeb, WebSpec }
 import bootstrap.liftweb.Boot
 import net.liftweb.mocks.MockHttpServletRequest
+import com.ksmpartners.ernie.server.PropertyNames._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
-import com.ksmpartners.ernie.model.{ ReportDefinitionMapResponse, ModelObject }
+import com.ksmpartners.ernie.model.{ JobsMapResponse, ReportDefinitionMapResponse, ModelObject }
 import org.testng.Assert
 import net.liftweb.http.{ NotAcceptableResponse, ForbiddenResponse, PlainTextResponse }
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -36,6 +37,9 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       val resp = DispatchRestAPI.apply(req).apply()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      val body = resp.open_!.asInstanceOf[PlainTextResponse].text
+      val respObj = mapper.readValue(body, classOf[JobsMapResponse])
+      Assert.assertNotNull(respObj.getJobStatusMap)
     }
   }
 
@@ -49,6 +53,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       val resp = DispatchRestAPI.apply(req).apply()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
 
@@ -60,6 +65,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       val resp = DispatchRestAPI.apply(req).apply()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
 
@@ -89,6 +95,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       val resp = DispatchRestAPI.apply(req).apply()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
 
@@ -100,6 +107,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       val resp = DispatchRestAPI.apply(req).apply()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
 
@@ -126,7 +134,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 class TestBoot extends Boot {
   def setUpAndBoot() {
     val url = Thread.currentThread.getContextClassLoader.getResource("default.props")
-    System.setProperty("ernie.props", url.getPath)
+    System.setProperty(PROPERTIES_FILE_NAME_PROP, url.getPath)
     boot()
   }
 }

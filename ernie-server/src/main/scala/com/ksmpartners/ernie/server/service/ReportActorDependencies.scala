@@ -5,7 +5,7 @@
  * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
  */
 
-package com.ksmpartners.ernie.server
+package com.ksmpartners.ernie.server.service
 
 import com.ksmpartners.ernie.engine
 

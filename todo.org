@@ -26,13 +26,13 @@
 [ ]*** Test DB?
 [ ]* Test framework
 [x]** TestNG for unit tests
-[ ]** Find framework for REST API testing
+[x]** Find framework for REST API testing
 [x]** JaCoCo for code coverage reports
 [ ]** Finalize test process/standards
 [ ]*** Unit tests
 [ ]**** Minimum code coverage
 [ ]*** System tests
-[ ]* Initial state
+[x]* Initial state
 [x]** Get project source in solid state before starting "real" development
 [ ]* Documentation
 [x]** Document all currently existing source
@@ -40,11 +40,11 @@
 [x]* Implement Dates in JSON as ISO-8601(not longs)
 
 # All projects
-[ ]* Redo/Add more unit tests to all projects
+[x]* Redo/Add more unit tests to all projects
 [x]** Fix BIRT unit test error: Calling Platform.startup() twice fails
 [x]--> BIRT uses OSGi, which won't allow double start.
 [x]--> Fixed by making ReportGenerator an interface and stubbing it for Actor tests
-[ ]** Look into framework for unit testing RESTful web service API
+[x]** Look into framework for unit testing RESTful web service API
 [x]** Add and set up JaCoCo for code coverage
 [x]--> Also added scct for more readable coverage reports
 [x]*** Verify that JaCoCo works with Scala
@@ -73,6 +73,6 @@
 [x]* Fix file deletion in FileReportManager
 
 # erner-server
-[ ]* Unit tests
-[ ]** Add unit tests for REST API
+[x]* Unit tests
+[x]** Add unit tests for REST API
 [x]* Finish adding documentation to new code

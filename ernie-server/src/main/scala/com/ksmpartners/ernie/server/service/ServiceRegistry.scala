@@ -5,14 +5,16 @@
  * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
  */
 
-package com.ksmpartners.ernie.server
+package com.ksmpartners.ernie.server.service
 
 import com.ksmpartners.ernie.engine.report.{ BirtReportGeneratorFactory, FileReportManager, ReportManager }
 import com.ksmpartners.ernie.engine.Coordinator
 import com.ksmpartners.ernie.server.PropertyNames._
+import com.ksmpartners.ernie.util.FileUtils._
 import java.util.Properties
 import java.io.{ FileInputStream, File }
 import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.server.RequiresProperties
 
 /**
  * Object that registers the services used by the stateless dispatch
@@ -43,12 +45,8 @@ object ServiceRegistry extends JobDependencies
       throw new RuntimeException("Properties file " + propsPath + " is not readable; check file privileges.")
     }
     val props = new Properties()
-    var propsFileStream: FileInputStream = null
-    try {
-      propsFileStream = new FileInputStream(propsFile)
+    try_(new FileInputStream(propsFile)) { propsFileStream =>
       props.load(propsFileStream)
-    } finally {
-      if (propsFileStream != null) propsFileStream.close()
     }
     props
   }
@@ -83,6 +81,9 @@ object ServiceRegistry extends JobDependencies
 
   val shutdownResource = new ShutdownResource
 
+  /**
+   * Empty method. Calling instantiates this object.
+   */
   def init() {
     log.info("BEGIN Initializing ServiceRegistry...")
     log.info("Loaded properties: {}", properties.toString)

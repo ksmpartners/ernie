@@ -5,7 +5,7 @@
  * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
  */
 
-package com.ksmpartners.ernie.server
+package com.ksmpartners.ernie.server.service
 
 import com.ksmpartners.ernie.engine.{ ShutDownRequest, Coordinator }
 import com.ksmpartners.ernie.engine.report.{ MemoryReportManager, ReportGenerator, ReportManager, ReportGeneratorFactory }
@@ -19,6 +19,7 @@ import net.liftweb.http.{ StreamingResponse, PlainTextResponse, BadResponse }
 import org.testng.Assert
 import collection.mutable
 import org.joda.time.DateTime
+import com.ksmpartners.ernie.server.JsonTranslator
 
 class JobDependenciesTest extends JobDependencies with JsonTranslator {
 

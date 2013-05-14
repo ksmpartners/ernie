@@ -5,7 +5,7 @@
  * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
  */
 
-package com.ksmpartners.ernie.server
+package com.ksmpartners.ernie.server.service
 
 import net.liftweb.common.{ Box, Full }
 import net.liftweb.http._
@@ -14,6 +14,7 @@ import com.ksmpartners.ernie.engine
 import java.io.IOException
 import java.util
 import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.server.JsonTranslator
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports

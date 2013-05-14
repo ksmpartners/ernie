@@ -15,6 +15,7 @@ import com.ksmpartners.commons.util.Base64Util
 import org.apache.cxf.rs.security.saml.DeflateEncoderDecoder
 import com.ksmpartners.ernie.util.FileUtils._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
+import com.ksmpartners.ernie.server.PropertyNames._
 import scala.collection._
 import java.io.InputStream
 
@@ -26,7 +27,7 @@ class SAMLFilter extends Filter {
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.filter.SAMLFilter")
 
   private val keystoreLoc: String = {
-    val ksl = System.getProperty("keystore.location")
+    val ksl = System.getProperty(KEYSTORE_LOC_PROP)
     if (ksl == null)
       throw new IllegalStateException("Must set keystore.location")
     log.info("keystoreLoc = {}", ksl)

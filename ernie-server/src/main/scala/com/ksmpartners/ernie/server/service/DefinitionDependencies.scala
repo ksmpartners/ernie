@@ -5,12 +5,13 @@
  * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
  */
 
-package com.ksmpartners.ernie.server
+package com.ksmpartners.ernie.server.service
 
 import com.ksmpartners.ernie.model
 import java.util
 import net.liftweb.common.Full
 import net.liftweb.http.BadResponse
+import com.ksmpartners.ernie.server.JsonTranslator
 
 /**
  * Dependencies for interacting with report definitions

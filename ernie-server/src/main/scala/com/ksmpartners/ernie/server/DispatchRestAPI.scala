@@ -15,6 +15,7 @@ import net.liftweb.http._
 import org.slf4j.LoggerFactory
 import rest.RestHelper
 import com.ksmpartners.ernie.model.ModelObject
+import service.ServiceRegistry
 
 /**
  * Object containing the stateless dispatch definition for an ernie server
