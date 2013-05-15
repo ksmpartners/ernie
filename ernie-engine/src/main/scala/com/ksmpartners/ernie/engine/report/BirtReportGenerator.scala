@@ -31,7 +31,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
    * Method to be called before any reports can be generated
    */
   def startup() {
-    log.info("Starting Report Engine")
+    log.info("BEGIN Starting Report Engine")
     val ec = new EngineConfig
     Platform.startup(ec)
 
@@ -41,7 +41,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
       case fact: IReportEngineFactory => fact
       case _ => throw new ClassCastException
     }).createReportEngine(ec)
-
+    log.info("END Starting Report Engine")
   }
 
   /**

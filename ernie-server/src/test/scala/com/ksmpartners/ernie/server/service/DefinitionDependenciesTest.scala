@@ -13,10 +13,12 @@ import org.testng.Assert
 import net.liftweb.http.PlainTextResponse
 import com.ksmpartners.ernie.model.DefinitionEntity
 import org.joda.time.DateTime
+import com.fasterxml.jackson.databind.ObjectMapper
 
 class DefinitionDependenciesTest extends DefinitionDependencies {
 
   val reportManager = new MemoryReportManager
+  val mapper = new ObjectMapper()
 
   @BeforeClass
   def setup() {
@@ -35,6 +37,23 @@ class DefinitionDependenciesTest extends DefinitionDependencies {
     Assert.assertEquals(resp.code, 200)
     Assert.assertEquals(resp.headers, List(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
     Assert.assertEquals(resp.text, """{"reportDefMap":{"test_def":"/defs/test_def"}}""")
+  }
+
+  @Test
+  def canGetDefinition() {
+    val defsResource = new DefDetailResource
+    val respBox = defsResource.get("test_def")
+
+    Assert.assertTrue(respBox.isDefined)
+
+    val resp = respBox.open_!.asInstanceOf[PlainTextResponse]
+    Assert.assertEquals(resp.code, 200)
+    Assert.assertEquals(resp.headers, List(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
+    val defEnt = mapper.readValue(resp.text, classOf[DefinitionEntity])
+    Assert.assertEquals(defEnt.getCreatedUser, "default")
+    Assert.assertEquals(defEnt.getDefDescription, "")
+    Assert.assertEquals(defEnt.getDefId, "test_def")
+    Assert.assertNull(defEnt.getParamNames)
   }
 
 }

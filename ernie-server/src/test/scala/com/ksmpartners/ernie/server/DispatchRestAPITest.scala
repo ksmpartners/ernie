@@ -31,7 +31,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   def canGetJobs() {
     val mockReq = new MockReadAuthReq("/jobs")
 
-    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_PREFIX + "/" + ModelObject.TYPE_POSTFIX))
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI.apply(req).apply()
@@ -47,7 +47,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   def cantGetJobsWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/jobs")
 
-    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_PREFIX + "/" + ModelObject.TYPE_POSTFIX))
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI.apply(req).apply()
@@ -73,7 +73,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   def canGetDefs() {
     val mockReq = new MockReadAuthReq("/defs")
 
-    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_PREFIX + "/" + ModelObject.TYPE_POSTFIX))
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI.apply(req).apply()
@@ -89,7 +89,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   def cantGetDefsWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/defs")
 
-    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_PREFIX + "/" + ModelObject.TYPE_POSTFIX))
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI.apply(req).apply()

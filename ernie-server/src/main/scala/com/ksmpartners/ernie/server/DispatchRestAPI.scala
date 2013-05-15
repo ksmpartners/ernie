@@ -65,7 +65,7 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
    * @return the function f, or a NotAcceptableResponse if the user does not accept the correct ctype
    */
   private def ctypeFilter(req: Req)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = {
-    if (acceptsErnieJson(req)) f else () => Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_PREFIX + "/" + ModelObject.TYPE_POSTFIX))
+    if (acceptsErnieJson(req)) f else () => Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_FULL))
   }
 
   def shutdown() {

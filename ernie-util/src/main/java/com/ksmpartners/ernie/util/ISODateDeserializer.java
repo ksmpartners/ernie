@@ -26,7 +26,7 @@ public class ISODateDeserializer extends JsonDeserializer<DateTime> {
             ISODateTimeFormat.dateTime();
 
     @Override
-    public DateTime deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public DateTime deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         return formatter.parseDateTime(jp.getText());
     }
 }
