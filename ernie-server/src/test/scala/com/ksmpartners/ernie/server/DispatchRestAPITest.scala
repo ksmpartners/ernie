@@ -37,6 +37,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       val resp = DispatchRestAPI.apply(req).apply()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val body = resp.open_!.asInstanceOf[PlainTextResponse].text
       val respObj = mapper.readValue(body, classOf[JobsMapResponse])
       Assert.assertNotNull(respObj.getJobStatusMap)
@@ -79,6 +80,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       val resp = DispatchRestAPI.apply(req).apply()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val body = resp.open_!.asInstanceOf[PlainTextResponse].text
       val respObj = mapper.readValue(body, classOf[ReportDefinitionMapResponse])
       Assert.assertNotNull(respObj.getReportDefMap)

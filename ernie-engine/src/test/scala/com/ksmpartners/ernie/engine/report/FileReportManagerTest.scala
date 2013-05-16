@@ -10,7 +10,7 @@ package com.ksmpartners.ernie.engine.report
 import org.testng.annotations.{ AfterClass, BeforeClass, BeforeMethod, Test }
 import org.testng.Assert
 import com.ksmpartners.ernie.model.ReportType
-import com.ksmpartners.ernie.util.FileUtils._
+import com.ksmpartners.ernie.util.Utility._
 import java.io._
 import collection.mutable
 
@@ -63,6 +63,11 @@ class FileReportManagerTest {
     Assert.assertEquals(definition.getDefDescription, "")
     Assert.assertEquals(definition.getParamNames.size, 0)
     Assert.assertEquals(definition.getDefId, "def_1")
+    val defEnt = definition.getEntity
+    Assert.assertEquals(defEnt.getCreatedUser, "default")
+    Assert.assertEquals(defEnt.getDefDescription, "")
+    Assert.assertNull(defEnt.getParamNames)
+    Assert.assertEquals(defEnt.getDefId, "def_1")
   }
 
   @Test
@@ -73,6 +78,12 @@ class FileReportManagerTest {
     Assert.assertEquals(report.getSourceDefId, "def_1")
     Assert.assertEquals(report.getReportType, ReportType.CSV)
     Assert.assertEquals(report.getParams.size, 0)
+    val rptEnt = report.getEntity
+    Assert.assertEquals(rptEnt.getCreatedUser, "default")
+    Assert.assertEquals(rptEnt.getRptId, "rpt_1")
+    Assert.assertEquals(rptEnt.getSourceDefId, "def_1")
+    Assert.assertEquals(rptEnt.getReportType, ReportType.CSV)
+    Assert.assertNull(rptEnt.getParams)
   }
 
   @Test

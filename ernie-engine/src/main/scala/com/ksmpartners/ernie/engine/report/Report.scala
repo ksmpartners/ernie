@@ -27,6 +27,8 @@ class Report protected[report] (rptEntity: ReportEntity) {
     paramsMap
   }
 
+  private lazy val fileName = getRptId + "." + getReportType.toString.toLowerCase
+
   def getCreatedDate: DateTime = rptEntity.getCreatedDate
 
   def getRetentionDate: DateTime = rptEntity.getRetentionDate
@@ -40,6 +42,8 @@ class Report protected[report] (rptEntity: ReportEntity) {
   def getReportType: ReportType = rptEntity.getReportType
 
   def getParams: Map[String, String] = params
+
+  def getReportName: String = fileName
 
   def getEntity: ReportEntity = {
     val rptEnt = new ReportEntity()

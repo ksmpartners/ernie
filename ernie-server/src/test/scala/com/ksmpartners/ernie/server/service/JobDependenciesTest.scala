@@ -11,7 +11,7 @@ import com.ksmpartners.ernie.engine.{ ShutDownRequest, Coordinator }
 import com.ksmpartners.ernie.engine.report.{ MemoryReportManager, ReportGenerator, ReportManager, ReportGeneratorFactory }
 import com.ksmpartners.ernie.model
 import model.{ DefinitionEntity, ReportType }
-import com.ksmpartners.ernie.util.FileUtils._
+import com.ksmpartners.ernie.util.Utility._
 import java.io.{ OutputStream, InputStream }
 import org.testng.annotations.{ AfterTest, BeforeTest, Test }
 import net.liftweb.common.Full

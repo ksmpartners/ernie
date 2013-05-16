@@ -85,7 +85,7 @@ trait JobDependencies extends RequiresCoordinator
         val rptId = response.rptId.get
         val report = reportManager.getReport(rptId).get
         val fileStream = reportManager.getReportContent(report).get
-        val fileName = rptId + "." + report.getReportType.toString.toLowerCase
+        val fileName = report.getReportName
         val header: List[(String, String)] =
           ("Content-Type" -> "application/pdf") ::
             ("Content-Length" -> fileStream.available.toString) ::

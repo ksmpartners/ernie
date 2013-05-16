@@ -12,7 +12,7 @@ import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType }
 import com.fasterxml.jackson.databind.ObjectMapper
 import scala.collection._
-import com.ksmpartners.ernie.util.FileUtils._
+import com.ksmpartners.ernie.util.Utility._
 
 /**
  * Implementation of ReportManager that stores and loads reports and definitions from the filesystem

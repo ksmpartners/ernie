@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 import java.io._
 import com.ksmpartners.ernie.model.ReportType
 import org.eclipse.birt.report.engine.emitter.csv.CSVRenderOption
-import com.ksmpartners.ernie.util.FileUtils._
+import com.ksmpartners.ernie.util.Utility._
 import scala.collection._
 
 /**

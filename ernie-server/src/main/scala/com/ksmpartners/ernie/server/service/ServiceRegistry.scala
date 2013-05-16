@@ -10,7 +10,7 @@ package com.ksmpartners.ernie.server.service
 import com.ksmpartners.ernie.engine.report.{ BirtReportGeneratorFactory, FileReportManager, ReportManager }
 import com.ksmpartners.ernie.engine.Coordinator
 import com.ksmpartners.ernie.server.PropertyNames._
-import com.ksmpartners.ernie.util.FileUtils._
+import com.ksmpartners.ernie.util.Utility._
 import java.util.Properties
 import java.io.{ FileInputStream, File }
 import org.slf4j.{ LoggerFactory, Logger }

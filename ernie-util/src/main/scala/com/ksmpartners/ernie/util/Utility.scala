@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.util
 
 import java.io.Closeable
 
-object FileUtils {
+object Utility {
 
   /**
    * Method that mimics Java 1.7's try-with-resources

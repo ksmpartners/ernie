@@ -13,7 +13,7 @@ import org.slf4j.{ Logger, LoggerFactory }
 import com.ksmpartners.commons.security.SAML2.{ SAMLProcessor, SAMLParseException }
 import com.ksmpartners.commons.util.Base64Util
 import org.apache.cxf.rs.security.saml.DeflateEncoderDecoder
-import com.ksmpartners.ernie.util.FileUtils._
+import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import com.ksmpartners.ernie.server.PropertyNames._
 import scala.collection._
@@ -29,7 +29,7 @@ class SAMLFilter extends Filter {
   private val keystoreLoc: String = {
     val ksl = System.getProperty(KEYSTORE_LOC_PROP)
     if (ksl == null)
-      throw new IllegalStateException("Must set keystore.location")
+      throw new IllegalStateException("Must set " + KEYSTORE_LOC_PROP)
     log.info("keystoreLoc = {}", ksl)
     ksl
   }
@@ -99,16 +99,8 @@ class SAMLFilter extends Filter {
 
   final class SAMLHttpServletRequestWrapper(req: HttpServletRequest, userName: String, roles: Set[String])
       extends HttpServletRequestWrapper(req) {
-
-    override def isUserInRole(role: String): Boolean = {
-      log.debug("Checking if user [{}] is in role [{}]", userName, role)
-      roles.contains(role)
-    }
-
-    override def getAuthType: String = {
-      "SAML"
-    }
-
+    override def isUserInRole(role: String): Boolean = roles.contains(role)
+    override def getAuthType: String = "SAML"
   }
 
 }

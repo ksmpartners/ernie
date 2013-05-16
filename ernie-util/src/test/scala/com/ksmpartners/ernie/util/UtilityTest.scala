@@ -7,12 +7,12 @@
 
 package com.ksmpartners.ernie.util
 
-import com.ksmpartners.ernie.util.FileUtils._
+import com.ksmpartners.ernie.util.Utility._
 import org.testng.annotations.Test
 import java.io.Closeable
 import org.testng.Assert
 
-class FileUtilsTest {
+class UtilityTest {
 
   @Test
   def canCloseReaderWithTry() {
