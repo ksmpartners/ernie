@@ -7,9 +7,12 @@
 
 package com.ksmpartners.ernie.util
 
-import java.io.Closeable
+import java.io.{ FileNotFoundException, File, Closeable }
+import org.slf4j.{ LoggerFactory, Logger }
 
 object Utility {
+
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.util.Utility")
 
   /**
    * Method that mimics Java 1.7's try-with-resources
@@ -53,6 +56,23 @@ object Utility {
       } catch {
         case e: Throwable =>
       }
+    }
+  }
+
+  /**
+   * Deletes a File. If the File is a directory, all sub files and directories will also be deleted
+   */
+  def recDel(file: File) {
+    log.info("Deleting file/dir: {}", file)
+    if (file.isDirectory) {
+      for (f <- file.listFiles()) {
+        recDel(f)
+      }
+      if (!file.delete())
+        throw new FileNotFoundException("Failed to delete file: " + file)
+    } else {
+      if (!file.delete())
+        throw new FileNotFoundException("Failed to delete file: " + file)
     }
   }
 }

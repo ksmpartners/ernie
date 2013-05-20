@@ -220,17 +220,4 @@ class FileReportManagerTest {
 
     temp
   }
-
-  def recDel(file: File) {
-    if (file.isDirectory) {
-      for (f <- file.listFiles()) {
-        recDel(f)
-      }
-      if (!file.delete())
-        throw new FileNotFoundException("Failed to delete file: " + file)
-    } else {
-      if (!file.delete())
-        throw new FileNotFoundException("Failed to delete file: " + file)
-    }
-  }
 }

@@ -17,7 +17,7 @@ class TokenEncoderTest {
 
   //@Test
   def encodeToken() {
-    val samlUrl = Thread.currentThread.getContextClassLoader.getResource("MySAML.xml")
+    val samlUrl = Thread.currentThread.getContextClassLoader.getResource("saml/MySAML.xml")
     val samlFile = new File(samlUrl.getFile)
     val outputFile = new File("./encodedTok")
 

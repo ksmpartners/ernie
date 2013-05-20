@@ -13,18 +13,30 @@ import bootstrap.liftweb.Boot
 import net.liftweb.mocks.MockHttpServletRequest
 import com.ksmpartners.ernie.server.PropertyNames._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
-import com.ksmpartners.ernie.model.{ JobsMapResponse, ReportDefinitionMapResponse, ModelObject }
+import com.ksmpartners.ernie.model._
 import org.testng.Assert
 import net.liftweb.http.{ NotAcceptableResponse, ForbiddenResponse, PlainTextResponse }
 import com.fasterxml.jackson.databind.ObjectMapper
+import java.util.Properties
+import java.io.{ FileInputStream, File }
+import com.ksmpartners.ernie.util.Utility._
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   val mapper = new ObjectMapper()
+  var outputDir: File = null
 
   @AfterClass
   def shutdown() {
     DispatchRestAPI.shutdown()
+    for (file <- outputDir.listFiles()) {
+      recDel(file)
+    }
+  }
+
+  @BeforeClass
+  def setup() {
+    outputDir = new File(properties.get("output.dir").toString)
   }
 
   @Test
@@ -129,6 +141,29 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   class MockNoAuthReq(path: String) extends MockHttpServletRequest(path) {
     override def isUserInRole(role: String) = false
+  }
+
+  protected val properties: Properties = {
+
+    val propsPath = System.getProperty(PROPERTIES_FILE_NAME_PROP)
+
+    if (null == propsPath) {
+      throw new RuntimeException("System property " + PROPERTIES_FILE_NAME_PROP + " is undefined")
+    }
+
+    val propsFile = new File(propsPath)
+    if (!propsFile.exists) {
+      throw new RuntimeException("Properties file " + propsPath + " does not exist.")
+    }
+
+    if (!propsFile.canRead) {
+      throw new RuntimeException("Properties file " + propsPath + " is not readable; check file privileges.")
+    }
+    val props = new Properties()
+    try_(new FileInputStream(propsFile)) { propsFileStream =>
+      props.load(propsFileStream)
+    }
+    props
   }
 
 }
