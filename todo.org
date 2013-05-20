@@ -31,7 +31,8 @@
 [ ]** Finalize test process/standards
 [ ]*** Unit tests
 [ ]**** Minimum code coverage
-[ ]*** System tests
+[x]*** System tests
+[x]---> Not needed. Can cover REST with unit tests
 [x]* Initial state
 [x]** Get project source in solid state before starting "real" development
 [ ]* Documentation
