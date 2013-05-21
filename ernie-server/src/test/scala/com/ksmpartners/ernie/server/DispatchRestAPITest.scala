@@ -15,7 +15,7 @@ import com.ksmpartners.ernie.server.PropertyNames._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import com.ksmpartners.ernie.model._
 import org.testng.Assert
-import net.liftweb.http.{ NotAcceptableResponse, ForbiddenResponse, PlainTextResponse }
+import net.liftweb.http._
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.Properties
 import java.io.{ FileInputStream, File }
@@ -141,9 +141,23 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @Test
+  def cantGetJobStatusWithoutReadAuth() {
+    val mockReq = new MockNoAuthReq("/jobs/1/status")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI.apply(req).apply()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
+    }
+  }
+
   private var testJobID: Long = -1L
 
-  //@Test
+  @Test
   def canPostJob() {
     val mockReq = new MockWriteAuthReq("/jobs")
     mockReq.method = "POST"
@@ -166,20 +180,31 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  //@Test(dependsOnMethods = Array("canPostJob"))
+  @Test(dependsOnMethods = Array("canPostJob"))
   def canGetJobStatus() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
 
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val statusResponse: StatusResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse])
       Assert.assertTrue(statusResponse.getJobStatus == JobStatus.IN_PROGRESS)
 
+    }
+  }
+
+  @Test(dependsOnMethods = Array("canPostJob"))
+  def jobStatusServiceReturnsJSON() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
     }
   }
 
