@@ -33,7 +33,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   def shutdown() {
     DispatchRestAPI.shutdown()
     for (file <- outputDir.listFiles()) {
-      //recDel(file)
+      recDel(file)
     }
   }
 
