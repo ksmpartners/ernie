@@ -18,6 +18,7 @@ import org.apache.cxf.rs.security.saml.DeflateEncoderDecoder
 import com.ksmpartners.commons.util.Base64Util
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import org.testng.Assert
+import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 
 class SAMLFilterTest {
 
@@ -44,6 +45,7 @@ class SAMLFilterTest {
     Assert.assertEquals(resp.getStatusCode, 200)
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-40")))
   @Test
   def noAuthReturns401() {
     val filter = new SAMLFilter
