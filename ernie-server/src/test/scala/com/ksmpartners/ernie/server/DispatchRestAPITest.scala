@@ -21,6 +21,8 @@ import java.util.Properties
 import java.io.{ FileInputStream, File }
 import com.ksmpartners.ernie.util.Utility._
 import org.slf4j.{ Logger, LoggerFactory }
+import net.liftweb.json.JsonAST
+import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
@@ -176,6 +178,98 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
       testJobID = reportResponse.getJobId()
       Assert.assertTrue(testJobID > -1L)
+    }
+  }
+
+  @Test
+  def cantPostJobWithoutWriteAuth() {
+    val mockReq = new MockNoAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def")
+    mockReportReq.setRptType(ReportType.HTML)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI.apply(req).apply()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
+    }
+  }
+
+  @Test
+  def cantPostJobWithoutJSONRequest() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def")
+    mockReportReq.setRptType(ReportType.HTML)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  /*@Test
+  def cantPostJobWithoutExistingReportDefinitionFile() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("WRONG")
+    mockReportReq.setRptType(ReportType.HTML)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      log.info(resp.open_!.toResponse.code + "")
+      Assert.assertTrue(resp.open_!.isInstanceOf[BadResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 400)
+    }
+  } */
+
+  @Test
+  def cantPostJobWithoutValidRequestJSON() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    mockReq.body = JObject(List(JField("Invalid JSON?", JBool(true))))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[BadResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 400)
+    }
+  }
+
+  @Test
+  def reportsServiceReturnsJSON() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def")
+    mockReportReq.setRptType(ReportType.HTML)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
     }
   }
 
