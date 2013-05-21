@@ -86,6 +86,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-41")))
   @Test
   def canGetDefs() {
     val mockReq = new MockReadAuthReq("/defs")
@@ -103,6 +104,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-39")))
   @Test
   def cantGetDefsWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/defs")
@@ -117,6 +119,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-43")))
   @Test
   def cantGetDefsWithoutCorrectAcceptHeader() {
     val mockReq = new MockReadAuthReq("/defs")
@@ -129,6 +132,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-62")))
   @Test
   def cantGetJobStatusWithoutJSONRequest() {
     val mockReq = new MockReadAuthReq("/jobs/1/status")
@@ -142,6 +146,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-58")))
   @Test
   def cantGetJobStatusWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/jobs/1/status")
@@ -158,6 +163,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   private var testJobID: Long = -1L
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-53")))
   @Test
   def canPostJob() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -181,6 +187,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-51")))
   @Test
   def cantPostJobWithoutWriteAuth() {
     val mockReq = new MockNoAuthReq("/jobs")
@@ -200,6 +207,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-55")))
   @Test
   def cantPostJobWithoutJSONRequest() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -239,6 +247,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   } */
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-57")))
   @Test
   def cantPostJobWithoutValidRequestJSON() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -255,6 +264,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-54")))
   @Test
   def reportsServiceReturnsJSON() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -273,6 +283,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-60")))
   @Test(dependsOnMethods = Array("canPostJob"))
   def canGetJobStatus() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
@@ -290,6 +301,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-61")))
   @Test(dependsOnMethods = Array("canPostJob"))
   def jobStatusServiceReturnsJSON() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
