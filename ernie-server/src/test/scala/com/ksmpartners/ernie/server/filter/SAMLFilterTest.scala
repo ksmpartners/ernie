@@ -32,7 +32,7 @@ class SAMLFilterTest {
   }
 
   @Test
-  def testSAMLFilter() {
+  def goodAuthReturns200() {
     val filter = new SAMLFilter
     val req = new MockHttpServletRequest
     val resp = new MockResp
@@ -42,6 +42,17 @@ class SAMLFilterTest {
 
     filter.doFilter(req, resp, chain)
     Assert.assertEquals(resp.getStatusCode, 200)
+  }
+
+  @Test
+  def noAuthReturns401() {
+    val filter = new SAMLFilter
+    val req = new MockHttpServletRequest
+    val resp = new MockResp
+    val chain = new Chain
+
+    filter.doFilter(req, resp, chain)
+    Assert.assertEquals(resp.getStatusCode, 401)
   }
 
   def getSamlHeaderVal(mode: String): String = "SAML " + (new String(encodeToken(mode)))
