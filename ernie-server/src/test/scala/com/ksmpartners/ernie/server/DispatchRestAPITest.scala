@@ -20,17 +20,20 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.Properties
 import java.io.{ FileInputStream, File }
 import com.ksmpartners.ernie.util.Utility._
+import org.slf4j.{ Logger, LoggerFactory }
+import scala.xml.NodeSeq
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   val mapper = new ObjectMapper()
   var outputDir: File = null
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DispatchRestAPITest")
 
   @AfterClass
   def shutdown() {
     DispatchRestAPI.shutdown()
     for (file <- outputDir.listFiles()) {
-      recDel(file)
+      //recDel(file)
     }
   }
 
@@ -122,6 +125,61 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @Test
+  def cantGetJobStatusWithoutJSONRequest() {
+    val mockReq = new MockReadAuthReq("/jobs/1/status")
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI.apply(req).apply()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  private var testJobID: Long = -1L;
+
+  @Test
+  def canPostJob() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def")
+    mockReportReq.setRptType(ReportType.HTML)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 201)
+
+      val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
+      testJobID = reportResponse.getJobId()
+      Assert.assertTrue(testJobID > -1L)
+    }
+  }
+
+  @Test(dependsOnMethods = Array("canPostJob"))
+  def canGetJobStatus() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI.apply(req).apply()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val statusResponse: StatusResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse])
+      Assert.assertTrue(statusResponse.getJobStatus == JobStatus.IN_PROGRESS)
+
     }
   }
 
