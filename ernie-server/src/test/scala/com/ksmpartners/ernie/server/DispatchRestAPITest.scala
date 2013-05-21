@@ -141,9 +141,9 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  private var testJobID: Long = -1L;
+  private var testJobID: Long = -1L
 
-  @Test
+  //@Test
   def canPostJob() {
     val mockReq = new MockWriteAuthReq("/jobs")
     mockReq.method = "POST"
@@ -166,7 +166,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  @Test(dependsOnMethods = Array("canPostJob"))
+  //@Test(dependsOnMethods = Array("canPostJob"))
   def canGetJobStatus() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
 
