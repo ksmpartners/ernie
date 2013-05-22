@@ -523,8 +523,6 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-
-
   @TestSpecs(Array(new TestSpec(key = "ERNIE-76")))
   @Test
   def cantDeleteReportResultsWithoutJSONRequest() {
@@ -565,6 +563,36 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-69")))
+  @Test(dependsOnMethods = Array("canDeleteReportResults"))
+  def jobStatusReturns410ForDeletedReports() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobCSVID + "/status")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[GoneResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 410)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-70")))
+  @Test(dependsOnMethods = Array("canDeleteReportResults"))
+  def downloadServiceReturns410ForDeletedReports() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobCSVID + "/result")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[GoneResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 410)
     }
   }
 
