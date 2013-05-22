@@ -7,7 +7,7 @@
 
 package com.ksmpartners.ernie.server.service
 
-import net.liftweb.common.{ Box, Full }
+import net.liftweb.common.{ Empty, Box, Full }
 import net.liftweb.http._
 import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.engine
@@ -78,7 +78,13 @@ trait JobDependencies extends RequiresCoordinator
     /**
      * Returns a Box[StreamingResponse] containing the result content for the given jobId
      */
-    def get(jobId: String) = {
+    def get(jobId: String): Box[LiftResponse] = get(jobId, Empty)
+
+    /**
+     * Returns a Box[StreamingResponse] containing the result content for the given jobId
+     * Overloaded function to include the web service request details to ensure correct Accept
+     */
+    def get(jobId: String, req: Box[Req]): Box[LiftResponse] = {
       val response = (coordinator !? engine.ResultRequest(jobId.toLong)).asInstanceOf[engine.ResultResponse]
 
       if (response.rptId.isDefined) {
@@ -86,15 +92,22 @@ trait JobDependencies extends RequiresCoordinator
         val report = reportManager.getReport(rptId).get
         val fileStream = reportManager.getReportContent(report).get
         val fileName = report.getReportName
+
         val header: List[(String, String)] =
-          ("Content-Type" -> "application/pdf") ::
+          ("Content-Type" -> ("application/" + report.getReportType.toString.toLowerCase)) ::
             ("Content-Length" -> fileStream.available.toString) ::
             ("Content-Disposition" -> ("attachment; filename=\"" + fileName + "\"")) :: Nil
-        Full(StreamingResponse(
+
+        val fullResp = Full(StreamingResponse(
           fileStream,
           () => { fileStream.close() }, // On end method.
           fileStream.available,
           header, Nil, 200))
+
+        if (req.isEmpty) fullResp
+        else if (!req.open_!.headers.contains(("Accept", header(0)._2))) Full(NotAcceptableResponse("Resource only serves " + report.getReportType.toString))
+        else fullResp
+
       } else {
         Full(BadResponse())
       }

@@ -163,10 +163,36 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   }
 
   private var testJobID: Long = -1L
+  private var testJobHTMLID: Long = -1L
+  private var testJobCSVID: Long = -1L
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-53")))
   @Test
   def canPostJob() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def")
+    mockReportReq.setRptType(ReportType.PDF)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 201)
+
+      val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
+      testJobID = reportResponse.getJobId()
+      Assert.assertTrue(testJobID > -1L)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-66")))
+  @Test
+  def canPostJobHTML() {
     val mockReq = new MockWriteAuthReq("/jobs")
     mockReq.method = "POST"
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
@@ -183,8 +209,32 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
 
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
-      testJobID = reportResponse.getJobId()
-      Assert.assertTrue(testJobID > -1L)
+      testJobHTMLID = reportResponse.getJobId()
+      Assert.assertTrue(testJobHTMLID > -1L)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-66")))
+  @Test
+  def canPostJobCSV() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def")
+    mockReportReq.setRptType(ReportType.CSV)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 201)
+
+      val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
+      testJobCSVID = reportResponse.getJobId()
+      Assert.assertTrue(testJobCSVID > -1L)
     }
   }
 
@@ -284,6 +334,148 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @Test(dependsOnMethods = Array("canPostJob"))
+  def canCompleteJob() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    var jobRunning = true
+    while (jobRunning) {
+      MockWeb.testReq(mockReq) { req =>
+        val resp = DispatchRestAPI(req)()
+        resp.map(r =>
+          if (r.isInstanceOf[PlainTextResponse])
+            if (DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.COMPLETE) {
+            jobRunning = false
+            Assert.assertTrue(DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.COMPLETE)
+          })
+      }
+    }
+
+  }
+
+  @Test(dependsOnMethods = Array("canPostJobHTML"))
+  def canCompleteJobHTML() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobHTMLID + "/status")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    var jobRunning = true
+    while (jobRunning) {
+      MockWeb.testReq(mockReq) { req =>
+        val resp = DispatchRestAPI(req)()
+        resp.map(r =>
+          if (r.isInstanceOf[PlainTextResponse])
+            if (DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.COMPLETE) {
+            jobRunning = false
+            Assert.assertTrue(DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.COMPLETE)
+          })
+      }
+    }
+
+  }
+
+  @Test(dependsOnMethods = Array("canPostJobCSV"))
+  def canCompleteJobCSV() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobCSVID + "/status")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    var jobRunning = true
+    while (jobRunning) {
+      MockWeb.testReq(mockReq) { req =>
+        val resp = DispatchRestAPI(req)()
+        resp.map(r =>
+          if (r.isInstanceOf[PlainTextResponse])
+            if (DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.COMPLETE) {
+            jobRunning = false
+            Assert.assertTrue(DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.COMPLETE)
+          })
+      }
+    }
+
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def canGetOutputDownload() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
+
+    mockReq.headers += ("Accept" -> List("application/pdf"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val respBox = DispatchRestAPI(req)()
+      Assert.assertTrue(respBox.isDefined)
+      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse])
+
+      val resultResp = respBox.open_!.asInstanceOf[StreamingResponse]
+      Assert.assertEquals(resultResp.code, 200)
+      Assert.assertTrue(resultResp.headers.contains(("Content-Type", "application/pdf")) && resultResp.headers.contains(("Content-Disposition", "attachment; filename=\"REPORT_" + testJobID + ".pdf\"")))
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
+  @Test(dependsOnMethods = Array("canCompleteJobHTML"))
+  def canGetHTMLOutputDownload() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobHTMLID + "/result")
+
+    mockReq.headers += ("Accept" -> List("application/html"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val respBox = DispatchRestAPI(req)()
+      Assert.assertTrue(respBox.isDefined)
+      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse])
+
+      val resultResp = respBox.open_!.asInstanceOf[StreamingResponse]
+      Assert.assertEquals(resultResp.code, 200)
+      Assert.assertTrue(resultResp.headers.contains(("Content-Type", "application/html")) && resultResp.headers.contains(("Content-Disposition", "attachment; filename=\"REPORT_" + testJobHTMLID + ".html\"")))
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
+  @Test(dependsOnMethods = Array("canCompleteJobCSV"))
+  def canGetCSVOutputDownload() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobCSVID + "/result")
+
+    mockReq.headers += ("Accept" -> List("application/csv"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val respBox = DispatchRestAPI(req)()
+      Assert.assertTrue(respBox.isDefined)
+      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse])
+
+      val resultResp = respBox.open_!.asInstanceOf[StreamingResponse]
+      Assert.assertEquals(resultResp.code, 200)
+      Assert.assertTrue(resultResp.headers.contains(("Content-Type", "application/csv")) && resultResp.headers.contains(("Content-Disposition", "attachment; filename=\"REPORT_" + testJobCSVID + ".csv\"")))
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-63")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def cantGetOutputDownloadWithoutReadAuth() {
+    val mockReq = new MockNoAuthReq("/jobs/" + testJobID + "/result")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI.apply(req).apply()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def cantGetOutputDownloadWithoutCorrectAcceptHeader() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI.apply(req).apply()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
   @TestSpecs(Array(new TestSpec(key = "ERNIE-60")))
   @Test(dependsOnMethods = Array("canPostJob"))
   def canGetJobStatus() {
@@ -297,7 +489,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val statusResponse: StatusResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse])
-      Assert.assertTrue(statusResponse.getJobStatus == JobStatus.IN_PROGRESS)
+      Assert.assertTrue(JobStatus.values().contains(statusResponse.getJobStatus))
 
     }
   }
