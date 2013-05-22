@@ -41,6 +41,15 @@ class Coordinator(reportManager: ReportManager) extends Actor {
           sender ! ReportResponse(jobId, req)
           worker ! JobRequest(rptId, rptType, jobId)
         }
+        case req@DeleteRequest(jobId) => {
+          if (jobIdToResultMap.contains(jobId)) {
+            if ((jobIdToResultMap.get(jobId).get._1 == JobStatus.COMPLETE) && (jobIdToResultMap.get(jobId).get._2.isDefined)) {
+              reportManager.deleteReport(jobIdToResultMap.get(jobId).get._2.get)
+              jobIdToResultMap.update(jobId, (JobStatus.DELETED, Some(jobIdToResultMap.get(jobId).get._2.get)))
+              sender ! DeleteResponse(JobStatus.DELETED, req)
+            } else sender ! DeleteResponse(JobStatus.IN_PROGRESS, req)
+          } else sender ! DeleteResponse(JobStatus.NO_SUCH_JOB, req) //no such job
+        }
         case req@StatusRequest(jobId) => {
           sender ! StatusResponse(jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, None))._1, req)
         }

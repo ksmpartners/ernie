@@ -29,7 +29,7 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
     case req@Req(Nil, _, GetRequest) => authFilter(req, READ_ROLE)_ compose ctypeFilter(req)_ apply ServiceRegistry.jobsResource.get("/jobs")
     case req@Req(jobId :: "status" :: Nil, _, GetRequest) => authFilter(req, READ_ROLE)_ compose ctypeFilter(req)_ apply ServiceRegistry.jobStatusResource.get(jobId)
     case req@Req(jobId :: "result" :: Nil, _, GetRequest) => authFilter(req, READ_ROLE)_ apply ServiceRegistry.jobResultsResource.get(jobId, Full(req))
-    case req@Req(jobId :: "result" :: Nil, _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+    case req@Req(jobId :: "result" :: Nil, _, DeleteRequest) => authFilter(req, WRITE_ROLE)_ compose ctypeFilter(req)_ apply ServiceRegistry.jobResultsResource.del(jobId)
   })
 
   serve("defs" :: Nil prefix {

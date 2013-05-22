@@ -20,6 +20,8 @@ public enum JobStatus {
     COMPLETE,
     /** Job has failed processing */
     FAILED,
+    /** Job was deleted */
+    DELETED,
     /** Job does not exist */
     NO_SUCH_JOB;
 

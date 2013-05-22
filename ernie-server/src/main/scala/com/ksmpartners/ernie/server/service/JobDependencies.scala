@@ -15,6 +15,7 @@ import java.io.IOException
 import java.util
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.JsonTranslator
+import com.ksmpartners.ernie.model.JobStatus
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
@@ -48,6 +49,7 @@ trait JobDependencies extends RequiresCoordinator
       try {
         val req = deserialize(body.open_!, classOf[model.ReportRequest])
         val response = (coordinator !? engine.ReportRequest(req.getDefId, req.getRptType)).asInstanceOf[engine.ReportResponse]
+
         getJsonResponse(new model.ReportResponse(response.jobId), 201)
       } catch {
         case e: IOException => {
@@ -67,14 +69,15 @@ trait JobDependencies extends RequiresCoordinator
      */
     def get(jobId: String) = {
       val response = (coordinator !? engine.StatusRequest(jobId.toLong)).asInstanceOf[engine.StatusResponse]
-      getJsonResponse(new model.StatusResponse(response.jobStatus))
+      if (response.jobStatus == JobStatus.DELETED) Full(GoneResponse())
+      else getJsonResponse(new model.StatusResponse(response.jobStatus))
     }
   }
 
   /**
    * Resource for handling HTTP requests at /jobs/<JOB_ID>/result
    */
-  class JobResultsResource {
+  class JobResultsResource extends JsonTranslator {
     /**
      * Returns a Box[StreamingResponse] containing the result content for the given jobId
      */
@@ -85,32 +88,48 @@ trait JobDependencies extends RequiresCoordinator
      * Overloaded function to include the web service request details to ensure correct Accept
      */
     def get(jobId: String, req: Box[Req]): Box[LiftResponse] = {
-      val response = (coordinator !? engine.ResultRequest(jobId.toLong)).asInstanceOf[engine.ResultResponse]
+      val statusResponse = (coordinator !? engine.StatusRequest(jobId.toLong)).asInstanceOf[engine.StatusResponse]
+      if (statusResponse.jobStatus == JobStatus.DELETED) Full(GoneResponse())
+      else if (statusResponse.jobStatus == JobStatus.NO_SUCH_JOB) Full(NotFoundResponse())
+      else if (statusResponse.jobStatus != JobStatus.COMPLETE) Full(BadResponse())
+      else {
+        val response = (coordinator !? engine.ResultRequest(jobId.toLong)).asInstanceOf[engine.ResultResponse]
 
-      if (response.rptId.isDefined) {
-        val rptId = response.rptId.get
-        val report = reportManager.getReport(rptId).get
-        val fileStream = reportManager.getReportContent(report).get
-        val fileName = report.getReportName
+        if (response.rptId.isDefined) {
+          val rptId = response.rptId.get
+          val report = reportManager.getReport(rptId).get
+          val fileStream = reportManager.getReportContent(report).get
+          val fileName = report.getReportName
 
-        val header: List[(String, String)] =
-          ("Content-Type" -> ("application/" + report.getReportType.toString.toLowerCase)) ::
-            ("Content-Length" -> fileStream.available.toString) ::
-            ("Content-Disposition" -> ("attachment; filename=\"" + fileName + "\"")) :: Nil
+          val header: List[(String, String)] =
+            ("Content-Type" -> ("application/" + report.getReportType.toString.toLowerCase)) ::
+              ("Content-Length" -> fileStream.available.toString) ::
+              ("Content-Disposition" -> ("attachment; filename=\"" + fileName + "\"")) :: Nil
 
-        val fullResp = Full(StreamingResponse(
-          fileStream,
-          () => { fileStream.close() }, // On end method.
-          fileStream.available,
-          header, Nil, 200))
+          val fullResp = Full(StreamingResponse(
+            fileStream,
+            () => { fileStream.close() }, // On end method.
+            fileStream.available,
+            header, Nil, 200))
 
-        if (req.isEmpty) fullResp
-        else if (!req.open_!.headers.contains(("Accept", header(0)._2))) Full(NotAcceptableResponse("Resource only serves " + report.getReportType.toString))
-        else fullResp
+          if (req.isEmpty) fullResp
+          else if (!req.open_!.headers.contains(("Accept", header(0)._2))) Full(NotAcceptableResponse("Resource only serves " + report.getReportType.toString))
+          else fullResp
 
-      } else {
-        Full(BadResponse())
+        } else {
+          Full(BadResponse())
+        }
       }
+    }
+
+    /**
+     * Purges the report output for a given jobId
+     */
+    def del(jobId: String): Box[LiftResponse] = {
+      val response = (coordinator !? engine.DeleteRequest(jobId.toLong)).asInstanceOf[engine.DeleteResponse]
+      if (response.jobStatus == JobStatus.DELETED) getJsonResponse(new model.DeleteResponse(response.jobStatus))
+      else if (response.jobStatus == JobStatus.NO_SUCH_JOB) Full(NotFoundResponse("Job ID not found"))
+      else Full(BadResponse())
     }
   }
 

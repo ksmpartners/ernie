@@ -21,6 +21,10 @@ case class ResultResponse(rptId: Option[String], req: ResultRequest)
 case class StatusRequest(jobId: Long)
 /** The response to the given StatusRequest */
 case class StatusResponse(jobStatus: JobStatus, req: StatusRequest)
+/** Request job output deletion for the given jobId */
+case class DeleteRequest(jobId: Long)
+/** The response to the given DeleteRequest */
+case class DeleteResponse(jobStatus: JobStatus, req: DeleteRequest)
 /** Request a list of the currently known jobIds */
 case class JobsListRequest()
 /** The response to the given JobsListRequest */

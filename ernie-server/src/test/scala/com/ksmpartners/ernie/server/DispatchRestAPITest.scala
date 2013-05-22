@@ -506,6 +506,68 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
+  @Test(dependsOnMethods = Array("canGetCSVOutputDownload"))
+  def canDeleteReportResults() {
+    val mockReq = new MockWriteAuthReq("/jobs/" + testJobCSVID + "/result")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val deleteResponse: DeleteResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DeleteResponse])
+      Assert.assertTrue(deleteResponse.getJobStatus == JobStatus.DELETED)
+    }
+  }
+
+
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-76")))
+  @Test
+  def cantDeleteReportResultsWithoutJSONRequest() {
+    val mockReq = new MockWriteAuthReq("/jobs/1/result")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-75")))
+  @Test(dependsOnMethods = Array("canGetHTMLOutputDownload"))
+  def deleteReportResultsReturnsJSON() {
+    val mockReq = new MockWriteAuthReq("/jobs/" + testJobHTMLID + "/result")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-72")))
+  @Test
+  def cantDeleteReportResultsWithoutWriteAuth() {
+    val mockReq = new MockNoAuthReq("/jobs/1/result")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI.apply(req).apply()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
+    }
+  }
+
   class MockReadAuthReq(path: String) extends MockHttpServletRequest(path) {
     override def isUserInRole(role: String) = role match {
       case READ_ROLE => true
