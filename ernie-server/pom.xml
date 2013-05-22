@@ -36,7 +36,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>net.liftweb</groupId>
             <artifactId>lift-webkit_2.9.1</artifactId>
             <version>2.4</version>
@@ -79,15 +79,15 @@
             <version>2.7.4</version>
         </dependency>
         <dependency>
-	    <groupId>net.liftweb</groupId>
-	    <artifactId>lift-testkit_2.9.1</artifactId>
-	    <version>2.4</version>
+            <groupId>net.liftweb</groupId>
+            <artifactId>lift-testkit_2.9.1</artifactId>
+            <version>2.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-	    <groupId>org.scala-tools.testing</groupId>
-	    <artifactId>specs_2.9.1</artifactId>
-	    <version>1.6.9</version>
+            <groupId>org.scala-tools.testing</groupId>
+            <artifactId>specs_2.9.1</artifactId>
+            <version>1.6.9</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -96,7 +96,7 @@
         <sourceDirectory>src/main/scala</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
-             <plugin>
+            <plugin>
                 <groupId>org.scalariform</groupId>
                 <artifactId>scalariform-maven-plugin</artifactId>
                 <version>0.0.9</version>
@@ -188,6 +188,48 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <reportPlugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-surefire-report-plugin</artifactId>
+                            <version>${surefire.reports.version}</version>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-project-info-reports-plugin</artifactId>
+                            <version>2.4</version>
+                            <configuration>
+                                <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                                <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                            </configuration>
+                        </plugin>
+                        <plugin>
+                            <groupId>com.ksmpartners.common.plugins</groupId>
+                            <artifactId>trace-matrix-maven-plugin</artifactId>
+                            <version>1.1-SNAPSHOT</version>
+                            <configuration>
+                                <packageName>com.ksmpartners.ernie.server</packageName>
+                                <jql>project = Ernie and issuetype = Story and Status in (Resolved, "In Progress")</jql>
+                                <testJql>project = Ernie and issuetype = Sub-test and ((resolution not in ("Won't Fix", Cancelled, "Cannot Reproduce", Duplicate)) or (resolution is EMPTY)) and priority >= Major</testJql>
+                            </configuration>
+                            <reportSets>
+                                <reportSet>
+                                    <reports>
+                                        <report>req-to-spec</report>
+                                        <report>generate-matrix</report>
+                                    </reports>
+                                </reportSet>
+                            </reportSets>
+                        </plugin>
+                    </reportPlugins>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 

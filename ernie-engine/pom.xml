@@ -25,9 +25,9 @@
 
     <dependencies>
         <dependency>
-	    <groupId>org.eclipse.birt.runtime</groupId>
-	    <artifactId>org.eclipse.birt.runtime</artifactId>
-	    <version>4.2.0</version>
+            <groupId>org.eclipse.birt.runtime</groupId>
+            <artifactId>org.eclipse.birt.runtime</artifactId>
+            <version>4.2.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
@@ -36,9 +36,9 @@
             </exclusions>
         </dependency>
         <dependency>
- 	     <groupId>org.eclipse.birt.report.engine.emitter.csv</groupId>
- 	     <artifactId>org.eclipse.birt.report.engine.emitter.csv</artifactId>
- 	     <version>1.0.0.201110121016</version>
+            <groupId>org.eclipse.birt.report.engine.emitter.csv</groupId>
+            <artifactId>org.eclipse.birt.report.engine.emitter.csv</artifactId>
+            <version>1.0.0.201110121016</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
