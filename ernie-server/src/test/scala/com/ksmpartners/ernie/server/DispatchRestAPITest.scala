@@ -44,6 +44,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     outputDir = new File(properties.get("output.dir").toString)
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-87")))
   @Test
   def canGetJobs() {
     val mockReq = new MockReadAuthReq("/jobs")
@@ -61,6 +62,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-85")))
   @Test
   def cantGetJobsWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/jobs")
@@ -75,6 +77,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-89")))
   @Test
   def cantGetJobsWithoutCorrectAcceptHeader() {
     val mockReq = new MockReadAuthReq("/jobs")
@@ -84,6 +87,18 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-88")))
+  @Test
+  def jobsListServiceReturnsJSON() {
+    val mockReq = new MockReadAuthReq("/jobs")
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
     }
   }
 
