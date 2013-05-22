@@ -10,6 +10,7 @@ package com.ksmpartners.ernie.engine.report
 import java.io._
 import scala.collection._
 import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity }
+import com.ksmpartners.ernie.engine.report.ReportManager._
 
 /**
  * Implementation of ReportManager that stores reports and definitions in memory

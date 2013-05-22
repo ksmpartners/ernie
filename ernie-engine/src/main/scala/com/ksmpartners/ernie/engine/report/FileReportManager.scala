@@ -13,6 +13,7 @@ import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType 
 import com.fasterxml.jackson.databind.ObjectMapper
 import scala.collection._
 import com.ksmpartners.ernie.util.Utility._
+import com.ksmpartners.ernie.engine.report.ReportManager._
 
 /**
  * Implementation of ReportManager that stores and loads reports and definitions from the filesystem
