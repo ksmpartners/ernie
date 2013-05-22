@@ -86,6 +86,23 @@ trait ReportManager {
    */
   def deleteReport(rptId: String)
 
+}
+
+/**
+ * Companion Object containing constants for ReportManager
+ */
+object ReportManager {
+  val DEF_ID = "defId"
+  val RPT_ID = "rptId"
+  val CREATED_DATE = "createdDate"
+  val CREATED_USER = "createdUser"
+  val PARAM_NAMES = "paramNames"
+  val PARAM_MAP = "paramMap"
+  val DESCRIPTION = "description"
+  val RETENTION_DATE = "retentionDate"
+  val REPORT_TYPE = "fileType"
+  val SOURCE_DEF_ID = "sourceDefId"
+
   /**
    * Returns a DefinitionEntity object containing the contents of entity. The entity must contain information about the
    * definition being added.
@@ -97,7 +114,7 @@ trait ReportManager {
    * - PARAM_NAMES (List[String])
    * - DESCRIPTION (String)
    */
-  protected def createDefinitionEntity(entity: Map[String, Any]): DefinitionEntity = {
+  def createDefinitionEntity(entity: Map[String, Any]): DefinitionEntity = {
     if (!entity.contains(DEF_ID))
       throw new IllegalArgumentException("Entity must contain DEF_ID")
     if (!entity.contains(CREATED_USER))
@@ -132,7 +149,7 @@ trait ReportManager {
    * - PARAM_MAP (Map[String, String])
    * - RETENTION_DATE (DateTime)
    */
-  protected def createReportEntity(entity: Map[String, Any]): ReportEntity = {
+  def createReportEntity(entity: Map[String, Any]): ReportEntity = {
     if (!entity.contains(RPT_ID))
       throw new IllegalArgumentException("Entity must contain DEF_ID")
     if (!entity.contains(SOURCE_DEF_ID))
@@ -160,20 +177,4 @@ trait ReportManager {
     }
     rptEnt
   }
-}
-
-/**
- * Companion Object containing constants for ReportManager
- */
-object ReportManager {
-  val DEF_ID = "defId"
-  val RPT_ID = "rptId"
-  val CREATED_DATE = "createdDate"
-  val CREATED_USER = "createdUser"
-  val PARAM_NAMES = "paramNames"
-  val PARAM_MAP = "paramMap"
-  val DESCRIPTION = "description"
-  val RETENTION_DATE = "retentionDate"
-  val REPORT_TYPE = "fileType"
-  val SOURCE_DEF_ID = "sourceDefId"
 }

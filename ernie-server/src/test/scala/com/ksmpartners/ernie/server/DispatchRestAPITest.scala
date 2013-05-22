@@ -102,7 +102,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-41")))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-41"), new TestSpec(key = "ERNIE-42")))
   @Test
   def canGetDefs() {
     val mockReq = new MockReadAuthReq("/defs")
