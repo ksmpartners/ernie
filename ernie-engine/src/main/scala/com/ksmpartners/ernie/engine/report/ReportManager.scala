@@ -149,7 +149,7 @@ trait ReportManager {
     rptEnt.setReportType(entity.get(REPORT_TYPE).get.asInstanceOf[ReportType])
     rptEnt.setCreatedUser(entity.get(CREATED_USER).get.asInstanceOf[String])
     // TODO: Set up default retention date.
-    rptEnt.setRetentionDate(entity.getOrElse(RETENTION_DATE, DateTime.now()).asInstanceOf[DateTime])
+    rptEnt.setRetentionDate(entity.getOrElse(RETENTION_DATE, DateTime.now().plusDays(  )).asInstanceOf[DateTime])
     if (entity.contains(PARAM_MAP)) {
       val paramMap = entity.get(PARAM_MAP).get.asInstanceOf[Map[String, String]]
       val params: util.Map[String, String] = new util.HashMap()
