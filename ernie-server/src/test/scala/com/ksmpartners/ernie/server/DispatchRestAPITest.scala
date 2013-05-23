@@ -207,8 +207,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  // TODO: Not sure how this satifsies ERNIE-66
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-66")))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-53")))
   @Test
   def canPostJobHTML() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -481,12 +480,38 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  // TODO: Need tests for mismatched Accept headers
-  // eg: Accept: PDF but file is HTML
   @TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def cantGetOutputDownloadWithoutCorrectAcceptHeader() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def cantGetPDFOutputDownloadWithCSVAcceptHeader() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
+    mockReq.headers += ("Accept" -> List("application/csv"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def cantGetPDFOutputDownloadWithHTMLAcceptHeader() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
+    mockReq.headers += ("Accept" -> List("application/html"))
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
@@ -526,8 +551,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  // TODO: Are these the correct test IDs?
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-74")))
   @Test(dependsOnMethods = Array("canGetCSVOutputDownload"))
   def canDeleteReportResults() {
     val mockReq = new MockWriteAuthReq("/jobs/" + testJobCSVID + "/result")
@@ -587,7 +611,6 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  // TODO: Now that I'm thinking about this, we might return a DELETED status now that we have it.
   @TestSpecs(Array(new TestSpec(key = "ERNIE-69")))
   @Test(dependsOnMethods = Array("canDeleteReportResults"))
   def jobStatusReturns410ForDeletedReports() {
