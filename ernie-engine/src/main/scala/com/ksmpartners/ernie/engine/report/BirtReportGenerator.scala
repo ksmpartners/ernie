@@ -15,6 +15,7 @@ import com.ksmpartners.ernie.model.ReportType
 import org.eclipse.birt.report.engine.emitter.csv.CSVRenderOption
 import com.ksmpartners.ernie.util.Utility._
 import scala.collection._
+import org.joda.time.DateTime
 
 /**
  * Class used to generate BIRT reports
@@ -53,7 +54,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
    * Method that runs the design file at the given location defId, and outputs the results to rptId
    * as a rptType
    */
-  def runReport(defId: String, rptId: String, rptType: ReportType) {
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int]) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     log.debug("Generating PDF from report definition {}", defId)
     try_(reportManager.getDefinitionContent(defId).get) { defInputStream =>
@@ -62,6 +63,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
       entity += (ReportManager.SOURCE_DEF_ID -> defId)
       entity += (ReportManager.REPORT_TYPE -> rptType)
       entity += (ReportManager.CREATED_USER -> "default")
+      entity += (ReportManager.RETENTION_DATE -> DateTime.now().plusDays(retentionDate getOrElse (reportManager.getDefaultRetentionDays)))
       try_(reportManager.putReport(entity)) { rptOutputStream =>
         runReport(defInputStream, rptOutputStream, rptType)
       }

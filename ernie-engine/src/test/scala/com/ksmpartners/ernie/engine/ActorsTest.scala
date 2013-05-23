@@ -45,7 +45,7 @@ class ActorsTest {
 
   @Test
   def canRequestReportAndRetrieveStatus() {
-    val resp = (coordinator !? ReportRequest("test_def", ReportType.PDF)).asInstanceOf[ReportResponse]
+    val resp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]
     val statusResp = (coordinator !? StatusRequest(resp.jobId)).asInstanceOf[StatusResponse]
     Assert.assertNotSame(statusResp.jobStatus, JobStatus.NO_SUCH_JOB)
   }
@@ -58,19 +58,24 @@ class ActorsTest {
 
   @Test
   def canRequestJobMap() {
-    val resp = (coordinator !? ReportRequest("test_def", ReportType.PDF)).asInstanceOf[ReportResponse]
+    val resp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]
     val jobMapResp = (coordinator !? JobsListRequest()).asInstanceOf[JobsListResponse]
     Assert.assertTrue(jobMapResp.jobsList.contains(resp.jobId.toString))
   }
 
   @Test
   def canGetResult() {
-    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF)).asInstanceOf[ReportResponse]
+    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]
     while ((coordinator !? StatusRequest(rptResp.jobId)).asInstanceOf[StatusResponse].jobStatus != JobStatus.COMPLETE) {
       // peg coordinator until job is complete
     }
     val resultResp = (coordinator !? ResultRequest(rptResp.jobId)).asInstanceOf[ResultResponse]
     Assert.assertTrue(resultResp.rptId.isDefined)
+  }
+
+  @Test
+  def canPurgeExpiredJobs() {
+
   }
 }
 
@@ -88,29 +93,29 @@ class TestReportGenerator extends ReportGenerator {
 
   private var isStarted = false
 
-  def startup() {
+  override def startup() {
     if (isStarted)
       throw new IllegalStateException("ReportGenerator is already started")
     isStarted = true
   }
 
-  def getAvailableRptDefs: List[String] = {
+  override def getAvailableRptDefs: List[String] = {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
     List("def_1")
   }
 
-  def runReport(defId: String, rptId: String, rptType: ReportType) {
+  override def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int]) {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
   }
 
-  def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType) {
+  override def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType) {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
   }
 
-  def shutdown() {
+  override def shutdown() {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
     isStarted = false

@@ -15,6 +15,7 @@ import java.util.Properties
 import java.io.{ FileInputStream, File }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.RequiresProperties
+import scala.Either
 
 /**
  * Object that registers the services used by the stateless dispatch
@@ -63,10 +64,20 @@ object ServiceRegistry extends JobDependencies
     val rptDefsDir = properties.get(RPT_DEFS_DIR_PROP).toString
     val outputDir = properties.get(OUTPUT_DIR_PROP).toString
 
-    new FileReportManager(rptDefsDir, outputDir)
+    val fileReportManager = new FileReportManager(rptDefsDir, outputDir)
+
+    val defaultRetentionDays: Int = try { properties.get(defaultRetentionPeriod).toString.toInt } catch { case e: Exception => ReportManager.getDefaultRetentionDays }
+    val maximumRetentionDays: Int = try { properties.get(maximumRetentionPeriod).toString.toInt } catch { case e: Exception => ReportManager.getMaximumRetentionDays }
+
+    fileReportManager.putDefaultRetentionDays(defaultRetentionDays)
+    fileReportManager.putMaximumRetentionDays(maximumRetentionDays)
+
+    fileReportManager
+
   }
 
   protected val coordinator: Coordinator = {
+
     val coord = new Coordinator(reportManager) with BirtReportGeneratorFactory
     coord.start()
     coord

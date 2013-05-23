@@ -13,7 +13,7 @@ import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType 
 import com.fasterxml.jackson.databind.ObjectMapper
 import scala.collection._
 import com.ksmpartners.ernie.util.Utility._
-import com.ksmpartners.ernie.engine.report.ReportManager._
+import ReportManager._
 
 /**
  * Implementation of ReportManager that stores and loads reports and definitions from the filesystem
@@ -201,5 +201,10 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
       log.warn("Report entity file {} does not exist, skipping delete.", rptId)
     }
   }
+
+  override def putDefaultRetentionDays(in: Int) { setDefaultRetentionDays(in) }
+  override def putMaximumRetentionDays(in: Int) { setMaximumRetentionDays(in) }
+  override def getDefaultRetentionDays: Int = ReportManager.getDefaultRetentionDays
+  override def getMaximumRetentionDays: Int = ReportManager.getMaximumRetentionDays
 
 }

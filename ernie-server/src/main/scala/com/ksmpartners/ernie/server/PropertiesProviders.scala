@@ -16,6 +16,8 @@ object PropertyNames {
   val AUTH_MODE_PROP = "authentication.mode"
   val RPT_DEFS_DIR_PROP = "rpt.def.dir"
   val OUTPUT_DIR_PROP = "output.dir"
+  val defaultRetentionPeriod = "retention.period.default"
+  val maximumRetentionPeriod = "retention.period.maximum"
 }
 
 /** Dependency injection trait to advertise dependence on a java.util.Properties instance */

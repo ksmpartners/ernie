@@ -14,12 +14,14 @@ public class ReportRequest extends ModelObject {
 
     private String defId;
     private ReportType rptType;
+    private int retentionDays;
 
     public ReportRequest() {}
 
-    public ReportRequest(String defId, ReportType rptType) {
+    public ReportRequest(String defId, ReportType rptType, int retentionDays) {
         this.defId = defId;
         this.rptType = rptType;
+        this.retentionDays = retentionDays;
     }
 
     public void setDefId(String defId) {
@@ -36,6 +38,14 @@ public class ReportRequest extends ModelObject {
 
     public ReportType getRptType() {
         return rptType;
+    }
+
+    public void setRetentionDays(int retentionDays) {
+        this.retentionDays = retentionDays;
+    }
+
+    public int getRetentionDays() {
+        return retentionDays;
     }
 
 }

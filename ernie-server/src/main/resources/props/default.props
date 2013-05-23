@@ -4,3 +4,5 @@
 
 rpt.def.dir=./ernie-engine/src/main/resources/designs
 output.dir=./ernie-engine/src/main/resources/output
+retention.period.default=7
+retention.period.maximum=14

@@ -114,4 +114,9 @@ class MemoryReportManager extends ReportManager {
     reports += (rptId -> content)
   }
 
+  override def putDefaultRetentionDays(in: Int) { setDefaultRetentionDays(in) }
+  override def putMaximumRetentionDays(in: Int) { setMaximumRetentionDays(in) }
+  override def getDefaultRetentionDays: Int = ReportManager.getDefaultRetentionDays
+  override def getMaximumRetentionDays: Int = ReportManager.getMaximumRetentionDays
+
 }
