@@ -70,15 +70,17 @@ class Coordinator(reportManager: ReportManager) extends Actor {
         }
         case req@PurgeRequest() => {
           var purgedReports: List[String] = Nil
-
+          jobIdToResultMap.foreach(f => log.info(f.toString))
           jobIdToResultMap.foreach(f => if (f._2._2.isDefined) {
             val rptId = f._2._2.get
-            if (reportManager.getReport(rptId).isDefined)
+            if (reportManager.getReport(rptId).isDefined) {
+              log.info(rptId + " -- " + reportManager.getReport(rptId).get.getRetentionDate)
               if (reportManager.getReport(rptId).get.getRetentionDate.isBeforeNow) {
                 purgedReports ::= rptId
                 reportManager.deleteReport(rptId)
                 jobIdToResultMap.update(f._1, (JobStatus.DELETED, Some(rptId)))
               }
+            }
           })
 
           sender ! PurgeResponse(purgedReports, req)

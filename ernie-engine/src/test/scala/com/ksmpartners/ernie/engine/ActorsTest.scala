@@ -80,19 +80,6 @@ class ActorsTest {
     Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).isDefined)
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-68")))
-  //@Test
-  def canPurgeExpiredJobs() {
-    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]
-    while ((coordinator !? StatusRequest(rptResp.jobId)).asInstanceOf[StatusResponse].jobStatus != JobStatus.COMPLETE) {
-      // peg coordinator until job is complete
-    }
-    val resultResp = (coordinator !? ResultRequest(rptResp.jobId)).asInstanceOf[ResultResponse]
-    Assert.assertTrue(resultResp.rptId.isDefined)
-    Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).isDefined)
-
-  }
-
   @TestSpecs(Array(new TestSpec(key = "ERNIE-8")))
   @Test
   def jobWithoutRetentionDateUsesDefault() {

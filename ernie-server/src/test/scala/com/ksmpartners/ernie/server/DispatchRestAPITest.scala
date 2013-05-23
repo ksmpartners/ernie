@@ -367,7 +367,6 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
           })
       }
     }
-
   }
 
   @Test(dependsOnMethods = Array("canPostJobHTML"))
