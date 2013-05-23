@@ -10,7 +10,8 @@ package com.ksmpartners.ernie.server.service
 import com.ksmpartners.ernie.engine.{ ShutDownRequest, Coordinator }
 import com.ksmpartners.ernie.engine.report.{ MemoryReportManager, ReportGenerator, ReportManager, ReportGeneratorFactory }
 import com.ksmpartners.ernie.model
-import model.{ DefinitionEntity, ReportType }
+import com.ksmpartners.ernie.util.MapperUtility._
+import model.{ JobStatus, DefinitionEntity, ReportType }
 import com.ksmpartners.ernie.util.Utility._
 import java.io.{ OutputStream, InputStream }
 import org.testng.annotations.{ AfterTest, BeforeTest, Test }
@@ -97,10 +98,18 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
     val resp = respBox.open_!.asInstanceOf[PlainTextResponse]
     Assert.assertEquals(resp.code, 201)
     Assert.assertEquals(resp.headers, List(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
-
     val rptResp = deserialize(resp.text, classOf[model.ReportResponse])
-    val resultRespBox = jobResultsResource.get(rptResp.getJobId.toString)
 
+    val jobStatusResource = new JobStatusResource
+
+    var statusRespBox = jobStatusResource.get(rptResp.getJobId.toString).open_!.asInstanceOf[PlainTextResponse]
+    var statusResp = deserialize(statusRespBox.text, classOf[model.StatusResponse])
+    while (statusResp.getJobStatus != JobStatus.COMPLETE) {
+      statusRespBox = jobStatusResource.get(rptResp.getJobId.toString).open_!.asInstanceOf[PlainTextResponse]
+      statusResp = deserialize(statusRespBox.text, classOf[model.StatusResponse])
+    }
+
+    val resultRespBox = jobResultsResource.get(rptResp.getJobId.toString)
     val resultResp = resultRespBox.open_!.asInstanceOf[StreamingResponse]
     Assert.assertEquals(resultResp.code, 200)
     Assert.assertEquals(resultResp.headers, List(("Content-Type", "application/pdf"),
