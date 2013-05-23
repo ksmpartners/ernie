@@ -59,11 +59,11 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     log.debug("Generating PDF from report definition {}", defId)
     try_(reportManager.getDefinitionContent(defId).get) { defInputStream =>
       val entity: mutable.Map[String, Any] = new mutable.HashMap()
-      entity += (ReportManager.RPT_ID -> rptId)
-      entity += (ReportManager.SOURCE_DEF_ID -> defId)
-      entity += (ReportManager.REPORT_TYPE -> rptType)
-      entity += (ReportManager.CREATED_USER -> "default")
-      entity += (ReportManager.RETENTION_DATE -> DateTime.now().plusDays(retentionDate getOrElse (reportManager.getDefaultRetentionDays)))
+      entity += (ReportManager.rptId -> rptId)
+      entity += (ReportManager.sourceDefId -> defId)
+      entity += (ReportManager.reportType -> rptType)
+      entity += (ReportManager.createdUser -> "default")
+      entity += (ReportManager.retentionDate -> DateTime.now().plusDays(retentionDate getOrElse (reportManager.getDefaultRetentionDays)))
       try_(reportManager.putReport(entity)) { rptOutputStream =>
         runReport(defInputStream, rptOutputStream, rptType)
       }

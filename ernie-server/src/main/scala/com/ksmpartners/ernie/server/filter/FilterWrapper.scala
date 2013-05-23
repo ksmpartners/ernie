@@ -20,7 +20,7 @@ class FilterWrapper extends Filter {
   private var wrappedFilter: Filter = null
 
   def init(config: FilterConfig) {
-    val authMode = System.getProperty(AUTH_MODE_PROP)
+    val authMode = System.getProperty(authModeProp)
 
     authMode match {
       case "SAML" => wrappedFilter = new SAMLFilter

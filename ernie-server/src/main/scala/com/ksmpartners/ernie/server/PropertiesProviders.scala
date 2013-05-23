@@ -11,11 +11,11 @@ import java.util.Properties
 
 /** Constants object for centralizing the names of the properties in the system configuration **/
 object PropertyNames {
-  val PROPERTIES_FILE_NAME_PROP = "ernie.props"
-  val KEYSTORE_LOC_PROP = "keystore.location"
-  val AUTH_MODE_PROP = "authentication.mode"
-  val RPT_DEFS_DIR_PROP = "rpt.def.dir"
-  val OUTPUT_DIR_PROP = "output.dir"
+  val propertiesFileNameProp = "ernie.props"
+  val keystoreLocProp = "keystore.location"
+  val authModeProp = "authentication.mode"
+  val rptDefsDirProp = "rpt.def.dir"
+  val outputDirProp = "output.dir"
   val defaultRetentionPeriod = "retention.period.default"
   val maximumRetentionPeriod = "retention.period.maximum"
 }

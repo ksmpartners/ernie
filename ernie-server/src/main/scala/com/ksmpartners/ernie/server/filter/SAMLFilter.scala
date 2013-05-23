@@ -26,9 +26,9 @@ import java.io.InputStream
 class SAMLFilter extends Filter {
 
   private val keystoreLoc: String = {
-    val ksl = System.getProperty(KEYSTORE_LOC_PROP)
+    val ksl = System.getProperty(keystoreLocProp)
     if (ksl == null)
-      throw new IllegalStateException("Must set " + KEYSTORE_LOC_PROP)
+      throw new IllegalStateException("Must set " + keystoreLocProp)
     log.info("keystoreLoc = {}", ksl)
     ksl
   }
@@ -56,7 +56,7 @@ class SAMLFilter extends Filter {
 
   private def handleRequest(req: HttpServletRequest, res: HttpServletResponse): HttpServletRequest = {
     // Get Authorization header value
-    val samlTokenHeader = req.getHeader(AUTH_HEADER_PROP)
+    val samlTokenHeader = req.getHeader(authHeaderProp)
 
     // Null check
     if (samlTokenHeader == null || !samlTokenHeader.startsWith("SAML"))
@@ -75,9 +75,9 @@ class SAMLFilter extends Filter {
       val samlProcessor = getSAMLProcessor(samlTokenStream)
 
       val attr = samlProcessor.getAttributes
-      userName = (attr.get(USER_NAME_PROP).asInstanceOf[java.util.ArrayList[String]]).get(0)
-      val rolesProp = attr.get(ROLES_PROP).asInstanceOf[java.util.ArrayList[java.lang.Object]].toArray
-      for (role <- rolesProp) {
+      userName = (attr.get(userNameProp).asInstanceOf[java.util.ArrayList[String]]).get(0)
+      val rolesPropObj = attr.get(rolesProp).asInstanceOf[java.util.ArrayList[java.lang.Object]].toArray
+      for (role <- rolesPropObj) {
         roles += role.toString
       }
     }

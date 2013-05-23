@@ -22,14 +22,14 @@ import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 
 class SAMLFilterTest {
 
-  private val READ_MODE = "read"
-  private val WRITE_MODE = "write"
-  private val READ_WRITE_MODE = "read-write"
+  private val readMode = "read"
+  private val writeMode = "write"
+  private val readWriteMode = "read-write"
 
   @BeforeClass
   def setup() {
     val ks = Thread.currentThread.getContextClassLoader.getResource("keystore.jks")
-    System.setProperty(KEYSTORE_LOC_PROP, ks.getPath)
+    System.setProperty(keystoreLocProp, ks.getPath)
   }
 
   @Test
@@ -39,7 +39,7 @@ class SAMLFilterTest {
     val resp = new MockResp
     val chain = new Chain
 
-    req.headers += (AUTH_HEADER_PROP -> List(getSamlHeaderVal(READ_WRITE_MODE)))
+    req.headers += (authHeaderProp -> List(getSamlHeaderVal(readWriteMode)))
 
     filter.doFilter(req, resp, chain)
     Assert.assertEquals(resp.getStatusCode, 200)

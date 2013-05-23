@@ -11,10 +11,10 @@ package com.ksmpartners.ernie.server.filter
  * Object containing constants for use with SAML authentication
  */
 object SAMLConstants {
-  val AUTH_HEADER_PROP = "Authorization"
-  val USER_NAME_PROP = "userName"
-  val ROLES_PROP = "ernieRole"
+  val authHeaderProp = "Authorization"
+  val userNameProp = "userName"
+  val rolesProp = "ernieRole"
 
-  val READ_ROLE = "read"
-  val WRITE_ROLE = "write"
+  val readRole = "read"
+  val writeRole = "write"
 }

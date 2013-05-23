@@ -148,10 +148,10 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
     var entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.RPT_ID -> rptId)
-    entity += (ReportManager.SOURCE_DEF_ID -> "def")
-    entity += (ReportManager.REPORT_TYPE -> rptType)
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.rptId -> rptId)
+    entity += (ReportManager.sourceDefId -> "def")
+    entity += (ReportManager.reportType -> rptType)
+    entity += (ReportManager.createdUser -> "default")
     try_(reportManager.putReport(entity)) { os =>
       os.write(rptId.getBytes)
     }

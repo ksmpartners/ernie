@@ -38,16 +38,16 @@ class FileReportManagerTest {
 
     for (i <- 1 to 5) {
       var entity = new mutable.HashMap[String, Any]()
-      entity += (ReportManager.DEF_ID -> ("def_" + i))
-      entity += (ReportManager.CREATED_USER -> "default")
+      entity += (ReportManager.defId -> ("def_" + i))
+      entity += (ReportManager.createdUser -> "default")
       try_(reportManager.putDefinition(entity)) { stream =>
         stream.write(("DEF_" + i).getBytes)
       }
       entity = new mutable.HashMap[String, Any]()
-      entity += (ReportManager.RPT_ID -> ("rpt_" + i))
-      entity += (ReportManager.SOURCE_DEF_ID -> ("def_" + i))
-      entity += (ReportManager.REPORT_TYPE -> ReportType.CSV)
-      entity += (ReportManager.CREATED_USER -> "default")
+      entity += (ReportManager.rptId -> ("rpt_" + i))
+      entity += (ReportManager.sourceDefId -> ("def_" + i))
+      entity += (ReportManager.reportType -> ReportType.CSV)
+      entity += (ReportManager.createdUser -> "default")
       try_(reportManager.putReport(entity)) { stream =>
         stream.write(("RPT_" + i).getBytes)
       }
@@ -89,27 +89,27 @@ class FileReportManagerTest {
   @Test
   def testPut() {
     var entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.RPT_ID -> "rpt_6")
-    entity += (ReportManager.SOURCE_DEF_ID -> "def_6")
-    entity += (ReportManager.REPORT_TYPE -> ReportType.PDF)
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.rptId -> "rpt_6")
+    entity += (ReportManager.sourceDefId -> "def_6")
+    entity += (ReportManager.reportType -> ReportType.PDF)
+    entity += (ReportManager.createdUser -> "default")
     var bosR = reportManager.putReport(entity)
     Assert.assertTrue(reportManager.hasReport("rpt_6"))
     bosR.close()
     Assert.assertTrue(reportManager.hasReport("rpt_6"))
 
-    entity += (ReportManager.RPT_ID -> "rpt_7")
-    entity += (ReportManager.SOURCE_DEF_ID -> "def_7")
-    entity += (ReportManager.REPORT_TYPE -> ReportType.HTML)
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.rptId -> "rpt_7")
+    entity += (ReportManager.sourceDefId -> "def_7")
+    entity += (ReportManager.reportType -> ReportType.HTML)
+    entity += (ReportManager.createdUser -> "default")
     bosR = reportManager.putReport(entity)
     Assert.assertTrue(reportManager.hasReport("rpt_7"))
     bosR.close()
     Assert.assertTrue(reportManager.hasReport("rpt_7"))
 
     entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.DEF_ID -> "def_6")
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.defId -> "def_6")
+    entity += (ReportManager.createdUser -> "default")
     val bosD = reportManager.putDefinition(entity)
     Assert.assertTrue(reportManager.hasDefinition("def_6"))
     bosD.close()
