@@ -17,8 +17,6 @@ import com.ksmpartners.ernie.server.PropertyNames._
  */
 class FilterWrapper extends Filter {
 
-  private val log: Logger = LoggerFactory.getLogger(classOf[FilterWrapper])
-
   private var wrappedFilter: Filter = null
 
   def init(config: FilterConfig) {

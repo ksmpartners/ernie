@@ -8,11 +8,8 @@
 package com.ksmpartners.ernie.util
 
 import java.io.{ FileNotFoundException, File, Closeable }
-import org.slf4j.{ LoggerFactory, Logger }
 
 object Utility {
-
-  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.util.Utility")
 
   /**
    * Method that mimics Java 1.7's try-with-resources

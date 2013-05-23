@@ -16,6 +16,7 @@ import org.apache.cxf.rs.security.saml.DeflateEncoderDecoder
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import com.ksmpartners.ernie.server.PropertyNames._
+import com.ksmpartners.ernie.server.filter.SAMLFilter._
 import scala.collection._
 import java.io.InputStream
 
@@ -23,8 +24,6 @@ import java.io.InputStream
  * Servlet filter used for SAML authentication
  */
 class SAMLFilter extends Filter {
-
-  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.filter.SAMLFilter")
 
   private val keystoreLoc: String = {
     val ksl = System.getProperty(KEYSTORE_LOC_PROP)
@@ -103,4 +102,8 @@ class SAMLFilter extends Filter {
     override def getAuthType: String = "SAML"
   }
 
+}
+
+object SAMLFilter {
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.filter.SAMLFilter")
 }

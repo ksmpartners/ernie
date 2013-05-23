@@ -14,13 +14,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import scala.collection._
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.engine.report.ReportManager._
+import com.ksmpartners.ernie.engine.report.FileReportManager._
 
 /**
  * Implementation of ReportManager that stores and loads reports and definitions from the filesystem
  */
 class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extends ReportManager {
-
-  private val log: Logger = LoggerFactory.getLogger(classOf[FileReportManager])
 
   private val mapper: ObjectMapper = new ObjectMapper()
 
@@ -202,4 +201,8 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     }
   }
 
+}
+
+object FileReportManager {
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.report.FileReportManager")
 }
