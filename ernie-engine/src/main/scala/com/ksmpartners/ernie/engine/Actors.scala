@@ -29,6 +29,12 @@ class Coordinator(reportManager: ReportManager) extends Actor {
     log.debug("in start()")
     super.start()
     worker.start()
+
+    reportManager.getAllReportIds.foreach(f => if (reportManager.getReport(f).isDefined) try {
+      val report = reportManager.getReport(f).get
+      jobIdToResultMap += (report.getRptId.replaceAll("REPORT_", "").toLong -> (JobStatus.COMPLETE, Some(report.getRptId)))
+    } catch { case _ => {} })
+
     this
   }
 

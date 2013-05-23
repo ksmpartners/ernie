@@ -93,8 +93,8 @@ class ActorsTest {
 
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-8")))
-  //@Test
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-8")))
+  @Test
   def jobWithoutRetentionDateUsesDefault() {
 
     val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]

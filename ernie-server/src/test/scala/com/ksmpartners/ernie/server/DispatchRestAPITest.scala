@@ -640,6 +640,23 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-80")))
+  @Test
+  def canGetDefDetails() {
+    val mockReq = new MockReadAuthReq("/defs/test_def")
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val body = resp.open_!.asInstanceOf[PlainTextResponse].text
+      val respObj = mapper.readValue(body, classOf[DefinitionEntity])
+      Assert.assertNotNull(respObj.getDefId)
+    }
+  }
+
   @TestSpecs(Array(new TestSpec(key = "ERNIE-82")))
   @Test
   def cantGetDefDetailsWithoutJSONRequest() {
