@@ -11,6 +11,7 @@ import java.io._
 import scala.collection._
 import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity }
 import com.ksmpartners.ernie.engine.report.ReportManager._
+import org.slf4j.{ LoggerFactory, Logger }
 
 /**
  * Implementation of ReportManager that stores reports and definitions in memory
@@ -22,6 +23,8 @@ class MemoryReportManager extends ReportManager {
 
   private val definitionEntities: mutable.Map[String, DefinitionEntity] = new mutable.HashMap()
   private val reportEntities: mutable.Map[String, ReportEntity] = new mutable.HashMap()
+
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.MemoryReportManager")
 
   override def getAllDefinitionIds: List[String] = {
     definitions.keys.toList

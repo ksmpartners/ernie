@@ -52,10 +52,14 @@ class Coordinator(reportManager: ReportManager) extends Actor {
             if ((jobIdToResultMap.get(jobId).get._1 == JobStatus.COMPLETE) && (jobIdToResultMap.get(jobId).get._2.isDefined)) {
               // TODO: Consider wrapping in a try/catch to handle any exceptions that might get thrown.
               // Update DeleteResponse to contain the result of the deletion
-              reportManager.deleteReport(jobIdToResultMap.get(jobId).get._2.get)
-              jobIdToResultMap.update(jobId, (JobStatus.DELETED, Some(jobIdToResultMap.get(jobId).get._2.get)))
-              sender ! DeleteResponse(JobStatus.DELETED, req)
-            } else sender ! DeleteResponse(JobStatus.IN_PROGRESS, req) // TODO: Send back "jobIdToResultMap.get(jobId).get._1" because the status could be PENDING or FAILED
+              try {
+                reportManager.deleteReport(jobIdToResultMap.get(jobId).get._2.get)
+                jobIdToResultMap.update(jobId, (JobStatus.DELETED, Some(jobIdToResultMap.get(jobId).get._2.get)))
+                sender ! DeleteResponse(jobIdToResultMap.get(jobId).get._1, req)
+              } catch {
+                case e: Exception => sender ! DeleteResponse(jobIdToResultMap.get(jobId).get._1, req)
+              }
+            } else sender ! DeleteResponse(jobIdToResultMap.get(jobId).get._1, req) // TODO: Send back "jobIdToResultMap.get(jobId).get._1" because the status could be PENDING or FAILED
           } else sender ! DeleteResponse(JobStatus.NO_SUCH_JOB, req) //no such job
         }
         case req@PurgeRequest() => {

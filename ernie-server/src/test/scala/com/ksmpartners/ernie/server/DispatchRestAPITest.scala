@@ -24,6 +24,7 @@ import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
+import com.ksmpartners.ernie.server.service.ServiceRegistry
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 

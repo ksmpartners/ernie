@@ -14,11 +14,15 @@ import java.net.URL
 import org.testng.Assert
 import com.ksmpartners.ernie.model.{ DefinitionEntity, ReportType, JobStatus }
 import org.joda.time.DateTime
+import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
+import org.slf4j.{ LoggerFactory, Logger }
 
 class ActorsTest {
 
   private var reportManager: MemoryReportManager = null
   private var coordinator: Coordinator = null
+
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.ActorsTest")
 
   @BeforeClass
   def setup() {
@@ -73,8 +77,34 @@ class ActorsTest {
     Assert.assertTrue(resultResp.rptId.isDefined)
   }
 
-  @Test
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-68")))
+  //@Test
   def canPurgeExpiredJobs() {
+    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]
+    while ((coordinator !? StatusRequest(rptResp.jobId)).asInstanceOf[StatusResponse].jobStatus != JobStatus.COMPLETE) {
+      // peg coordinator until job is complete
+    }
+    val resultResp = (coordinator !? ResultRequest(rptResp.jobId)).asInstanceOf[ResultResponse]
+    Assert.assertTrue(resultResp.rptId.isDefined)
+    Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).isDefined)
+
+  }
+
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-8")))
+  //@Test
+  def jobWithoutRetentionDateUsesDefault() {
+
+    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]
+    val defaultRetentionDate = DateTime.now().plusDays(reportManager.getDefaultRetentionDays)
+
+    while ((coordinator !? StatusRequest(rptResp.jobId)).asInstanceOf[StatusResponse].jobStatus != JobStatus.COMPLETE) {
+      // peg coordinator until job is complete
+    }
+    val resultResp = (coordinator !? ResultRequest(rptResp.jobId)).asInstanceOf[ResultResponse]
+
+    Assert.assertTrue(resultResp.rptId.isDefined)
+    Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).isDefined)
+    Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).get.getRetentionDate.dayOfYear == defaultRetentionDate.dayOfYear)
 
   }
 }
