@@ -11,7 +11,6 @@ import org.testng.annotations.{ BeforeMethod, Test }
 import org.testng.Assert
 import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType }
 import scala.collection._
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.joda.time.DateTime
 
 class MemoryReportManagerTest {

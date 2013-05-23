@@ -10,9 +10,9 @@ package com.ksmpartners.ernie.engine.report
 import java.io._
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType }
-import com.fasterxml.jackson.databind.ObjectMapper
 import scala.collection._
 import com.ksmpartners.ernie.util.Utility._
+import com.ksmpartners.ernie.util.MapperUtility._
 import com.ksmpartners.ernie.engine.report.ReportManager._
 import com.ksmpartners.ernie.engine.report.FileReportManager._
 
@@ -20,8 +20,6 @@ import com.ksmpartners.ernie.engine.report.FileReportManager._
  * Implementation of ReportManager that stores and loads reports and definitions from the filesystem
  */
 class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extends ReportManager {
-
-  private val mapper: ObjectMapper = new ObjectMapper()
 
   private val rptDefDir = new File(pathToDefinitions)
   private val outputDir = new File(pathToOutputs)

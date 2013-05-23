@@ -13,12 +13,11 @@ import org.testng.Assert
 import net.liftweb.http.PlainTextResponse
 import com.ksmpartners.ernie.model.DefinitionEntity
 import org.joda.time.DateTime
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.ksmpartners.ernie.util.MapperUtility._
 
 class DefinitionDependenciesTest extends DefinitionDependencies {
 
   val reportManager = new MemoryReportManager
-  val mapper = new ObjectMapper()
 
   @BeforeClass
   def setup() {

@@ -16,7 +16,6 @@ import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import com.ksmpartners.ernie.model._
 import org.testng.Assert
 import net.liftweb.http._
-import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.Properties
 import java.io.{ FileInputStream, File }
 import com.ksmpartners.ernie.util.Utility._
@@ -24,10 +23,10 @@ import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
+import com.ksmpartners.ernie.util.MapperUtility._
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
-  val mapper = new ObjectMapper()
   var outputDir: File = null
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DispatchRestAPITest")
 
