@@ -51,9 +51,9 @@ class BirtReportGeneratorTest {
 
   @Test
   def canRunExistingDef() {
-    reportGenerator.runReport("test_def", "test_rpt_pdf", ReportType.PDF)
-    reportGenerator.runReport("test_def", "test_rpt_csv", ReportType.CSV)
-    reportGenerator.runReport("test_def", "test_rpt_html", ReportType.HTML)
+    reportGenerator.runReport("test_def", "test_rpt_pdf", ReportType.PDF, None)
+    reportGenerator.runReport("test_def", "test_rpt_csv", ReportType.CSV, None)
+    reportGenerator.runReport("test_def", "test_rpt_html", ReportType.HTML, None)
     Assert.assertTrue(reportManager.hasReport("test_rpt_pdf"))
     Assert.assertTrue(reportManager.hasReport("test_rpt_csv"))
     Assert.assertTrue(reportManager.hasReport("test_rpt_html"))
@@ -62,7 +62,7 @@ class BirtReportGeneratorTest {
   @Test(expectedExceptions = Array(classOf[IllegalStateException]))
   def cantRunExistingReportWithStoppedGenerator() {
     val rptGen = new BirtReportGenerator(new MemoryReportManager)
-    rptGen.runReport("test1", "test2", ReportType.PDF)
+    rptGen.runReport("test1", "test2", ReportType.PDF, None)
   }
 
   @Test(expectedExceptions = Array(classOf[IllegalStateException]))

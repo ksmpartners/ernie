@@ -13,11 +13,13 @@ package com.ksmpartners.ernie.model;
 public class ReportResponse extends ModelObject {
 
     private long jobId;
+    private JobStatus jobStatus;
 
     public ReportResponse() {}
 
-    public ReportResponse(long jobId) {
+    public ReportResponse(long jobId, JobStatus jobStatus) {
         this.jobId = jobId;
+        this.jobStatus = jobStatus;
     }
 
     public long getJobId() {
@@ -27,4 +29,14 @@ public class ReportResponse extends ModelObject {
     public void setjobId(long jobId) {
         this.jobId = jobId;
     }
+
+    public JobStatus getJobStatus() {
+        return jobStatus;
+    }
+
+    public void setJobStatus(JobStatus jobStatus) {
+        this.jobStatus = jobStatus;
+    }
+
+
 }

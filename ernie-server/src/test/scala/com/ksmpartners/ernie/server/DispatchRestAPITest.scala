@@ -103,7 +103,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-41"), new TestSpec(key = "ERNIE-42")))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-41")))
   @Test
   def canGetDefs() {
     val mockReq = new MockReadAuthReq("/defs")
@@ -207,8 +207,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  // TODO: Not sure how this satifsies ERNIE-66
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-66")))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-53")))
   @Test
   def canPostJobHTML() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -481,12 +480,38 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  // TODO: Need tests for mismatched Accept headers
-  // eg: Accept: PDF but file is HTML
   @TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def cantGetOutputDownloadWithoutCorrectAcceptHeader() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def cantGetPDFOutputDownloadWithCSVAcceptHeader() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
+    mockReq.headers += ("Accept" -> List("application/csv"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def cantGetPDFOutputDownloadWithHTMLAcceptHeader() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
+    mockReq.headers += ("Accept" -> List("application/html"))
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
@@ -526,8 +551,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  // TODO: Are these the correct test IDs?
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-74")))
   @Test(dependsOnMethods = Array("canGetCSVOutputDownload"))
   def canDeleteReportResults() {
     val mockReq = new MockWriteAuthReq("/jobs/" + testJobCSVID + "/result")
@@ -587,7 +611,6 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  // TODO: Now that I'm thinking about this, we might return a DELETED status now that we have it.
   @TestSpecs(Array(new TestSpec(key = "ERNIE-69")))
   @Test(dependsOnMethods = Array("canDeleteReportResults"))
   def jobStatusReturns410ForDeletedReports() {
@@ -615,6 +638,87 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[GoneResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 410)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-82")))
+  @Test
+  def cantGetDefDetailsWithoutJSONRequest() {
+    val mockReq = new MockReadAuthReq("/defs/test_def")
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI.apply(req).apply()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-78")))
+  @Test
+  def cantGetDefDetailsWithoutReadAuth() {
+    val mockReq = new MockNoAuthReq("/defs/test_def")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI.apply(req).apply()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-81")))
+  @Test
+  def defDetailServiceReturnsJSON() {
+    val mockReq = new MockReadAuthReq("/defs/test_def")
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-80")))
+  @Test
+  def canGetDefDetail() {
+    val mockReq = new MockReadAuthReq("/defs/test_def")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val defDetailResponse: DefinitionEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DefinitionEntity])
+      // Assert.assertTrue(JobStatus.values().contains(statusResponse.getJobStatus))
+
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-71")))
+  @Test
+  def cantPostJobIfRetentionDateInPast() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def")
+    mockReportReq.setRptType(ReportType.PDF)
+    mockReportReq.setRetentionDays(-1)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
+      Assert.assertEquals(resp.open_!.toResponse.code, 400)
+      Assert.assertEquals(resp.open_!.asInstanceOf[ResponseWithReason].reason, "Retention date before request time")
     }
   }
 

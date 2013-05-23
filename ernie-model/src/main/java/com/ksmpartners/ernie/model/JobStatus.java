@@ -20,6 +20,10 @@ public enum JobStatus {
     COMPLETE,
     /** Job has failed processing */
     FAILED,
+    /** Job retention date is in the past */
+    FAILED_RETENTION_DATE_PAST,
+    /** Job retention date after the maximum */
+    FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM,
     /** Job was deleted */
     DELETED,
     /** Job does not exist */

@@ -28,7 +28,7 @@ trait ReportGenerator {
   /**
    * Run the given defId and store the output in rptId as rptType
    */
-  def runReport(defId: String, rptId: String, rptType: ReportType)
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int])
 
   /**
    * Run the given defInputStream and store the output in rptOutputStream as rptType

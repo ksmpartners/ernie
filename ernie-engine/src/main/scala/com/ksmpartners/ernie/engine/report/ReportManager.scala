@@ -13,6 +13,8 @@ import com.ksmpartners.ernie.model.{ ReportType, ReportEntity, DefinitionEntity 
 import com.ksmpartners.ernie.engine.report.ReportManager._
 import java.util
 import org.joda.time.DateTime
+import scala.Left
+import scala.Right
 
 /**
  * Trait that contains methods for managing reports and definitions
@@ -86,6 +88,15 @@ trait ReportManager {
    */
   def deleteReport(rptId: String)
 
+  /* Return the default number of days for report output retention */
+  def getDefaultRetentionDays: Int
+  /* Set the default number of days for report output retention */
+  def putDefaultRetentionDays(in: Int)
+  /* Return the maximum number of days for report output retention */
+  def getMaximumRetentionDays: Int
+  /* Set the maximum number of days for report output retention */
+  def putMaximumRetentionDays(in: Int)
+
 }
 
 /**
@@ -102,6 +113,14 @@ object ReportManager {
   val RETENTION_DATE = "retentionDate"
   val REPORT_TYPE = "fileType"
   val SOURCE_DEF_ID = "sourceDefId"
+
+  private var defaultRetentionDays = 7
+  private var maximumRetentionDays = 14
+
+  def setDefaultRetentionDays(in: Int) { defaultRetentionDays = in }
+  def setMaximumRetentionDays(in: Int) { maximumRetentionDays = in }
+  def getDefaultRetentionDays: Int = defaultRetentionDays
+  def getMaximumRetentionDays: Int = maximumRetentionDays
 
   /**
    * Returns a DefinitionEntity object containing the contents of entity. The entity must contain information about the
@@ -165,8 +184,16 @@ object ReportManager {
     rptEnt.setSourceDefId(entity.get(SOURCE_DEF_ID).get.asInstanceOf[String])
     rptEnt.setReportType(entity.get(REPORT_TYPE).get.asInstanceOf[ReportType])
     rptEnt.setCreatedUser(entity.get(CREATED_USER).get.asInstanceOf[String])
-    // TODO: Set up default retention date.
-    rptEnt.setRetentionDate(entity.getOrElse(RETENTION_DATE, DateTime.now()).asInstanceOf[DateTime])
+
+    // Set up default retention date.
+    val retentionDateOption = entity.get(RETENTION_DATE)
+    if (retentionDateOption.isDefined) {
+      val retentionDate: DateTime = DateTime.parse(retentionDateOption.get.toString)
+      if (retentionDate isAfter DateTime.now().plusDays(maximumRetentionDays)) throw new RetentionDateAfterMaximumException("Retention date after maximum")
+      else if (retentionDate.isBeforeNow() || retentionDate.equals(DateTime.now())) throw new RetentionDateInThePastException("Retention date is in the past")
+      else rptEnt.setRetentionDate(retentionDate)
+    } else rptEnt.setRetentionDate(DateTime.now().plusDays(defaultRetentionDays))
+
     if (entity.contains(PARAM_MAP)) {
       val paramMap = entity.get(PARAM_MAP).get.asInstanceOf[Map[String, String]]
       val params: util.Map[String, String] = new util.HashMap()
@@ -177,4 +204,7 @@ object ReportManager {
     }
     rptEnt
   }
+
+  case class RetentionDateAfterMaximumException(smth: String) extends RuntimeException
+  case class RetentionDateInThePastException(smth: String) extends RuntimeException
 }

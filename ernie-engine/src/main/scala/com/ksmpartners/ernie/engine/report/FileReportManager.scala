@@ -201,6 +201,11 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     }
   }
 
+  override def putDefaultRetentionDays(in: Int) { setDefaultRetentionDays(in) }
+  override def putMaximumRetentionDays(in: Int) { setMaximumRetentionDays(in) }
+  override def getDefaultRetentionDays: Int = ReportManager.getDefaultRetentionDays
+  override def getMaximumRetentionDays: Int = ReportManager.getMaximumRetentionDays
+
 }
 
 object FileReportManager {

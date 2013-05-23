@@ -10,7 +10,7 @@ package com.ksmpartners.ernie.server.service
 import com.ksmpartners.ernie.engine.{ ShutDownRequest, Coordinator }
 import com.ksmpartners.ernie.engine.report.{ MemoryReportManager, ReportGenerator, ReportManager, ReportGeneratorFactory }
 import com.ksmpartners.ernie.model
-import model.{ JobStatus, StatusResponse, DefinitionEntity, ReportType }
+import model.{ DefinitionEntity, ReportType }
 import com.ksmpartners.ernie.util.Utility._
 import java.io.{ OutputStream, InputStream }
 import org.testng.annotations.{ AfterTest, BeforeTest, Test }
@@ -97,21 +97,8 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
     val resp = respBox.open_!.asInstanceOf[PlainTextResponse]
     Assert.assertEquals(resp.code, 201)
     Assert.assertEquals(resp.headers, List(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
+
     val rptResp = deserialize(resp.text, classOf[model.ReportResponse])
-
-    val jobStatusResource = new JobStatusResource
-    var canProceed = false
-    while (!canProceed) {
-      val statusRespBox = jobStatusResource.get(rptResp.getJobId.toString)
-      val statusResp = statusRespBox.open_!.asInstanceOf[PlainTextResponse]
-      val jsObj = deserialize(statusResp.text, classOf[StatusResponse])
-
-      Assert.assertNotSame(jsObj.getJobStatus, JobStatus.FAILED)
-
-      if (jsObj.getJobStatus == JobStatus.COMPLETE)
-        canProceed = true
-    }
-
     val resultRespBox = jobResultsResource.get(rptResp.getJobId.toString)
 
     val resultResp = resultRespBox.open_!.asInstanceOf[StreamingResponse]
@@ -157,7 +144,7 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     List("def_1")
   }
 
-  def runReport(defId: String, rptId: String, rptType: ReportType) {
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int]) {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
     var entity = new mutable.HashMap[String, Any]()

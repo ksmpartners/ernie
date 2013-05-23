@@ -12,6 +12,7 @@ import collection._
 import com.ksmpartners.ernie.model.{ ReportType, JobStatus }
 import com.ksmpartners.ernie.engine.report._
 import org.slf4j.LoggerFactory
+import org.joda.time.DateTime
 
 /**
  * Actor for coordinating report generation.
@@ -35,11 +36,16 @@ class Coordinator(reportManager: ReportManager) extends Actor {
     log.debug("in act()")
     loop {
       react {
-        case req@ReportRequest(rptId, rptType) => {
+        case req@ReportRequest(rptId, rptType, retentionOption) => {
           val jobId = generateJobId()
           jobIdToResultMap += (jobId -> (JobStatus.PENDING, None))
-          sender ! ReportResponse(jobId, req)
-          worker ! JobRequest(rptId, rptType, jobId)
+          val retentionDate = DateTime.now().plusDays(retentionOption getOrElse reportManager.getDefaultRetentionDays)
+          if (retentionDate.isBefore(DateTime.now()) || retentionDate.isEqual(DateTime.now())) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_PAST, req)
+          else if (retentionDate.isAfter(DateTime.now().plusDays(reportManager.getMaximumRetentionDays))) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM, req)
+          else {
+            sender ! ReportResponse(jobId, JobStatus.IN_PROGRESS, req)
+            worker ! JobRequest(rptId, rptType, jobId, retentionOption)
+          }
         }
         case req@DeleteRequest(jobId) => {
           if (jobIdToResultMap.contains(jobId)) {
@@ -51,6 +57,21 @@ class Coordinator(reportManager: ReportManager) extends Actor {
               sender ! DeleteResponse(JobStatus.DELETED, req)
             } else sender ! DeleteResponse(JobStatus.IN_PROGRESS, req) // TODO: Send back "jobIdToResultMap.get(jobId).get._1" because the status could be PENDING or FAILED
           } else sender ! DeleteResponse(JobStatus.NO_SUCH_JOB, req) //no such job
+        }
+        case req@PurgeRequest() => {
+          var purgedReports: List[String] = Nil
+
+          jobIdToResultMap.foreach(f => if (f._2._2.isDefined) {
+            val rptId = f._2._2.get
+            if (reportManager.getReport(rptId).isDefined)
+              if (reportManager.getReport(rptId).get.getRetentionDate.isBeforeNow) {
+                purgedReports ::= rptId
+                reportManager.deleteReport(rptId)
+                jobIdToResultMap.update(f._1, (JobStatus.DELETED, Some(rptId)))
+              }
+          })
+
+          sender ! PurgeResponse(purgedReports, req)
         }
         case req@StatusRequest(jobId) => {
           sender ! StatusResponse(jobIdToResultMap.getOrElse(jobId, (JobStatus.NO_SUCH_JOB, None))._1, req)
@@ -96,16 +117,24 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
     log.debug("in act()")
     loop {
       react {
-        case req@JobRequest(defId, rptType, jobId) => {
+        case req@JobRequest(defId, rptType, jobId, retentionOption) => {
           sender ! JobResponse(JobStatus.IN_PROGRESS, None, req)
           var resultStatus = JobStatus.COMPLETE
           var rptId: Option[String] = None
           try {
-            rptId = Some(runReport(defId, jobId, rptType))
+            rptId = Some(runReport(defId, jobId, rptType, retentionOption))
           } catch {
-            case ex: Exception => {
+            case ex: ReportManager.RetentionDateAfterMaximumException => {
               log.error("Caught exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED
+            }
+            case ex: ReportManager.RetentionDateInThePastException => {
+              log.error("Caught exception while generating report: {}", ex.getMessage)
+              resultStatus = JobStatus.FAILED_RETENTION_DATE_PAST
+            }
+            case ex: Exception => {
+              log.error("Caught exception while generating report: {}", ex.getMessage)
+              resultStatus = JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM
             }
           }
           sender ! JobResponse(resultStatus, rptId, req)
@@ -127,10 +156,10 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
     this
   }
 
-  private def runReport(defId: String, jobId: Long, rptType: ReportType): String = {
+  private def runReport(defId: String, jobId: Long, rptType: ReportType, retentionOption: Option[Int]): String = {
     log.debug("Running report {} for jobId {}...", defId, jobId)
     val rptId = "REPORT_" + jobId
-    rptGenerator.runReport(defId, rptId, rptType)
+    rptGenerator.runReport(defId, rptId, rptType, retentionOption)
     log.debug("Done running report {} for jobId {}...", defId, jobId)
     rptId
   }
