@@ -112,6 +112,8 @@ trait JobDependencies extends RequiresCoordinator
             fileStream.available,
             header, Nil, 200))
 
+          // TODO: You can rewrite this by changing fullResp to a var, then changing it to a NotAcceptableResponse
+          // if (!req.isEmpty && !req.open_!.headers.contains(("Accept", header(0)._2)))
           if (req.isEmpty) fullResp
           else if (!req.open_!.headers.contains(("Accept", header(0)._2))) Full(NotAcceptableResponse("Resource only serves " + report.getReportType.toString))
           else fullResp

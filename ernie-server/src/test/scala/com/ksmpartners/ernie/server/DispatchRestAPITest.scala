@@ -52,7 +52,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
@@ -70,7 +70,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
@@ -81,9 +81,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @Test
   def cantGetJobsWithoutCorrectAcceptHeader() {
     val mockReq = new MockReadAuthReq("/jobs")
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
@@ -110,7 +111,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
@@ -128,7 +129,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
@@ -139,9 +140,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @Test
   def cantGetDefsWithoutCorrectAcceptHeader() {
     val mockReq = new MockReadAuthReq("/defs")
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
@@ -155,7 +157,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
@@ -170,7 +172,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
@@ -191,7 +193,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val mockReportReq = new ReportRequest()
     mockReportReq.setDefId("test_def")
     mockReportReq.setRptType(ReportType.PDF)
-    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
@@ -205,6 +207,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  // TODO: Not sure how this satifsies ERNIE-66
   @TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-66")))
   @Test
   def canPostJobHTML() {
@@ -215,7 +218,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val mockReportReq = new ReportRequest()
     mockReportReq.setDefId("test_def")
     mockReportReq.setRptType(ReportType.HTML)
-    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
@@ -239,7 +242,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val mockReportReq = new ReportRequest()
     mockReportReq.setDefId("test_def")
     mockReportReq.setRptType(ReportType.CSV)
-    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
@@ -263,10 +266,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val mockReportReq = new ReportRequest()
     mockReportReq.setDefId("test_def")
     mockReportReq.setRptType(ReportType.HTML)
-    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
@@ -283,7 +286,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val mockReportReq = new ReportRequest()
     mockReportReq.setDefId("test_def")
     mockReportReq.setRptType(ReportType.HTML)
-    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
@@ -340,7 +343,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val mockReportReq = new ReportRequest()
     mockReportReq.setDefId("test_def")
     mockReportReq.setRptType(ReportType.HTML)
-    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
@@ -471,20 +474,22 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
 
+  // TODO: Need tests for mismatched Accept headers
+  // eg: Accept: PDF but file is HTML
   @TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def cantGetOutputDownloadWithoutCorrectAcceptHeader() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
@@ -521,6 +526,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  // TODO: Are these the correct test IDs?
   @TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
   @Test(dependsOnMethods = Array("canGetCSVOutputDownload"))
   def canDeleteReportResults() {
@@ -574,13 +580,14 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI.apply(req).apply()
+      val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
 
+  // TODO: Now that I'm thinking about this, we might return a DELETED status now that we have it.
   @TestSpecs(Array(new TestSpec(key = "ERNIE-69")))
   @Test(dependsOnMethods = Array("canDeleteReportResults"))
   def jobStatusReturns410ForDeletedReports() {
