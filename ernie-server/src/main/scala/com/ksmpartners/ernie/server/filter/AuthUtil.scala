@@ -40,8 +40,8 @@ object AuthUtil {
     val hrs = httpRequest.asInstanceOf[HTTPRequestServlet]
     val hsr: HttpServletRequest = hrs.req
     var lst: List[String] = Nil
-    if (hsr.isUserInRole(WRITE_ROLE)) lst = WRITE_ROLE :: lst
-    if (hsr.isUserInRole(READ_ROLE)) lst = READ_ROLE :: lst
+    if (hsr.isUserInRole(writeRole)) lst = writeRole :: lst
+    if (hsr.isUserInRole(readRole)) lst = readRole :: lst
     lst
   }
 }

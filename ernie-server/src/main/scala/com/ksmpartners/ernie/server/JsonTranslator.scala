@@ -7,16 +7,15 @@
 
 package com.ksmpartners.ernie.server
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import net.liftweb.common.{ Full, Box }
 import net.liftweb.http.{ Req, PlainTextResponse, LiftResponse }
 import com.ksmpartners.ernie.model.ModelObject
+import com.ksmpartners.ernie.util.MapperUtility._
 
 /**
  * Trait containing methods for serializing/deserializing JSONs
  */
 trait JsonTranslator {
-  private val mapper = new ObjectMapper
 
   /**
    * Serializes an object into a JSON String

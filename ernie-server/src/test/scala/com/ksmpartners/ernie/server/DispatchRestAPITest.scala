@@ -7,16 +7,15 @@
 
 package com.ksmpartners.ernie.server
 
+import filter.SAMLConstants
 import org.testng.annotations._
 import net.liftweb.mockweb.{ MockWeb, WebSpec }
 import bootstrap.liftweb.Boot
 import net.liftweb.mocks.MockHttpServletRequest
 import com.ksmpartners.ernie.server.PropertyNames._
-import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import com.ksmpartners.ernie.model._
 import org.testng.Assert
 import net.liftweb.http._
-import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.Properties
 import java.io.{ FileInputStream, File }
 import com.ksmpartners.ernie.util.Utility._
@@ -24,11 +23,10 @@ import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
-import com.ksmpartners.ernie.server.service.ServiceRegistry
+import com.ksmpartners.ernie.util.MapperUtility._
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
-  val mapper = new ObjectMapper()
   var outputDir: File = null
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DispatchRestAPITest")
 
@@ -725,14 +723,14 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   class MockReadAuthReq(path: String) extends MockHttpServletRequest(path) {
     override def isUserInRole(role: String) = role match {
-      case READ_ROLE => true
+      case SAMLConstants.readRole => true
       case _ => false
     }
   }
 
   class MockWriteAuthReq(path: String) extends MockHttpServletRequest(path) {
     override def isUserInRole(role: String) = role match {
-      case WRITE_ROLE => true
+      case SAMLConstants.writeRole => true
       case _ => false
     }
   }
@@ -743,10 +741,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   protected val properties: Properties = {
 
-    val propsPath = System.getProperty(PROPERTIES_FILE_NAME_PROP)
+    val propsPath = System.getProperty(propertiesFileNameProp)
 
     if (null == propsPath) {
-      throw new RuntimeException("System property " + PROPERTIES_FILE_NAME_PROP + " is undefined")
+      throw new RuntimeException("System property " + propertiesFileNameProp + " is undefined")
     }
 
     val propsFile = new File(propsPath)
@@ -769,7 +767,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 class TestBoot extends Boot {
   def setUpAndBoot() {
     val url = Thread.currentThread.getContextClassLoader.getResource("default.props")
-    System.setProperty(PROPERTIES_FILE_NAME_PROP, url.getPath)
+    System.setProperty(propertiesFileNameProp, url.getPath)
     boot()
   }
 }

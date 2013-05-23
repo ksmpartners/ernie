@@ -16,6 +16,8 @@ import com.ksmpartners.ernie.model.{ DefinitionEntity, ReportType, JobStatus }
 import org.joda.time.DateTime
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import org.slf4j.{ LoggerFactory, Logger }
+import collection.mutable
+import com.ksmpartners.ernie.util.Utility._
 
 class ActorsTest {
 
@@ -75,6 +77,7 @@ class ActorsTest {
     }
     val resultResp = (coordinator !? ResultRequest(rptResp.jobId)).asInstanceOf[ResultResponse]
     Assert.assertTrue(resultResp.rptId.isDefined)
+    Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).isDefined)
   }
 
   //@TestSpecs(Array(new TestSpec(key = "ERNIE-68")))
@@ -114,12 +117,12 @@ class ActorsTest {
 trait TestReportGeneratorFactory extends ReportGeneratorFactory {
 
   def getReportGenerator(reportManager: ReportManager): ReportGenerator = {
-    new TestReportGenerator()
+    new TestReportGenerator(reportManager)
   }
 
 }
 
-class TestReportGenerator extends ReportGenerator {
+class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator {
 
   private var isStarted = false
 
@@ -132,12 +135,20 @@ class TestReportGenerator extends ReportGenerator {
   override def getAvailableRptDefs: List[String] = {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
-    List("def_1")
+    List("test_def")
   }
 
-  override def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int]) {
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int]) {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
+    var entity = new mutable.HashMap[String, Any]()
+    entity += (ReportManager.rptId -> rptId)
+    entity += (ReportManager.sourceDefId -> "test_def")
+    entity += (ReportManager.reportType -> rptType)
+    entity += (ReportManager.createdUser -> "default")
+    try_(reportManager.putReport(entity)) { os =>
+      os.write(rptId.getBytes)
+    }
   }
 
   override def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType) {

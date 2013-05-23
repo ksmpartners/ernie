@@ -11,7 +11,6 @@ import org.testng.annotations.{ BeforeMethod, Test }
 import org.testng.Assert
 import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType }
 import scala.collection._
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.joda.time.DateTime
 
 class MemoryReportManagerTest {
@@ -36,15 +35,15 @@ class MemoryReportManagerTest {
   @Test
   def testPutReport() {
     var entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.RPT_ID -> "rpt_6")
-    entity += (ReportManager.SOURCE_DEF_ID -> "def_6")
-    entity += (ReportManager.REPORT_TYPE -> ReportType.CSV)
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.rptId -> "rpt_6")
+    entity += (ReportManager.sourceDefId -> "def_6")
+    entity += (ReportManager.reportType -> ReportType.CSV)
+    entity += (ReportManager.createdUser -> "default")
     var params = new mutable.HashMap[String, String]()
     params += ("PARAM_1" -> "VAL_1")
     params += ("PARAM_2" -> "VAL_2")
     params += ("PARAM_3" -> "VAL_3")
-    entity += (ReportManager.PARAM_MAP -> params)
+    entity += (ReportManager.paramMap -> params)
     val bosR = reportManager.putReport(entity)
     Assert.assertFalse(reportManager.hasReport("rpt_6"))
     bosR.close()
@@ -60,10 +59,10 @@ class MemoryReportManagerTest {
   def testPutDefinition() {
     var entity = new mutable.HashMap[String, Any]()
     entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.DEF_ID -> "def_6")
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.defId -> "def_6")
+    entity += (ReportManager.createdUser -> "default")
     val paramList = List("PARAM_1", "PARAM_2", "PARAM_3")
-    entity += (ReportManager.PARAM_NAMES -> paramList)
+    entity += (ReportManager.paramNames -> paramList)
     val bosD = reportManager.putDefinition(entity)
     Assert.assertFalse(reportManager.hasDefinition("def_6"))
     bosD.close()
@@ -148,50 +147,50 @@ class MemoryReportManagerTest {
   @Test(expectedExceptions = Array(classOf[IllegalArgumentException]))
   def missingDefIdThrowsException() {
     var entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.createdUser -> "default")
     reportManager.putDefinition(entity)
   }
 
   @Test(expectedExceptions = Array(classOf[IllegalArgumentException]))
   def missingDefCreatedUserThrowsException() {
     var entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.DEF_ID -> "def_6")
+    entity += (ReportManager.defId -> "def_6")
     reportManager.putDefinition(entity)
   }
 
   @Test(expectedExceptions = Array(classOf[IllegalArgumentException]))
   def missingRptIdThrowsException() {
     var entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.SOURCE_DEF_ID -> "def_6")
-    entity += (ReportManager.REPORT_TYPE -> ReportType.CSV)
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.sourceDefId -> "def_6")
+    entity += (ReportManager.reportType -> ReportType.CSV)
+    entity += (ReportManager.createdUser -> "default")
     reportManager.putReport(entity)
   }
 
   @Test(expectedExceptions = Array(classOf[IllegalArgumentException]))
   def missingSourceDefIdThrowsException() {
     var entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.RPT_ID -> "rpt_6")
-    entity += (ReportManager.REPORT_TYPE -> ReportType.CSV)
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.rptId -> "rpt_6")
+    entity += (ReportManager.reportType -> ReportType.CSV)
+    entity += (ReportManager.createdUser -> "default")
     reportManager.putReport(entity)
   }
 
   @Test(expectedExceptions = Array(classOf[IllegalArgumentException]))
   def missingReportTypeThrowsException() {
     var entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.RPT_ID -> "rpt_6")
-    entity += (ReportManager.SOURCE_DEF_ID -> "def_6")
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.rptId -> "rpt_6")
+    entity += (ReportManager.sourceDefId -> "def_6")
+    entity += (ReportManager.createdUser -> "default")
     reportManager.putReport(entity)
   }
 
   @Test(expectedExceptions = Array(classOf[IllegalArgumentException]))
   def missingRptCreatedUserThrowsException() {
     var entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.RPT_ID -> "rpt_6")
-    entity += (ReportManager.SOURCE_DEF_ID -> "def_6")
-    entity += (ReportManager.REPORT_TYPE -> ReportType.CSV)
+    entity += (ReportManager.rptId -> "rpt_6")
+    entity += (ReportManager.sourceDefId -> "def_6")
+    entity += (ReportManager.reportType -> ReportType.CSV)
     reportManager.putReport(entity)
   }
 

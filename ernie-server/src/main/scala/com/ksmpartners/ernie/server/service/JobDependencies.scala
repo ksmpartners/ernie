@@ -16,14 +16,13 @@ import java.util
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.JsonTranslator
 import com.ksmpartners.ernie.model.JobStatus
+import com.ksmpartners.ernie.server.service.JobDependencies._
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
  */
 trait JobDependencies extends RequiresCoordinator
     with RequiresReportManager {
-
-  private val log: Logger = LoggerFactory.getLogger(classOf[JobDependencies])
 
   /**
    * Resource for handling HTTP requests at /jobs
@@ -135,4 +134,8 @@ trait JobDependencies extends RequiresCoordinator
     }
   }
 
+}
+
+object JobDependencies {
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.service.JobDependencies")
 }

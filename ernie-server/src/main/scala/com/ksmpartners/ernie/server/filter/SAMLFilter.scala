@@ -16,6 +16,7 @@ import org.apache.cxf.rs.security.saml.DeflateEncoderDecoder
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import com.ksmpartners.ernie.server.PropertyNames._
+import com.ksmpartners.ernie.server.filter.SAMLFilter._
 import scala.collection._
 import java.io.InputStream
 
@@ -24,12 +25,10 @@ import java.io.InputStream
  */
 class SAMLFilter extends Filter {
 
-  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.filter.SAMLFilter")
-
   private val keystoreLoc: String = {
-    val ksl = System.getProperty(KEYSTORE_LOC_PROP)
+    val ksl = System.getProperty(keystoreLocProp)
     if (ksl == null)
-      throw new IllegalStateException("Must set " + KEYSTORE_LOC_PROP)
+      throw new IllegalStateException("Must set " + keystoreLocProp)
     log.info("keystoreLoc = {}", ksl)
     ksl
   }
@@ -57,7 +56,7 @@ class SAMLFilter extends Filter {
 
   private def handleRequest(req: HttpServletRequest, res: HttpServletResponse): HttpServletRequest = {
     // Get Authorization header value
-    val samlTokenHeader = req.getHeader(AUTH_HEADER_PROP)
+    val samlTokenHeader = req.getHeader(authHeaderProp)
 
     // Null check
     if (samlTokenHeader == null || !samlTokenHeader.startsWith("SAML"))
@@ -76,9 +75,9 @@ class SAMLFilter extends Filter {
       val samlProcessor = getSAMLProcessor(samlTokenStream)
 
       val attr = samlProcessor.getAttributes
-      userName = (attr.get(USER_NAME_PROP).asInstanceOf[java.util.ArrayList[String]]).get(0)
-      val rolesProp = attr.get(ROLES_PROP).asInstanceOf[java.util.ArrayList[java.lang.Object]].toArray
-      for (role <- rolesProp) {
+      userName = (attr.get(userNameProp).asInstanceOf[java.util.ArrayList[String]]).get(0)
+      val rolesPropObj = attr.get(rolesProp).asInstanceOf[java.util.ArrayList[java.lang.Object]].toArray
+      for (role <- rolesPropObj) {
         roles += role.toString
       }
     }
@@ -103,4 +102,8 @@ class SAMLFilter extends Filter {
     override def getAuthType: String = "SAML"
   }
 
+}
+
+object SAMLFilter {
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.filter.SAMLFilter")
 }

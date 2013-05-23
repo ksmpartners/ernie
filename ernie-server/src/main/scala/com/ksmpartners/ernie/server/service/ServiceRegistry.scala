@@ -31,10 +31,10 @@ object ServiceRegistry extends JobDependencies
 
   protected val properties: Properties = {
 
-    val propsPath = System.getProperty(PROPERTIES_FILE_NAME_PROP)
+    val propsPath = System.getProperty(propertiesFileNameProp)
 
     if (null == propsPath) {
-      throw new RuntimeException("System property " + PROPERTIES_FILE_NAME_PROP + " is undefined")
+      throw new RuntimeException("System property " + propertiesFileNameProp + " is undefined")
     }
 
     val propsFile = new File(propsPath)
@@ -54,15 +54,15 @@ object ServiceRegistry extends JobDependencies
 
   protected val reportManager: ReportManager = {
 
-    if (!properties.stringPropertyNames.contains(RPT_DEFS_DIR_PROP)) {
-      throw new RuntimeException("Properties file does not contain property " + RPT_DEFS_DIR_PROP)
+    if (!properties.stringPropertyNames.contains(rptDefsDirProp)) {
+      throw new RuntimeException("Properties file does not contain property " + rptDefsDirProp)
     }
-    if (!properties.stringPropertyNames.contains(OUTPUT_DIR_PROP)) {
-      throw new RuntimeException("Properties file does not contain property " + OUTPUT_DIR_PROP)
+    if (!properties.stringPropertyNames.contains(outputDirProp)) {
+      throw new RuntimeException("Properties file does not contain property " + outputDirProp)
     }
 
-    val rptDefsDir = properties.get(RPT_DEFS_DIR_PROP).toString
-    val outputDir = properties.get(OUTPUT_DIR_PROP).toString
+    val rptDefsDir = properties.get(rptDefsDirProp).toString
+    val outputDir = properties.get(outputDirProp).toString
 
     val fileReportManager = new FileReportManager(rptDefsDir, outputDir)
 

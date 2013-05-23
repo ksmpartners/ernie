@@ -5,16 +5,10 @@
  * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
  */
 
-package com.ksmpartners.ernie.server.filter
+package com.ksmpartners.ernie.util
 
-/**
- * Object containing constants for use with SAML authentication
- */
-object SAMLConstants {
-  val authHeaderProp = "Authorization"
-  val userNameProp = "userName"
-  val rolesProp = "ernieRole"
+import com.fasterxml.jackson.databind.ObjectMapper
 
-  val readRole = "read"
-  val writeRole = "write"
+object MapperUtility {
+  val mapper: ObjectMapper = new ObjectMapper()
 }

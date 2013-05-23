@@ -15,7 +15,7 @@ import com.ksmpartners.ernie.util.Utility._
 import java.io.{ OutputStream, InputStream }
 import org.testng.annotations.{ AfterTest, BeforeTest, Test }
 import net.liftweb.common.Full
-import net.liftweb.http.{ StreamingResponse, PlainTextResponse, BadResponse }
+import net.liftweb.http.{ NotFoundResponse, StreamingResponse, PlainTextResponse, BadResponse }
 import org.testng.Assert
 import collection.mutable
 import org.joda.time.DateTime
@@ -109,11 +109,11 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   }
 
   @Test
-  def missingJobReturnsBadResult() {
+  def missingJobReturnsNotFound() {
     val jobResultsResource = new JobResultsResource
     val resultRespBox = jobResultsResource.get("000")
 
-    Assert.assertTrue(resultRespBox.open_!.isInstanceOf[BadResponse])
+    Assert.assertTrue(resultRespBox.open_!.isInstanceOf[NotFoundResponse])
   }
 
 }
@@ -148,10 +148,10 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
     var entity = new mutable.HashMap[String, Any]()
-    entity += (ReportManager.RPT_ID -> rptId)
-    entity += (ReportManager.SOURCE_DEF_ID -> "def")
-    entity += (ReportManager.REPORT_TYPE -> rptType)
-    entity += (ReportManager.CREATED_USER -> "default")
+    entity += (ReportManager.rptId -> rptId)
+    entity += (ReportManager.sourceDefId -> "def")
+    entity += (ReportManager.reportType -> rptType)
+    entity += (ReportManager.createdUser -> "default")
     try_(reportManager.putReport(entity)) { os =>
       os.write(rptId.getBytes)
     }
