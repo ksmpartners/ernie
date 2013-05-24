@@ -12,6 +12,7 @@ import org.eclipse.birt.core.framework.Platform
 import org.slf4j.LoggerFactory
 import java.io._
 import com.ksmpartners.ernie.model.ReportType
+import com.ksmpartners.ernie.engine.report.BirtReportGenerator._
 import org.eclipse.birt.report.engine.emitter.csv.CSVRenderOption
 import com.ksmpartners.ernie.util.Utility._
 import scala.collection._
@@ -26,24 +27,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
 
   private val log = LoggerFactory.getLogger(classOf[ReportGenerator])
 
-  private var engine: IReportEngine = null
-
-  /**
-   * Method to be called before any reports can be generated
-   */
-  def startup() {
-    log.info("BEGIN Starting Report Engine")
-    val ec = new EngineConfig
-    Platform.startup(ec)
-
-    val factory = Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY)
-
-    engine = (factory match {
-      case fact: IReportEngineFactory => fact
-      case _ => throw new ClassCastException
-    }).createReportEngine(ec)
-    log.info("END Starting Report Engine")
-  }
+  def startup() { startEngine() }
 
   /**
    * Get the list of available definitions
@@ -115,12 +99,37 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
   /**
    * Method to be called after all the reports have been run.
    */
-  def shutdown() {
-    log.info("BEGIN Shutting down Report Engine")
+  def shutdown() { shutdownEngine() }
+
+}
+
+object BirtReportGenerator {
+
+  protected[report] var engine: IReportEngine = null
+
+  /**
+   * Method to be called before any reports can be generated
+   */
+  protected[report] def startEngine() {
+    if (engine != null)
+      return
+    val ec = new EngineConfig
+    Platform.startup(ec)
+
+    val factory = Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY)
+
+    engine = (factory match {
+      case fact: IReportEngineFactory => fact
+      case _ => throw new ClassCastException
+    }).createReportEngine(ec)
+  }
+
+  protected[report] def shutdownEngine() {
+    if (engine == null)
+      return
     engine.destroy()
     Platform.shutdown()
     engine = null
-    log.info("END Shutting down Report Engine")
   }
 
   /**
@@ -144,4 +153,10 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
    * }
    * }
    */
+
+  def validateDefinition() {
+    if (engine == null)
+      return
+    // TODO: Fill in with definition validation logic.
+  }
 }

@@ -114,6 +114,20 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-42")))
+  @Test
+  def getDefsReturnsJSON() {
+    val mockReq = new MockReadAuthReq("/defs")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
       val body = resp.open_!.asInstanceOf[PlainTextResponse].text
       val respObj = mapper.readValue(body, classOf[ReportDefinitionMapResponse])
       Assert.assertNotNull(respObj.getReportDefMap)

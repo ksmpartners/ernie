@@ -19,8 +19,6 @@ import org.slf4j.{ LoggerFactory, Logger }
 import collection.mutable
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.MapperUtility._
-import com.ksmpartners.ernie.engine.ShutDownRequest
-import com.ksmpartners.ernie.engine.ShutDownResponse
 
 class PurgeTest {
 
