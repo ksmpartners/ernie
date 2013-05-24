@@ -737,6 +737,28 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-12")))
+  @Test
+  def cantPostJobIfRetentionDateBeyondMaximum() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def")
+    mockReportReq.setRptType(ReportType.PDF)
+    mockReportReq.setRetentionDays(9999)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
+      Assert.assertEquals(resp.open_!.toResponse.code, 400)
+      Assert.assertEquals(resp.open_!.asInstanceOf[ResponseWithReason].reason, "Retention date exceeds maximum")
+    }
+  }
+
   class MockReadAuthReq(path: String) extends MockHttpServletRequest(path) {
     override def isUserInRole(role: String) = role match {
       case SAMLConstants.readRole => true
