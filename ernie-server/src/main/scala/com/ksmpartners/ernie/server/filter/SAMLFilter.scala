@@ -43,13 +43,13 @@ class SAMLFilter extends Filter {
           chain.doFilter(samlRequestWrapper, response)
         } catch {
           case e: Exception => {
-            log.info("Caught exception while handling request. Return 401. Exception: {}", e.getMessage)
+            log.debug("Caught exception while handling request. Return 401. Exception: {}", e.getMessage)
             response.sendError(401, "Invalid or nonexistent credentials")
           }
         }
       }
       case _ => {
-        log.info("SAMLFilter ignoring non-http request: {}", req.getProtocol)
+        log.debug("SAMLFilter ignoring non-http request: {}", req.getProtocol)
       }
     }
   }
