@@ -31,21 +31,32 @@ object Utility {
     }
   }
 
+  private implicit def funcAsPartial(f: Throwable => Unit) = new {
+    def asPartial(isDefinedAt: Throwable => Boolean): PartialFunction[Throwable, Unit] = {
+      case a if isDefinedAt(a) => f(a)
+    }
+  }
+
+  /**
+   * Helper method to be used with try_catch. See that method's documentation for usage.
+   */
+  def catch_[T <: Throwable](clazz: Class[T])(f: Throwable => Unit) = f.asPartial(e => clazz.isInstance(e))
+
   /**
    * Method that mimics Java 1.7's try-with-resources with a catch block
    *
    * Usage:
    * try_catch(new Closable...) { closableInstance =>
    *   closableInstance.doSomething()
-   * } {
-   *   case e => handleThrowable(e)
-   * }
+   * }(catch_(classOf[DesiredException){
+   *   case e => handleException(e)
+   * })
    */
-  def try_catch[A <: Closeable](closeable: A)(tryBlock: A => Unit)(catchBlock: Throwable => Unit) {
+  def try_catch[A <: Closeable](closeable: A)(tryBlock: A => Unit)(catchBlock: PartialFunction[Throwable, Unit]) {
     try {
       tryBlock(closeable)
     } catch {
-      case e: Throwable => catchBlock(e)
+      case e: Throwable => if (catchBlock.isDefinedAt(e)) catchBlock(e) else throw e
     }
     finally {
       try {
