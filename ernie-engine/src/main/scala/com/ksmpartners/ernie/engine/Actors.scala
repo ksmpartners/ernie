@@ -13,6 +13,7 @@ import com.ksmpartners.ernie.model.{ ReportType, JobStatus }
 import com.ksmpartners.ernie.engine.report._
 import org.slf4j.LoggerFactory
 import org.joda.time.DateTime
+import org.eclipse.birt.report.engine.api.UnsupportedFormatException
 
 /**
  * Actor for coordinating report generation.
@@ -99,6 +100,9 @@ class Coordinator(reportManager: ReportManager) extends Actor {
           log.info("Got notify for jobId {} with status {}", req.jobId, jobStatus)
           jobIdToResultMap += (req.jobId -> (jobStatus, rptId))
         }
+        case DefinitionRequest(tmpPath, rptTypes) => {
+
+        }
         case ShutDownRequest() => {
           worker !? ShutDownRequest()
           sender ! ShutDownResponse()
@@ -138,15 +142,18 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
           } catch {
             case ex: ReportManager.RetentionDateAfterMaximumException => {
               log.error("Caught exception while generating report: {}", ex.getMessage)
-              resultStatus = JobStatus.FAILED
+              resultStatus = JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM
             }
             case ex: ReportManager.RetentionDateInThePastException => {
               log.error("Caught exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_RETENTION_DATE_PAST
             }
+            case ex: UnsupportedFormatException => {
+
+            }
             case ex: Exception => {
               log.error("Caught exception while generating report: {}", ex.getMessage)
-              resultStatus = JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM
+              resultStatus = JobStatus.FAILED
             }
           }
           sender ! JobResponse(resultStatus, rptId, req)

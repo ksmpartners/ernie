@@ -8,16 +8,20 @@
 package com.ksmpartners.ernie.engine.report
 
 import org.testng.annotations.{ AfterClass, Test, BeforeClass }
-import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, File, FileInputStream }
+import java.io._
 import java.net.URL
 import org.testng.Assert
 import com.ksmpartners.ernie.model.{ DefinitionEntity, ReportType }
+import com.ksmpartners.ernie.util.Utility.try_
 import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
 
 class BirtReportGeneratorTest {
 
   private var reportGenerator: ReportGenerator = null
   private var reportManager: MemoryReportManager = null
+
+  private val log = LoggerFactory.getLogger("c.k.e.e.report.BirtReportGeneratorTest")
 
   @BeforeClass
   def setup() {
@@ -27,7 +31,7 @@ class BirtReportGeneratorTest {
     val fis = new FileInputStream(file)
     val byteArr = new Array[Byte](file.length.asInstanceOf[Int])
     fis.read(byteArr)
-    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, ""))
+    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null))
     reportGenerator = new BirtReportGenerator(reportManager)
     reportGenerator.startup()
   }
@@ -69,6 +73,21 @@ class BirtReportGeneratorTest {
   def cantRunStreamReportWithStoppedGenerator() {
     val rptGen = new BirtReportGenerator(new MemoryReportManager)
     rptGen.runReport(new ByteArrayInputStream(Array[Byte](1)), new ByteArrayOutputStream(), ReportType.PDF)
+  }
+
+  //@Test
+  def canValidateReportDefinition() {
+    var result = true
+    var file = new File(Thread.currentThread.getContextClassLoader.getResource("test_def.rptdesign").getPath)
+    try {
+      //result = result && reportGenerator.isValidDefinition(new FileInputStream(file), List(ReportType.CSV, ReportType.PDF, ReportType.HTML))
+    }
+    Assert.assertTrue(result)
+    try {
+      file = File.createTempFile("fail_def", ".rptdesign")
+      //result = result && reportGenerator.isValidDefinition(new FileInputStream(file), List(ReportType.CSV))
+    }
+    Assert.assertFalse(result)
   }
 
 }

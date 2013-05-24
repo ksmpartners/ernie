@@ -113,6 +113,7 @@ object ReportManager {
   val retentionDate = "retentionDate"
   val reportType = "fileType"
   val sourceDefId = "sourceDefId"
+  val unsupportedReportTypes = "unsupportedReportTypes"
 
   private var defaultRetentionDays = 7
   private var maximumRetentionDays = 14
@@ -144,6 +145,7 @@ object ReportManager {
     defEnt.setDefId(entity.get(defId).get.asInstanceOf[String])
     defEnt.setCreatedUser(entity.get(createdUser).get.asInstanceOf[String])
     defEnt.setDefDescription(entity.getOrElse(description, "").asInstanceOf[String])
+
     if (entity.contains(paramNames)) {
       val params = entity.get(paramNames).get.asInstanceOf[List[String]]
       val paramList = new util.ArrayList[String]()
@@ -152,6 +154,16 @@ object ReportManager {
       }
       defEnt.setParamNames(paramList)
     }
+
+    if (entity.contains(unsupportedReportTypes)) {
+      val rptTypes = entity.get(unsupportedReportTypes).get.asInstanceOf[List[ReportType]]
+      val rptTypeList = new util.ArrayList[ReportType]()
+      for (rptType <- rptTypes) {
+        rptTypeList.add(rptType)
+      }
+      defEnt.setUnsupportedReportTypes(rptTypeList)
+    }
+
     defEnt
   }
 

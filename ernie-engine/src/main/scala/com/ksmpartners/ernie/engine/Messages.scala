@@ -41,3 +41,7 @@ case class JobResponse(jobStatus: JobStatus, rptId: Option[String], req: JobRequ
 case class ShutDownRequest()
 /** The response that indicates that the Actor's facilities are shut down */
 case class ShutDownResponse()
+/** Request to upload a definition */
+case class DefinitionRequest(tmpPath: String, rptTypes: List[ReportType])
+/** The response to the given DefinitionRequest */
+case class DefinitionResponse(jobStatus: JobStatus, req: DefinitionRequest)

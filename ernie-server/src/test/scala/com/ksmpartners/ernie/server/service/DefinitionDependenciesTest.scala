@@ -22,7 +22,7 @@ class DefinitionDependenciesTest extends DefinitionDependencies {
   @BeforeClass
   def setup() {
     val byteArr = Array[Byte](1, 2, 3)
-    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, ""))
+    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null))
   }
 
   @Test

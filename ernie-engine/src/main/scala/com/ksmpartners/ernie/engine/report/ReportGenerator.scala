@@ -39,4 +39,5 @@ trait ReportGenerator {
    * Method to be called after all the reports have been run.
    */
   def shutdown()
+
 }

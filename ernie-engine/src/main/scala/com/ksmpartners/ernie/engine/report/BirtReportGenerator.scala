@@ -123,4 +123,25 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     log.info("END Shutting down Report Engine")
   }
 
+  /**
+   * Method that validates a report definition
+   *
+   * def isValidDefinition(is: InputStream, rptTypes: List[ReportType]): Boolean = try {
+   * val design = engine.openReportDesign(is)
+   * val parameterDefTask = engine.createGetParameterDefinitionTask(design)
+   * val task = engine.createRunAndRenderTask(design)
+   * var result = true
+   * rptTypes.foreach(rptType => {
+   * task.setRenderOption(new RenderOption() {
+   * setOutputFormat(rptType.toString)
+   * })
+   * task.validateParameters
+   * })
+   * true
+   * } catch {
+   * case e: Exception => {
+   * false
+   * }
+   * }
+   */
 }
