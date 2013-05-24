@@ -59,15 +59,17 @@ class BirtReportGeneratorTest {
     Assert.assertTrue(reportManager.hasReport("test_rpt_html"))
   }
 
-  @Test(expectedExceptions = Array(classOf[IllegalStateException]))
+  @Test(expectedExceptions = Array(classOf[IllegalStateException]), dependsOnMethods = Array("canRunDefFromStream", "canGetAvailableDefs", "canRunExistingDef"))
   def cantRunExistingReportWithStoppedGenerator() {
     val rptGen = new BirtReportGenerator(new MemoryReportManager)
+    rptGen.shutdown()
     rptGen.runReport("test1", "test2", ReportType.PDF, None)
   }
 
-  @Test(expectedExceptions = Array(classOf[IllegalStateException]))
+  @Test(expectedExceptions = Array(classOf[IllegalStateException]), dependsOnMethods = Array("canRunDefFromStream", "canGetAvailableDefs", "canRunExistingDef"))
   def cantRunStreamReportWithStoppedGenerator() {
     val rptGen = new BirtReportGenerator(new MemoryReportManager)
+    rptGen.shutdown()
     rptGen.runReport(new ByteArrayInputStream(Array[Byte](1)), new ByteArrayOutputStream(), ReportType.PDF)
   }
 
