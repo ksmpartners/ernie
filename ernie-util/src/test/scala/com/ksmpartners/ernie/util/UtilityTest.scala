@@ -35,11 +35,27 @@ class UtilityTest {
     try_catch(cls) { reader =>
       reader.doSomething()
       reader.throwEx()
-    } { ex =>
+    }(catch_(classOf[Throwable]) { ex =>
       caughtEx = true
-    }
+    })
     Assert.assertTrue(cls.isClosed)
     Assert.assertTrue(caughtEx)
+  }
+
+  @Test(expectedExceptions = Array(classOf[IllegalStateException]))
+  def canUseTryCatchWithSpecificException() {
+    class TestException extends Exception {}
+
+    val cls = new Cls
+    cls.open()
+    Assert.assertFalse(cls.isClosed)
+    var caughtEx = false
+    try_catch(cls) { reader =>
+      reader.doSomething()
+      reader.throwEx()
+    }(catch_(classOf[TestException]) { ex =>
+      caughtEx = true
+    })
   }
 
   @Test
@@ -51,10 +67,12 @@ class UtilityTest {
       try_catch(cls) { reader =>
         reader.doSomething()
         reader.throwEx()
-      } { ex =>
+      }(catch_(classOf[Throwable]) { ex: Throwable =>
         throw new IllegalStateException("Exception AWAY!!")
-      }
-    } catch { case e => }
+      })
+    } catch {
+      case e =>
+    }
     Assert.assertTrue(cls.isClosed)
   }
 
