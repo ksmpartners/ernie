@@ -12,10 +12,13 @@ import org.testng.Assert
 import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType }
 import scala.collection._
 import org.joda.time.DateTime
+import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.util.Utility._
 
 class MemoryReportManagerTest {
 
   private var reportManager: MemoryReportManager = new MemoryReportManager
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.report.MemoryReportManagerTest")
 
   @BeforeMethod
   def setup() {
@@ -73,6 +76,19 @@ class MemoryReportManagerTest {
     Assert.assertNotNull(definition.getCreatedDate)
   }
 
+  @Test
+  def testUpdateDefinition() {
+    var defn = reportManager.getDefinition("def_5")
+    Assert.assertTrue(defn.isDefined)
+    var entity = defn.get.getEntity
+    val prev = entity.getCreatedUser
+    entity.setCreatedUser(prev + "1")
+    reportManager.updateDefinitionEntity("def_5", entity)
+    defn = reportManager.getDefinition("def_5")
+    Assert.assertTrue(defn.get.getCreatedUser == prev + "1")
+
+  }
+
   @Test()
   def testGet() {
     val buf: Array[Byte] = new Array(5)
@@ -106,7 +122,7 @@ class MemoryReportManagerTest {
     Assert.assertFalse(reportManager.hasDefinition("rpt_5"))
   }
 
-  @Test
+  @Test(dependsOnMethods = Array("testUpdateDefinition"))
   def testDelete() {
     reportManager.deleteDefinition("def_1")
     reportManager.deleteDefinition("def_2")

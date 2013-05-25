@@ -12,6 +12,8 @@ import scala.collection._
 import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity }
 import com.ksmpartners.ernie.engine.report.ReportManager._
 import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.util.Utility._
+import com.ksmpartners.ernie.util.MapperUtility._
 
 /**
  * Implementation of ReportManager that stores reports and definitions in memory
@@ -72,6 +74,32 @@ class MemoryReportManager extends ReportManager {
       putDefinition(id, content, definitionEntity)
     })
   }
+
+  override def putDefinition(entity: DefinitionEntity): OutputStream = {
+    new LocalBOS(entity.getDefId, { (id, content) =>
+      putDefinition(id, content, entity)
+    })
+  }
+
+  override def updateDefinition(defId: String, entity: Either[Map[String, Any], DefinitionEntity], entityOnly: Boolean): OutputStream = {
+    val definitionEntity = if (entity.isLeft) createDefinitionEntity(entity.left.get) else entity.right.get
+    if (entityOnly) {
+      definitionEntities += (defId -> definitionEntity)
+      null
+    } else new LocalBOS(definitionEntity.getDefId, { (id, content) =>
+      {
+        putDefinition(id, content, definitionEntity)
+      }
+    })
+  }
+
+  override def updateDefinition(defId: String, entity: Map[String, Any]): OutputStream = updateDefinition(defId, Left(entity), false)
+
+  override def updateDefinitionEntity(defId: String, entity: Map[String, Any]): OutputStream = updateDefinition(defId, Left(entity), true)
+
+  override def updateDefinition(defId: String, entity: DefinitionEntity): OutputStream = updateDefinition(defId, Right(entity), false)
+
+  override def updateDefinitionEntity(defId: String, entity: DefinitionEntity): OutputStream = updateDefinition(defId, Right(entity), true)
 
   override def putReport(entity: Map[String, Any]): OutputStream = {
     val rptEntity = createReportEntity(entity)

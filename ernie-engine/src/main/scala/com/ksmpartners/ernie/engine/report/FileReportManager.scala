@@ -118,6 +118,48 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     new FileOutputStream(file)
   }
 
+  override def putDefinition(entity: DefinitionEntity): OutputStream = {
+    log.info("Putting definition from entity: {}", entity)
+    val defEnt = entity
+    val defId = defEnt.getDefId
+    val defEntFile = new File(rptDefDir, defId + ".entity")
+    try_(new FileOutputStream(defEntFile)) { fos =>
+      mapper.writeValue(fos, defEnt)
+    }
+    val file = new File(rptDefDir, defId + ".rptdesign")
+    log.info("Putting new definition: {}", file)
+    definitions += (defId -> file)
+    definitionEntities += (defId -> defEnt)
+    new FileOutputStream(file)
+  }
+
+  override def updateDefinition(defId: String, entity: Either[Map[String, Any], DefinitionEntity], entityOnly: Boolean): OutputStream = {
+    log.info("Updating definition from entity: {}", entity)
+    val defEnt = if (entity.isLeft) createDefinitionEntity(entity.left.get) else entity.right.get
+    val defId = defEnt.getDefId
+    val defEntFile = new File(rptDefDir, defId + ".entity")
+    try_(new FileOutputStream(defEntFile, false)) { fos =>
+      mapper.writeValue(fos, defEnt)
+    }
+    definitionEntities += (defId -> defEnt)
+    if (!entityOnly) {
+      val file = new File(rptDefDir, defId + ".rptdesign")
+      log.info("Updating definition: {}", file)
+      definitions += (defId -> file)
+      new FileOutputStream(file, false)
+    } else null
+  }
+
+  override def updateDefinition(defId: String, entity: Map[String, Any]): OutputStream = updateDefinition(defId, Left(entity), false)
+
+  override def updateDefinition(defId: String, entity: DefinitionEntity): OutputStream = updateDefinition(defId, Right(entity), false)
+
+  override def updateDefinitionEntity(defId: String, entity: Map[String, Any]): OutputStream = updateDefinition(defId, Left(entity), true)
+
+  override def updateDefinitionEntity(defId: String, entity: DefinitionEntity): OutputStream = {
+    updateDefinition(defId, Right(entity), true)
+  }
+
   override def putReport(entity: Map[String, Any]): OutputStream = {
     log.info("Putting report from entity: {}", entity)
     val rptEnt = createReportEntity(entity)

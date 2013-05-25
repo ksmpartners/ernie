@@ -24,6 +24,8 @@ public enum JobStatus {
     FAILED_RETENTION_DATE_PAST,
     /** Job retention date after the maximum */
     FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM,
+    /** Report definition does not support requested output format */
+    FAILED_UNSUPPORTED_FORMAT,
     /** Job was deleted */
     DELETED,
     /** Job does not exist */

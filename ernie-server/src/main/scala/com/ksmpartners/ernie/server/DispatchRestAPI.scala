@@ -34,10 +34,10 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
 
   serve("defs" :: Nil prefix {
     case req@Req(Nil, _, GetRequest) => authFilter(req, readRole)_ compose ctypeFilter(req)_ apply ServiceRegistry.defsResource.get("/defs")
-    case req@Req(Nil, _, PostRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+    case req@Req(Nil, _, PostRequest) => authFilter(req, writeRole)_ compose ctypeFilter(req)_ apply ServiceRegistry.defsResource.post(req)
     case req@Req(defId :: Nil, _, GetRequest) => authFilter(req, readRole)_ compose ctypeFilter(req)_ apply ServiceRegistry.defDetailResource.get(defId)
-    case req@Req(defId :: Nil, _, PutRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
-    case req@Req(defId :: Nil, _, DeleteRequest) => () => Full(NotImplementedResponse()) // TODO: Implement
+    case req@Req(defId :: Nil, _, PutRequest) => authFilter(req, writeRole)_ compose ctypeFilter(req)_ apply ServiceRegistry.defDetailResource.put(defId, req)
+    case req@Req(defId :: Nil, _, DeleteRequest) => authFilter(req, writeRole)_ compose ctypeFilter(req)_ apply ServiceRegistry.defDetailResource.del(defId)
   })
 
   serve {

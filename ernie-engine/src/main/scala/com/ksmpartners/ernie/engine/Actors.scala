@@ -45,14 +45,19 @@ class Coordinator(reportManager: ReportManager) extends Actor {
       react {
         case req@ReportRequest(rptId, rptType, retentionOption) => {
           val jobId = generateJobId()
-          jobIdToResultMap += (jobId -> (JobStatus.PENDING, None))
-          val retentionDate = DateTime.now().plusDays(retentionOption getOrElse reportManager.getDefaultRetentionDays)
-          if (retentionDate.isBefore(DateTime.now()) || retentionDate.isEqual(DateTime.now())) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_PAST, req)
-          else if (retentionDate.isAfter(DateTime.now().plusDays(reportManager.getMaximumRetentionDays))) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM, req)
-          else {
-            sender ! ReportResponse(jobId, JobStatus.IN_PROGRESS, req)
-            worker ! JobRequest(rptId, rptType, jobId, retentionOption)
-          }
+          jobIdToResultMap += (jobId -> (JobStatus.IN_PROGRESS, None))
+          reportManager.getDefinition(rptId).map(m => if ((m.getEntity.getUnsupportedReportTypes != null) && m.getEntity.getUnsupportedReportTypes.contains(rptType)) {
+            jobIdToResultMap += (jobId -> (JobStatus.FAILED, None))
+            sender ! ReportResponse(jobId, JobStatus.FAILED, req)
+          } else {
+            val retentionDate = DateTime.now().plusDays(retentionOption getOrElse reportManager.getDefaultRetentionDays)
+            if (retentionDate.isBefore(DateTime.now()) || retentionDate.isEqual(DateTime.now())) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_PAST, req)
+            else if (retentionDate.isAfter(DateTime.now().plusDays(reportManager.getMaximumRetentionDays))) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM, req)
+            else {
+              sender ! ReportResponse(jobId, JobStatus.IN_PROGRESS, req)
+              worker ! JobRequest(rptId, rptType, jobId, retentionOption)
+            }
+          })
         }
         case req@DeleteRequest(jobId) => {
           if (jobIdToResultMap.contains(jobId)) {
@@ -71,11 +76,9 @@ class Coordinator(reportManager: ReportManager) extends Actor {
         }
         case req@PurgeRequest() => {
           var purgedReports: List[String] = Nil
-          jobIdToResultMap.foreach(f => log.info(f.toString))
           jobIdToResultMap.foreach(f => if (f._2._2.isDefined) {
             val rptId = f._2._2.get
             if (reportManager.getReport(rptId).isDefined) {
-              log.info(rptId + " -- " + reportManager.getReport(rptId).get.getRetentionDate)
               if (reportManager.getReport(rptId).get.getRetentionDate.isBeforeNow) {
                 purgedReports ::= rptId
                 reportManager.deleteReport(rptId)
@@ -99,9 +102,14 @@ class Coordinator(reportManager: ReportManager) extends Actor {
         case JobResponse(jobStatus, rptId, req) => {
           log.info("Got notify for jobId {} with status {}", req.jobId, jobStatus)
           jobIdToResultMap += (req.jobId -> (jobStatus, rptId))
-        }
-        case DefinitionRequest(tmpPath, rptTypes) => {
-
+          if (jobStatus == JobStatus.FAILED_UNSUPPORTED_FORMAT) reportManager.getDefinition(rptId getOrElse "").map(defn =>
+            {
+              val entity = defn.getEntity
+              val unsupportedRptTypes = entity.getUnsupportedReportTypes
+              unsupportedRptTypes.add(req.rptType)
+              entity.setUnsupportedReportTypes(unsupportedRptTypes)
+              reportManager.updateDefinitionEntity(rptId.getOrElse(""), entity)
+            })
         }
         case ShutDownRequest() => {
           worker !? ShutDownRequest()
@@ -149,7 +157,8 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
               resultStatus = JobStatus.FAILED_RETENTION_DATE_PAST
             }
             case ex: UnsupportedFormatException => {
-
+              log.error("Caught exception while generating report: {}", ex.getMessage)
+              resultStatus = JobStatus.FAILED_UNSUPPORTED_FORMAT
             }
             case ex: Exception => {
               log.error("Caught exception while generating report: {}", ex.getMessage)

@@ -63,33 +63,33 @@ class BirtReportGeneratorTest {
     Assert.assertTrue(reportManager.hasReport("test_rpt_html"))
   }
 
-  @Test(expectedExceptions = Array(classOf[IllegalStateException]), dependsOnMethods = Array("canRunDefFromStream", "canGetAvailableDefs", "canRunExistingDef"))
+  @Test
+  def canValidateReportDefinition() {
+    var result = true
+    var file = new File(Thread.currentThread.getContextClassLoader.getResource("test_def.rptdesign").getPath)
+    try {
+      result = result && BirtReportGenerator.isValidDefinition(new FileInputStream(file))
+    }
+    Assert.assertTrue(result)
+    try {
+      file = File.createTempFile("fail_def", ".rptdesign")
+      result = result && BirtReportGenerator.isValidDefinition(new FileInputStream(file))
+    }
+    Assert.assertFalse(result)
+  }
+
+  @Test(expectedExceptions = Array(classOf[IllegalStateException]), dependsOnMethods = Array("canRunDefFromStream", "canGetAvailableDefs", "canRunExistingDef", "canValidateReportDefinition"))
   def cantRunExistingReportWithStoppedGenerator() {
     val rptGen = new BirtReportGenerator(new MemoryReportManager)
     rptGen.shutdown()
     rptGen.runReport("test1", "test2", ReportType.PDF, None)
   }
 
-  @Test(expectedExceptions = Array(classOf[IllegalStateException]), dependsOnMethods = Array("canRunDefFromStream", "canGetAvailableDefs", "canRunExistingDef"))
+  @Test(expectedExceptions = Array(classOf[IllegalStateException]), dependsOnMethods = Array("canRunDefFromStream", "canGetAvailableDefs", "canRunExistingDef", "canValidateReportDefinition"))
   def cantRunStreamReportWithStoppedGenerator() {
     val rptGen = new BirtReportGenerator(new MemoryReportManager)
     rptGen.shutdown()
     rptGen.runReport(new ByteArrayInputStream(Array[Byte](1)), new ByteArrayOutputStream(), ReportType.PDF)
-  }
-
-  //@Test
-  def canValidateReportDefinition() {
-    var result = true
-    var file = new File(Thread.currentThread.getContextClassLoader.getResource("test_def.rptdesign").getPath)
-    try {
-      //result = result && reportGenerator.isValidDefinition(new FileInputStream(file), List(ReportType.CSV, ReportType.PDF, ReportType.HTML))
-    }
-    Assert.assertTrue(result)
-    try {
-      file = File.createTempFile("fail_def", ".rptdesign")
-      //result = result && reportGenerator.isValidDefinition(new FileInputStream(file), List(ReportType.CSV))
-    }
-    Assert.assertFalse(result)
   }
 
 }

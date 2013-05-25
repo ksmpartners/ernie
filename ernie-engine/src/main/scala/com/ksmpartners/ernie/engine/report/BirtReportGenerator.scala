@@ -106,6 +106,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
 object BirtReportGenerator {
 
   protected[report] var engine: IReportEngine = null
+  private val log = LoggerFactory.getLogger("c.k.e.e.report.BirtReportGenerator")
 
   /**
    * Method to be called before any reports can be generated
@@ -132,31 +133,16 @@ object BirtReportGenerator {
     engine = null
   }
 
-  /**
+  /*
    * Method that validates a report definition
-   *
-   * def isValidDefinition(is: InputStream, rptTypes: List[ReportType]): Boolean = try {
-   * val design = engine.openReportDesign(is)
-   * val parameterDefTask = engine.createGetParameterDefinitionTask(design)
-   * val task = engine.createRunAndRenderTask(design)
-   * var result = true
-   * rptTypes.foreach(rptType => {
-   * task.setRenderOption(new RenderOption() {
-   * setOutputFormat(rptType.toString)
-   * })
-   * task.validateParameters
-   * })
-   * true
-   * } catch {
-   * case e: Exception => {
-   * false
-   * }
-   * }
    */
-
-  def validateDefinition() {
-    if (engine == null)
-      return
-    // TODO: Fill in with definition validation logic.
+  def isValidDefinition(is: InputStream): Boolean = try {
+    if (engine == null) {
+      return false
+    }
+    engine.openReportDesign(is)
+    true
+  } catch {
+    case e: Exception => false
   }
 }

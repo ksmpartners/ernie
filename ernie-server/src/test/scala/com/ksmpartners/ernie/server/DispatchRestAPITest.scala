@@ -22,8 +22,16 @@ import com.ksmpartners.ernie.util.Utility._
 import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
-import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
+import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import com.ksmpartners.ernie.util.MapperUtility._
+import net.liftweb.http.StreamingResponse
+import net.liftweb.json.JsonAST.JObject
+import net.liftweb.http.ResponseWithReason
+import net.liftweb.http.BadResponse
+import net.liftweb.http.GoneResponse
+import net.liftweb.json.JsonAST.JField
+import net.liftweb.json.JsonAST.JBool
+import scala.xml.NodeSeq
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
@@ -114,20 +122,6 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
-    }
-  }
-
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-42")))
-  @Test
-  def getDefsReturnsJSON() {
-    val mockReq = new MockReadAuthReq("/defs")
-
-    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
-
-    MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI(req)()
-      Assert.assertTrue(resp.isDefined)
-      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
       val body = resp.open_!.asInstanceOf[PlainTextResponse].text
       val respObj = mapper.readValue(body, classOf[ReportDefinitionMapResponse])
       Assert.assertNotNull(respObj.getReportDefMap)
@@ -771,6 +765,173 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertEquals(resp.open_!.toResponse.code, 400)
       Assert.assertEquals(resp.open_!.asInstanceOf[ResponseWithReason].reason, "Retention date exceeds maximum")
     }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-47"), new TestSpec(key = "ERNIE-49")))
+  @Test
+  def canPostDefs() {
+    val mockReq = new MockWriteAuthReq("/defs")
+    mockReq.method = "POST"
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val defEnt = new DefinitionEntity()
+    defEnt.setCreatedUser("default")
+    defEnt.setDefId("test_def2")
+    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
+
+    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+
+    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
+
+    mockReq.body = scala.xml.XML.loadFile(file)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+
+      Assert.assertEquals(resp.open_!.toResponse.code, 201)
+
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+
+      val defEntRsp: DefinitionEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DefinitionEntity])
+      Assert.assertEquals(defEntRsp.getDefId, "test_def2")
+    }
+
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-48")))
+  @Test(dependsOnMethods = Array("canPostDefs"))
+  def canPutDefs() {
+    val mockReq = new MockWriteAuthReq("/defs/test_def2")
+    mockReq.method = "PUT"
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val defEnt = new DefinitionEntity()
+    defEnt.setCreatedUser("default2")
+    defEnt.setDefId("test_def2")
+    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
+
+    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+
+    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
+
+    mockReq.body = scala.xml.XML.loadFile(file)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+
+      Assert.assertEquals(resp.open_!.toResponse.code, 201)
+
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+
+      val defEntRsp: DefinitionEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DefinitionEntity])
+      Assert.assertEquals(defEntRsp.getCreatedUser, "default2")
+    }
+  }
+
+  @Test(dependsOnMethods = Array("canPutDefs"))
+  def canDeleteDefs() {
+    val mockReq = new MockWriteAuthReq("/defs/test_def2")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[OkResponse])
+    }
+
+    @TestSpecs(Array(new TestSpec(key = "ERNIE-56")))
+    @Test
+    def invalidDefinitionPostReturns400() {
+      val mockReq = new MockWriteAuthReq("/defs")
+      mockReq.method = "POST"
+
+      mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+      val defEnt = new DefinitionEntity()
+      defEnt.setCreatedUser("default")
+      defEnt.setDefId("test_def2")
+      mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
+
+      mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+
+      mockReq.body = <report><invalid>Definition</invalid></report>
+
+      MockWeb.testReq(mockReq) { req =>
+        val resp = DispatchRestAPI(req)()
+        Assert.assertTrue(resp.isDefined)
+
+        Assert.assertEquals(resp.open_!.toResponse.code, 400)
+
+        Assert.assertTrue(resp.open_!.isInstanceOf[BadResponse])
+
+      }
+    }
+
+    @TestSpecs(Array(new TestSpec(key = "ERNIE-45")))
+    @Test
+    def cantPostDefsWithoutWriteAuth() {
+      val mockReq = new MockNoAuthReq("/defs")
+      mockReq.method = "POST"
+
+      mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+      val defEnt = new DefinitionEntity()
+      defEnt.setCreatedUser("default")
+      defEnt.setDefId("test_def2")
+      mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
+
+      mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+
+      val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
+
+      mockReq.body = scala.xml.XML.loadFile(file)
+
+      MockWeb.testReq(mockReq) { req =>
+        val resp = DispatchRestAPI(req)()
+        Assert.assertTrue(resp.isDefined)
+
+        Assert.assertEquals(resp.open_!.toResponse.code, 403)
+
+        Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+
+      }
+    }
+
+    @TestSpecs(Array(new TestSpec(key = "ERNIE-50")))
+    @Test
+    def cantPostDefsWithoutJSONRequest() {
+      val mockReq = new MockWriteAuthReq("/defs")
+      mockReq.method = "POST"
+
+      mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+
+      val defEnt = new DefinitionEntity()
+      defEnt.setCreatedUser("default")
+      defEnt.setDefId("test_def2")
+      mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
+
+      mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+
+      val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
+
+      mockReq.body = scala.xml.XML.loadFile(file)
+
+      MockWeb.testReq(mockReq) { req =>
+        val resp = DispatchRestAPI(req)()
+        Assert.assertTrue(resp.isDefined)
+
+        Assert.assertEquals(resp.open_!.toResponse.code, 406)
+
+        Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+
+      }
+    }
+
   }
 
   class MockReadAuthReq(path: String) extends MockHttpServletRequest(path) {

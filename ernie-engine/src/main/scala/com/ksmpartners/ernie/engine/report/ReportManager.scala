@@ -71,6 +71,7 @@ trait ReportManager {
    * If DEF_ID already exists, the definition content will be replaced with the new content
    */
   def putDefinition(entity: Map[String, Any]): OutputStream
+  def putDefinition(entity: DefinitionEntity): OutputStream
   /**
    * Returns an OutputStream into which content can be put. The entity must contain information about the
    * definition being added. Required fields are: RPT_ID, SOURCE_DEF_ID, REPORT_TYPE, and CREATED_USER. Optional fields
@@ -78,6 +79,17 @@ trait ReportManager {
    * If RPT_ID already exists, the definition content will be replaced with the new content
    */
   def putReport(entity: Map[String, Any]): OutputStream
+  /**
+   * Returns an OutputStream into which content can be put. The entity must contain information about the
+   * definition being added. Required fields are: DEF_ID and CREATED_USER. Optional fields are: PARAM_NAMES
+   * and DESCRIPTION.
+   * If DEF_ID already exists, the definition content will be replaced with the new content
+   */
+  def updateDefinition(defId: String, entity: Map[String, Any]): OutputStream
+  def updateDefinition(defId: String, entity: DefinitionEntity): OutputStream
+  def updateDefinitionEntity(defId: String, entity: Map[String, Any]): OutputStream
+  def updateDefinitionEntity(defId: String, entity: DefinitionEntity): OutputStream
+  def updateDefinition(defId: String, entity: Either[Map[String, Any], DefinitionEntity], entityOnly: Boolean): OutputStream
 
   /**
    * Deletes the given definition
