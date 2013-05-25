@@ -29,6 +29,7 @@ trait DefinitionDependencies extends RequiresReportManager {
    * Resource for handling HTTP requests at /defs
    */
   class DefsResource extends JsonTranslator {
+    private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefsResource")
     def get(uriPrefix: String) = {
       val defMap: util.Map[String, String] = new util.HashMap
       reportManager.getAllDefinitionIds.foreach({ defId =>
@@ -43,8 +44,9 @@ trait DefinitionDependencies extends RequiresReportManager {
         try {
           val defEnt: DefinitionEntity = deserialize(req.header("DefinitionEntity").open_!, classOf[DefinitionEntity]).asInstanceOf[DefinitionEntity]
           if (!BirtReportGenerator.isValidDefinition(new ByteArrayInputStream(req.body.open_!))) Full(BadResponse())
-          else if (reportManager.getAllDefinitionIds.contains(defEnt.getDefId)) Full(ConflictResponse())
-          else {
+          else if (reportManager.getAllDefinitionIds.contains(defEnt.getDefId)) {
+            Full(ConflictResponse())
+          } else {
             reportManager.putDefinition(defEnt).write(req.body.open_!)
             getJsonResponse(defEnt, 201)
           }
