@@ -69,6 +69,29 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-103")))
+  @Test
+  def cantReplaceReportDefsForInvalidDefFile() {
+    val mockReq = new MockWriteAuthReq("/defs/test_def2")
+    mockReq.method = "PUT"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val defEnt = new DefinitionEntity()
+    defEnt.setCreatedUser("default2")
+    defEnt.setDefId("WRONG")
+    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
+    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+
+    mockReq.body = <invalidrequest.html/>
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[BadResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 400)
+    }
+  }
+
   @TestSpecs(Array(new TestSpec(key = "ERNIE-85")))
   @Test
   def cantGetJobsWithoutReadAuth() {
