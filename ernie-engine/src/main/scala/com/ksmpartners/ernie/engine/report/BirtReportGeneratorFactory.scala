@@ -13,7 +13,7 @@ package com.ksmpartners.ernie.engine.report
 trait BirtReportGeneratorFactory extends ReportGeneratorFactory {
 
   /**
-   * Returns a new BirtReportGenerator with the given reportManager
+   * Return a new BirtReportGenerator with the given reportManager
    */
   def getReportGenerator(reportManager: ReportManager): ReportGenerator = {
     new BirtReportGenerator(reportManager)

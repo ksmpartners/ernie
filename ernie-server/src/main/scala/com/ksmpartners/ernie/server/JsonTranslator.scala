@@ -55,7 +55,7 @@ trait JsonTranslator {
   }
 
   /**
-   * Returns true if the given request accepts an ernie response as defined in ModelObject
+   * Return true if the given request accepts an ernie response as defined in ModelObject
    */
   def acceptsErnieJson(req: Req): Boolean = req.weightedAccept.find(_.matches(ModelObject.TYPE_PREFIX -> ModelObject.TYPE_POSTFIX)).isDefined
 

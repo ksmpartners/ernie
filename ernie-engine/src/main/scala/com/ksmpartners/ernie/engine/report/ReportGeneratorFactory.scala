@@ -13,7 +13,7 @@ package com.ksmpartners.ernie.engine.report
 trait ReportGeneratorFactory {
 
   /**
-   * Returns a new ReportGenerator with the given reportManager
+   * Return a new ReportGenerator with the given reportManager
    */
   def getReportGenerator(reportManager: ReportManager): ReportGenerator
 
