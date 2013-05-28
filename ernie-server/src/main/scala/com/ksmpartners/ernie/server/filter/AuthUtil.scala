@@ -31,7 +31,7 @@ object AuthUtil {
   }
 
   /**
-   * Returns a list of roles the requesting user has
+   * Return a list of roles the requesting user has
    */
   def getRoles(req: Req): List[String] = {
     val httpRequest: HTTPRequest = req.request

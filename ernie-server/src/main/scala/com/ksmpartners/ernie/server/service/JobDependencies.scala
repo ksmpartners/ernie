@@ -29,7 +29,7 @@ trait JobDependencies extends RequiresCoordinator
    */
   class JobsResource extends JsonTranslator {
     /**
-     * Returns a Box[ListResponse] containing a map of jobId to URI for that jobId
+     * Return a Box[ListResponse] containing a map of jobId to URI for that jobId
      */
     def get(uriPrefix: String) = {
       val response = (coordinator !? engine.JobsListRequest()).asInstanceOf[engine.JobsListResponse]
@@ -69,7 +69,7 @@ trait JobDependencies extends RequiresCoordinator
    */
   class JobStatusResource extends JsonTranslator {
     /**
-     * Returns a Box[ListResponse] containing status for the given jobId
+     * Return a Box[ListResponse] containing status for the given jobId
      */
     def get(jobId: String) = {
       val response = (coordinator !? engine.StatusRequest(jobId.toLong)).asInstanceOf[engine.StatusResponse]
@@ -83,12 +83,12 @@ trait JobDependencies extends RequiresCoordinator
    */
   class JobResultsResource extends JsonTranslator {
     /**
-     * Returns a Box[StreamingResponse] containing the result content for the given jobId
+     * Return a Box[StreamingResponse] containing the result content for the given jobId
      */
     def get(jobId: String): Box[LiftResponse] = get(jobId, Empty)
 
     /**
-     * Returns a Box[StreamingResponse] containing the result content for the given jobId
+     * Return a Box[StreamingResponse] containing the result content for the given jobId
      * Overloaded function to include the web service request details to ensure correct Accept
      */
     def get(jobId: String, req: Box[Req]): Box[LiftResponse] = {
