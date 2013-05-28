@@ -129,7 +129,7 @@ object BirtReportGenerator {
     log.debug("BIRT Engine shutdown.")
   }
 
-  /*
+  /**
    * Method that validates a report definition
    */
   def isValidDefinition(is: InputStream): Boolean = try {
