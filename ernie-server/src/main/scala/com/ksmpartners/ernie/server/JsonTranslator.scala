@@ -55,6 +55,14 @@ trait JsonTranslator {
   }
 
   /**
+   * Serializes the given response object into a Full[PlainTextResponse] with a content-type of application/json and
+   * an HTTP code of 200
+   */
+  def getJsonResponse[A <: ModelObject](response: A, statusCode: Int, headers: List[(String, String)]): Box[LiftResponse] = {
+    Full(PlainTextResponse(serialize(response), List(("Content-Type", response.cType())) ++ headers, statusCode))
+  }
+
+  /**
    * Return true if the given request accepts an ernie response as defined in ModelObject
    */
   def acceptsErnieJson(req: Req): Boolean = req.weightedAccept.find(_.matches(ModelObject.TYPE_PREFIX -> ModelObject.TYPE_POSTFIX)).isDefined

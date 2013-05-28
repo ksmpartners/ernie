@@ -848,6 +848,21 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-94")))
   @Test
+  def cantDeleteDefsWithoutWriteAuth() {
+    val mockReq = new MockNoAuthReq("/defs/test_def2")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-92"), new TestSpec(key = "ERNIE-95")))
+  @Test
   def canDeleteDefs() {
     val mockReq = new MockWriteAuthReq("/defs/test_def2")
     mockReq.method = "DELETE"
@@ -859,6 +874,22 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       val deleteDefinitionResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DeleteDefinitionResponse])
       Assert.assertEquals(deleteDefinitionResponse.getDeleteStatus, DeleteStatus.SUCCESS)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-97")))
+  @Test
+  def cantDeleteDefsWithoutCorrectAcceptHeader() {
+    val mockReq = new MockWriteAuthReq("/defs/test_def2")
+    mockReq.method = "DELETE"
+
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
 

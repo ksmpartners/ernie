@@ -48,7 +48,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
             Full(ConflictResponse())
           } else {
             reportManager.putDefinition(defEnt).write(req.body.open_!)
-            getJsonResponse(defEnt, 201)
+            getJsonResponse(defEnt, 201, List(("Location", req.hostAndPath + "/defs/" + defEnt.getDefId)))
           }
         } catch {
           case e: Exception => Full(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity header"))

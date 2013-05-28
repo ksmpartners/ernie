@@ -44,12 +44,12 @@ trait JobDependencies extends RequiresCoordinator
      *
      * @return the jobId returned by the Coordinator associated with the request
      */
-    def post(body: Box[Array[Byte]]) = {
+    def post(body: Box[Array[Byte]], hostAndPath: String): Box[LiftResponse] = {
       try {
         val req = deserialize(body.open_!, classOf[model.ReportRequest])
         val response = (coordinator !? engine.ReportRequest(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays))).asInstanceOf[engine.ReportResponse]
         if (response.jobStatus == JobStatus.IN_PROGRESS)
-          getJsonResponse(new model.ReportResponse(response.jobId, response.jobStatus), 201)
+          getJsonResponse(new model.ReportResponse(response.jobId, response.jobStatus), 201, List(("Location", hostAndPath + "/jobs/" + response.jobId)))
         else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM)
           Full(ResponseWithReason(BadResponse(), "Retention date exceeds maximum"))
         else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_PAST)
@@ -62,6 +62,7 @@ trait JobDependencies extends RequiresCoordinator
         }
       }
     }
+    def post(body: Box[Array[Byte]]): Box[LiftResponse] = post(body, "")
   }
 
   /**
