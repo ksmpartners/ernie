@@ -7,7 +7,7 @@
 
 package com.ksmpartners.ernie.engine
 
-import com.ksmpartners.ernie.model.{ ReportType, JobStatus }
+import com.ksmpartners.ernie.model.{ DeleteStatus, ReportType, JobStatus }
 
 /** Request that the report defId be generated resulting in an output of type rptType */
 case class ReportRequest(defId: String, rptType: ReportType, retentionPeriod: Option[Int])
@@ -24,7 +24,11 @@ case class StatusResponse(jobStatus: JobStatus, req: StatusRequest)
 /** Request job output deletion for the given jobId */
 case class DeleteRequest(jobId: Long)
 /** The response to the given DeleteRequest */
-case class DeleteResponse(jobStatus: JobStatus, req: DeleteRequest)
+case class DeleteResponse(deleteStatus: DeleteStatus, req: DeleteRequest)
+/** Request report definition deletion for the given jobId */
+case class DeleteDefinitionRequest(defId: String)
+/** The response to the given DeleteDefinitionRequest */
+case class DeleteDefinitionResponse(deleteStatus: DeleteStatus, req: DeleteDefinitionRequest)
 /** Request purge of all expired reports */
 case class PurgeRequest()
 /** The response to the given PurgeRequest */

@@ -12,7 +12,7 @@ import java.util
 import net.liftweb.common.{ Box, Full }
 import net.liftweb.http._
 import com.ksmpartners.ernie.server.JsonTranslator
-import com.ksmpartners.ernie.model.{ DefinitionEntity, JobStatus }
+import com.ksmpartners.ernie.model.{ DeleteStatus, DefinitionEntity, JobStatus }
 import java.io.{ ByteArrayInputStream, IOException }
 import scala.collection.mutable
 import com.ksmpartners.ernie.engine.report.{ BirtReportGenerator, ReportManager }
@@ -23,7 +23,7 @@ import org.slf4j.{ LoggerFactory, Logger }
 /**
  * Dependencies for interacting with report definitions
  */
-trait DefinitionDependencies extends RequiresReportManager {
+trait DefinitionDependencies extends RequiresReportManager with RequiresCoordinator {
 
   /**
    * Resource for handling HTTP requests at /defs
@@ -72,13 +72,19 @@ trait DefinitionDependencies extends RequiresReportManager {
         Full(BadResponse())
       }
     }
-    def del(defId: String) = try {
+    /* def del(defId: String) = try {
       reportManager.deleteDefinition(defId)
       Full(OkResponse())
     } catch {
       case e: Exception => {
         Full(BadResponse())
       }
+    }*/
+    def del(defId: String) = {
+      val response = (coordinator !? engine.DeleteDefinitionRequest(defId)).asInstanceOf[engine.DeleteDefinitionResponse]
+      if (response.deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteDefinitionResponse(response.deleteStatus))
+      else if (response.deleteStatus == DeleteStatus.NOT_FOUND) Full(NotFoundResponse("Definition not found"))
+      else Full(BadResponse())
     }
     def put(defId: String, req: net.liftweb.http.Req) = {
 

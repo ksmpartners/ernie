@@ -570,7 +570,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val deleteResponse: DeleteResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DeleteResponse])
-      Assert.assertTrue(deleteResponse.getJobStatus == JobStatus.DELETED)
+      Assert.assertTrue(deleteResponse.getDeleteStatus == DeleteStatus.SUCCESS)
     }
   }
 
@@ -832,6 +832,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-94")))
   @Test
   def canDeleteDefs() {
     val mockReq = new MockWriteAuthReq("/defs/test_def2")
@@ -841,28 +842,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      val deleteDefinitionResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DeleteDefinitionResponse])
+      Assert.assertEquals(deleteDefinitionResponse.getDeleteStatus, DeleteStatus.SUCCESS)
     }
-
-    //TODO: Implement correct definition deletion code so that the below is unncecessary
-
-    var path = LiftRules.getResource("in/test_def2.rptdesign")
-
-    if (path.isDefined) {
-      val file = new File(path.get.getFile)
-      if (file.exists) file.delete
-      Assert.assertTrue(!file.exists)
-
-    }
-
-    path = LiftRules.getResource("in/test_def2.entity")
-
-    if (path.isDefined) {
-      val file = new File(path.get.getFile)
-      if (file.exists) file.delete
-      Assert.assertTrue(!file.exists)
-
-    }
-
   }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-56")))

@@ -10,13 +10,13 @@ package com.ksmpartners.ernie.model;
 /**
  * A JSONable class used to send report response information via HTTP
  */
-public class DeleteResponse extends ModelObject {
+public class DeleteDefinitionResponse extends ModelObject {
 
     private DeleteStatus deleteStatus;
 
-    public DeleteResponse() {}
+    public DeleteDefinitionResponse() {}
 
-    public DeleteResponse(DeleteStatus deleteStatus) {
+    public DeleteDefinitionResponse(DeleteStatus deleteStatus) {
         this.deleteStatus = deleteStatus;
     }
 

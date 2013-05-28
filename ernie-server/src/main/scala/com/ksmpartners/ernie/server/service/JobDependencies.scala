@@ -15,7 +15,7 @@ import java.io.IOException
 import java.util
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.JsonTranslator
-import com.ksmpartners.ernie.model.JobStatus
+import com.ksmpartners.ernie.model.{ DeleteStatus, JobStatus }
 import com.ksmpartners.ernie.server.service.JobDependencies._
 
 /**
@@ -128,8 +128,8 @@ trait JobDependencies extends RequiresCoordinator
      */
     def del(jobId: String): Box[LiftResponse] = {
       val response = (coordinator !? engine.DeleteRequest(jobId.toLong)).asInstanceOf[engine.DeleteResponse]
-      if (response.jobStatus == JobStatus.DELETED) getJsonResponse(new model.DeleteResponse(response.jobStatus))
-      else if (response.jobStatus == JobStatus.NO_SUCH_JOB) Full(NotFoundResponse("Job ID not found"))
+      if (response.deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteResponse(response.deleteStatus))
+      else if (response.deleteStatus == DeleteStatus.NOT_FOUND) Full(NotFoundResponse("Job ID not found"))
       else Full(BadResponse())
     }
   }

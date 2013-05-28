@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.engine
 
 import actors.Actor
 import collection._
-import com.ksmpartners.ernie.model.{ JobEntity, ReportType, JobStatus }
+import com.ksmpartners.ernie.model.{ DeleteStatus, JobEntity, ReportType, JobStatus }
 import com.ksmpartners.ernie.engine.report._
 import org.slf4j.LoggerFactory
 import org.joda.time.DateTime
@@ -76,12 +76,27 @@ class Coordinator(reportManager: ReportManager) extends Actor {
               try {
                 reportManager.deleteReport(jobIdToResultMap.get(jobId).map(je => je.getRptId).get)
                 jobIdToResultMap.update(jobId, jobIdToResultMap.get(jobId).map(je => { je.setJobStatus(JobStatus.DELETED); je }).get) //(JobStatus.DELETED, Some(jobIdToResultMap.get(jobId).get._2.get)))
-                sender ! DeleteResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus).get, req)
+                sender ! DeleteResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus match {
+                  case JobStatus.DELETED => DeleteStatus.SUCCESS
+                  case _ => DeleteStatus.FAILED
+                }).get, req)
               } catch {
-                case e: Exception => sender ! DeleteResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus).getOrElse(JobStatus.FAILED), req)
+                case e: Exception => sender ! DeleteResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus match {
+                  case JobStatus.DELETED => DeleteStatus.SUCCESS
+                  case _ => DeleteStatus.FAILED
+                }).getOrElse(DeleteStatus.FAILED), req)
               }
-            } else sender ! DeleteResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus).getOrElse(JobStatus.FAILED), req) // TODO: Send back "jobIdToResultMap.get(jobId).get._1" because the status could be PENDING or FAILED
-          } else sender ! DeleteResponse(JobStatus.NO_SUCH_JOB, req) //no such job
+            } else sender ! DeleteResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus match {
+              case JobStatus.DELETED => DeleteStatus.SUCCESS
+              case _ => DeleteStatus.FAILED
+            }).getOrElse(DeleteStatus.FAILED), req) // TODO: Send back "jobIdToResultMap.get(jobId).get._1" because the status could be PENDING or FAILED
+          } else sender ! DeleteResponse(DeleteStatus.NOT_FOUND, req) //no such job
+        } case req@DeleteDefinitionRequest(defId) => {
+          if (jobIdToResultMap.find(p => p._2.getRptId == defId).isDefined) sender ! DeleteDefinitionResponse(DeleteStatus.FAILED_IN_USE, req)
+          else try {
+            reportManager.deleteDefinition(defId)
+            sender ! DeleteDefinitionResponse(DeleteStatus.SUCCESS, req)
+          } catch { case _ => sender ! DeleteDefinitionResponse(DeleteStatus.FAILED, req) }
         }
         case req@PurgeRequest() => {
           var purgedReports: List[String] = Nil
