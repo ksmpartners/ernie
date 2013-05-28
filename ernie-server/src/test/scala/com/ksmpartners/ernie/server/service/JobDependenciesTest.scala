@@ -64,7 +64,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
 
     val resp = respBox.open_!.asInstanceOf[PlainTextResponse]
     Assert.assertEquals(resp.code, 201)
-    Assert.assertEquals(resp.headers, List(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
+    Assert.assertTrue(resp.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
   }
 
   @Test
@@ -97,7 +97,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
 
     val resp = respBox.open_!.asInstanceOf[PlainTextResponse]
     Assert.assertEquals(resp.code, 201)
-    Assert.assertEquals(resp.headers, List(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
+    Assert.assertTrue(resp.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
     val rptResp = deserialize(resp.text, classOf[model.ReportResponse])
 
     val jobStatusResource = new JobStatusResource

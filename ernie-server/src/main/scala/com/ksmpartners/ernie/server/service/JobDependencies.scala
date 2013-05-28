@@ -15,7 +15,7 @@ import java.io.IOException
 import java.util
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.JsonTranslator
-import com.ksmpartners.ernie.model.JobStatus
+import com.ksmpartners.ernie.model.{ DeleteStatus, JobStatus }
 import com.ksmpartners.ernie.server.service.JobDependencies._
 
 /**
@@ -29,7 +29,7 @@ trait JobDependencies extends RequiresCoordinator
    */
   class JobsResource extends JsonTranslator {
     /**
-     * Returns a Box[ListResponse] containing a map of jobId to URI for that jobId
+     * Return a Box[ListResponse] containing a map of jobId to URI for that jobId
      */
     def get(uriPrefix: String) = {
       val response = (coordinator !? engine.JobsListRequest()).asInstanceOf[engine.JobsListResponse]
@@ -44,12 +44,12 @@ trait JobDependencies extends RequiresCoordinator
      *
      * @return the jobId returned by the Coordinator associated with the request
      */
-    def post(body: Box[Array[Byte]]) = {
+    def post(body: Box[Array[Byte]], hostAndPath: String): Box[LiftResponse] = {
       try {
         val req = deserialize(body.open_!, classOf[model.ReportRequest])
         val response = (coordinator !? engine.ReportRequest(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays))).asInstanceOf[engine.ReportResponse]
         if (response.jobStatus == JobStatus.IN_PROGRESS)
-          getJsonResponse(new model.ReportResponse(response.jobId, response.jobStatus), 201)
+          getJsonResponse(new model.ReportResponse(response.jobId, response.jobStatus), 201, List(("Location", hostAndPath + "/jobs/" + response.jobId)))
         else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM)
           Full(ResponseWithReason(BadResponse(), "Retention date exceeds maximum"))
         else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_PAST)
@@ -62,6 +62,7 @@ trait JobDependencies extends RequiresCoordinator
         }
       }
     }
+    def post(body: Box[Array[Byte]]): Box[LiftResponse] = post(body, "")
   }
 
   /**
@@ -69,7 +70,7 @@ trait JobDependencies extends RequiresCoordinator
    */
   class JobStatusResource extends JsonTranslator {
     /**
-     * Returns a Box[ListResponse] containing status for the given jobId
+     * Return a Box[ListResponse] containing status for the given jobId
      */
     def get(jobId: String) = {
       val response = (coordinator !? engine.StatusRequest(jobId.toLong)).asInstanceOf[engine.StatusResponse]
@@ -83,12 +84,12 @@ trait JobDependencies extends RequiresCoordinator
    */
   class JobResultsResource extends JsonTranslator {
     /**
-     * Returns a Box[StreamingResponse] containing the result content for the given jobId
+     * Return a Box[StreamingResponse] containing the result content for the given jobId
      */
     def get(jobId: String): Box[LiftResponse] = get(jobId, Empty)
 
     /**
-     * Returns a Box[StreamingResponse] containing the result content for the given jobId
+     * Return a Box[StreamingResponse] containing the result content for the given jobId
      * Overloaded function to include the web service request details to ensure correct Accept
      */
     def get(jobId: String, req: Box[Req]): Box[LiftResponse] = {
@@ -128,8 +129,8 @@ trait JobDependencies extends RequiresCoordinator
      */
     def del(jobId: String): Box[LiftResponse] = {
       val response = (coordinator !? engine.DeleteRequest(jobId.toLong)).asInstanceOf[engine.DeleteResponse]
-      if (response.jobStatus == JobStatus.DELETED) getJsonResponse(new model.DeleteResponse(response.jobStatus))
-      else if (response.jobStatus == JobStatus.NO_SUCH_JOB) Full(NotFoundResponse("Job ID not found"))
+      if (response.deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteResponse(response.deleteStatus))
+      else if (response.deleteStatus == DeleteStatus.NOT_FOUND) Full(NotFoundResponse("Job ID not found"))
       else Full(BadResponse())
     }
   }

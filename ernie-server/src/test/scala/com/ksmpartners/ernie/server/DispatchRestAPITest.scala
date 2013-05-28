@@ -145,6 +145,20 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-42")))
+  @Test
+  def getDefsReturnsJSON() {
+    val mockReq = new MockReadAuthReq("/defs")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
       val body = resp.open_!.asInstanceOf[PlainTextResponse].text
       val respObj = mapper.readValue(body, classOf[ReportDefinitionMapResponse])
       Assert.assertNotNull(respObj.getReportDefMap)
@@ -593,7 +607,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val deleteResponse: DeleteResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DeleteResponse])
-      Assert.assertTrue(deleteResponse.getJobStatus == JobStatus.DELETED)
+      Assert.assertTrue(deleteResponse.getDeleteStatus == DeleteStatus.SUCCESS)
     }
   }
 
@@ -823,7 +837,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-48")))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-48"), new TestSpec(key = "ERNIE-100"), new TestSpec(key = "ERNIE-101")))
   @Test(dependsOnMethods = Array("canPostDefs"))
   def canPutDefs() {
     val mockReq = new MockWriteAuthReq("/defs/test_def2")
@@ -855,6 +869,22 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-94")))
+  @Test
+  def cantDeleteDefsWithoutWriteAuth() {
+    val mockReq = new MockNoAuthReq("/defs/test_def2")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-92"), new TestSpec(key = "ERNIE-95")))
   @Test
   def canDeleteDefs() {
     val mockReq = new MockWriteAuthReq("/defs/test_def2")
@@ -864,28 +894,26 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      val deleteDefinitionResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DeleteDefinitionResponse])
+      Assert.assertEquals(deleteDefinitionResponse.getDeleteStatus, DeleteStatus.SUCCESS)
     }
+  }
 
-    //TODO: Implement correct definition deletion code so that the below is unncecessary
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-97")))
+  @Test
+  def cantDeleteDefsWithoutCorrectAcceptHeader() {
+    val mockReq = new MockWriteAuthReq("/defs/test_def2")
+    mockReq.method = "DELETE"
 
-    var path = LiftRules.getResource("in/test_def2.rptdesign")
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
 
-    if (path.isDefined) {
-      val file = new File(path.get.getFile)
-      if (file.exists) file.delete
-      Assert.assertTrue(!file.exists)
-
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
-
-    path = LiftRules.getResource("in/test_def2.entity")
-
-    if (path.isDefined) {
-      val file = new File(path.get.getFile)
-      if (file.exists) file.delete
-      Assert.assertTrue(!file.exists)
-
-    }
-
   }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-56")))
@@ -914,67 +942,126 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.open_!.isInstanceOf[BadResponse])
 
     }
+  }
 
-    @TestSpecs(Array(new TestSpec(key = "ERNIE-45")))
-    @Test
-    def cantPostDefsWithoutWriteAuth() {
-      val mockReq = new MockNoAuthReq("/defs")
-      mockReq.method = "POST"
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-45")))
+  @Test
+  def cantPostDefsWithoutWriteAuth() {
+    val mockReq = new MockNoAuthReq("/defs")
+    mockReq.method = "POST"
 
-      mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
-      val defEnt = new DefinitionEntity()
-      defEnt.setCreatedUser("default")
-      defEnt.setDefId("test_def2")
-      mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
+    val defEnt = new DefinitionEntity()
+    defEnt.setCreatedUser("default")
+    defEnt.setDefId("test_def2")
+    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
 
-      mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
 
-      val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
+    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
 
-      mockReq.body = scala.xml.XML.loadFile(file)
+    mockReq.body = scala.xml.XML.loadFile(file)
 
-      MockWeb.testReq(mockReq) { req =>
-        val resp = DispatchRestAPI(req)()
-        Assert.assertTrue(resp.isDefined)
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
 
-        Assert.assertEquals(resp.open_!.toResponse.code, 403)
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
 
-        Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
 
-      }
     }
+  }
 
-    @TestSpecs(Array(new TestSpec(key = "ERNIE-50")))
-    @Test
-    def cantPostDefsWithoutJSONRequest() {
-      val mockReq = new MockWriteAuthReq("/defs")
-      mockReq.method = "POST"
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-50")))
+  @Test
+  def cantPostDefsWithoutJSONRequest() {
+    val mockReq = new MockWriteAuthReq("/defs")
+    mockReq.method = "POST"
 
-      mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
 
-      val defEnt = new DefinitionEntity()
-      defEnt.setCreatedUser("default")
-      defEnt.setDefId("test_def2")
-      mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
+    val defEnt = new DefinitionEntity()
+    defEnt.setCreatedUser("default")
+    defEnt.setDefId("test_def2")
+    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
 
-      mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
 
-      val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
+    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
 
-      mockReq.body = scala.xml.XML.loadFile(file)
+    mockReq.body = scala.xml.XML.loadFile(file)
 
-      MockWeb.testReq(mockReq) { req =>
-        val resp = DispatchRestAPI(req)()
-        Assert.assertTrue(resp.isDefined)
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
 
-        Assert.assertEquals(resp.open_!.toResponse.code, 406)
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
 
-        Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
 
-      }
     }
+  }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-98")))
+  @Test
+  def cantPutDefsWithoutWriteAuth() {
+    val mockReq = new MockNoAuthReq("/defs/test_def2")
+    mockReq.method = "PUT"
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val defEnt = new DefinitionEntity()
+    defEnt.setCreatedUser("default")
+    defEnt.setDefId("test_def2")
+    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
+
+    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+
+    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
+
+    mockReq.body = scala.xml.XML.loadFile(file)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
+
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-102")))
+  @Test
+  def cantPutDefsWithoutJSONRequest() {
+    val mockReq = new MockWriteAuthReq("/defs/test_def2")
+    mockReq.method = "PUT"
+
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+
+    val defEnt = new DefinitionEntity()
+    defEnt.setCreatedUser("default")
+    defEnt.setDefId("test_def2")
+    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
+
+    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+
+    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
+
+    mockReq.body = scala.xml.XML.loadFile(file)
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+
+    }
   }
 
   class MockReadAuthReq(path: String) extends MockHttpServletRequest(path) {

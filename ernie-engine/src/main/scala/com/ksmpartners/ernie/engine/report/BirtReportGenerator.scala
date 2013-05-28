@@ -25,8 +25,6 @@ import org.joda.time.DateTime
  */
 class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator {
 
-  private val log = LoggerFactory.getLogger(classOf[ReportGenerator])
-
   def startup() { startEngine() }
 
   /**
@@ -40,7 +38,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
    */
   def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int]) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
-    log.debug("Generating PDF from report definition {}", defId)
+    log.debug("Generating report from definition {}", defId)
     try_(reportManager.getDefinitionContent(defId).get) { defInputStream =>
       val entity: mutable.Map[String, Any] = new mutable.HashMap()
       entity += (ReportManager.rptId -> rptId)
@@ -88,12 +86,10 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
    * Method that creates and runs a BIRT task based on the given design and options
    */
   private def runReport(design: IReportRunnable, option: RenderOption) {
-    log.debug("BEGIN Running report...")
     val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
     task.setRenderOption(option)
     task.run()
     task.close()
-    log.debug("END Running report...")
   }
 
   /**
@@ -118,11 +114,10 @@ object BirtReportGenerator {
     Platform.startup(ec)
 
     val factory = Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY)
+      .asInstanceOf[IReportEngineFactory]
 
-    engine = (factory match {
-      case fact: IReportEngineFactory => fact
-      case _ => throw new ClassCastException
-    }).createReportEngine(ec)
+    engine = factory.createReportEngine(ec)
+    log.debug("BIRT Engine started.")
   }
 
   protected[report] def shutdownEngine() {
@@ -131,9 +126,10 @@ object BirtReportGenerator {
     engine.destroy()
     Platform.shutdown()
     engine = null
+    log.debug("BIRT Engine shutdown.")
   }
 
-  /*
+  /**
    * Method that validates a report definition
    */
   def isValidDefinition(is: InputStream): Boolean = try {

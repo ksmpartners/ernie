@@ -22,11 +22,11 @@ import scala.Right
 trait ReportManager {
 
   /**
-   * Returns a list of available definition ids
+   * Return a list of available definition ids
    */
   def getAllDefinitionIds: List[String]
   /**
-   * Returns a list of available report ids
+   * Return a list of available report ids
    */
   def getAllReportIds: List[String]
 
@@ -65,7 +65,7 @@ trait ReportManager {
   def getReportContent(report: Report): Option[InputStream]
 
   /**
-   * Returns an OutputStream into which content can be put. The entity must contain information about the
+   * Return an OutputStream into which content can be put. The entity must contain information about the
    * definition being added. Required fields are: DEF_ID and CREATED_USER. Optional fields are: PARAM_NAMES
    * and DESCRIPTION.
    * If DEF_ID already exists, the definition content will be replaced with the new content
@@ -73,14 +73,14 @@ trait ReportManager {
   def putDefinition(entity: Map[String, Any]): OutputStream
   def putDefinition(entity: DefinitionEntity): OutputStream
   /**
-   * Returns an OutputStream into which content can be put. The entity must contain information about the
+   * Return an OutputStream into which content can be put. The entity must contain information about the
    * definition being added. Required fields are: RPT_ID, SOURCE_DEF_ID, REPORT_TYPE, and CREATED_USER. Optional fields
    * are: PARAM_MAP and RETENTION_DATE.
    * If RPT_ID already exists, the definition content will be replaced with the new content
    */
   def putReport(entity: Map[String, Any]): OutputStream
   /**
-   * Returns an OutputStream into which content can be put. The entity must contain information about the
+   * Return an OutputStream into which content can be put. The entity must contain information about the
    * definition being added. Required fields are: DEF_ID and CREATED_USER. Optional fields are: PARAM_NAMES
    * and DESCRIPTION.
    * If DEF_ID already exists, the definition content will be replaced with the new content
@@ -92,11 +92,11 @@ trait ReportManager {
   def updateDefinition(defId: String, entity: Either[Map[String, Any], DefinitionEntity], entityOnly: Boolean): OutputStream
 
   /**
-   * Deletes the given definition
+   * Delete the given definition
    */
   def deleteDefinition(defId: String)
   /**
-   * Deletes the given report
+   * Delete the given report
    */
   def deleteReport(rptId: String)
 
@@ -136,7 +136,7 @@ object ReportManager {
   def getMaximumRetentionDays: Int = maximumRetentionDays
 
   /**
-   * Returns a DefinitionEntity object containing the contents of entity. The entity must contain information about the
+   * Return a DefinitionEntity object containing the contents of entity. The entity must contain information about the
    * definition being added.
    * Required fields are:
    * - DEF_ID (String)
@@ -180,7 +180,7 @@ object ReportManager {
   }
 
   /**
-   * Returns a ReportEntity containing the contents of entity. The entity must contain information about the
+   * Return a ReportEntity containing the contents of entity. The entity must contain information about the
    * definition being added.
    * Required fields are:
    * - RPT_ID (String)
