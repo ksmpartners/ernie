@@ -26,6 +26,12 @@ public enum JobStatus {
     FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM,
     /** Report definition does not support requested output format */
     FAILED_UNSUPPORTED_FORMAT,
+    /** A required parameter was not supplied */
+    FAILED_PARAMETER_NULL,
+    /** A supplied parameter value was the wrong data type */
+    FAILED_INVALID_PARAMETER_VALUES,
+    /** A parameter in the definition has an unsupported data type */
+    FAILED_UNSUPPORTED_PARAMETER_TYPE,
     /** Job was deleted */
     DELETED,
     /** Job does not exist */

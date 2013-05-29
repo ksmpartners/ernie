@@ -12,7 +12,7 @@ import java.io._
 import report._
 import java.net.URL
 import org.testng.Assert
-import com.ksmpartners.ernie.model.{ DefinitionEntity, ReportType, JobStatus }
+import com.ksmpartners.ernie.model.{ ParameterEntity, DefinitionEntity, ReportType, JobStatus }
 import org.joda.time.DateTime
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import org.slf4j.{ LoggerFactory, Logger }
@@ -36,7 +36,7 @@ class ActorsTest {
       fis = new FileInputStream(file)
       val byteArr = new Array[Byte](file.length().asInstanceOf[Int])
       fis.read(byteArr)
-      reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null))
+      reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null, null))
       coordinator = new Coordinator(reportManager) with TestReportGeneratorFactory
       coordinator.start()
     } finally {
@@ -51,7 +51,7 @@ class ActorsTest {
 
   @Test
   def canRequestReportAndRetrieveStatus() {
-    val resp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]
+    val resp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String])).asInstanceOf[ReportResponse]
     val statusResp = (coordinator !? StatusRequest(resp.jobId)).asInstanceOf[StatusResponse]
     Assert.assertNotSame(statusResp.jobStatus, JobStatus.NO_SUCH_JOB)
   }
@@ -64,14 +64,14 @@ class ActorsTest {
 
   @Test
   def canRequestJobMap() {
-    val resp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]
+    val resp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String])).asInstanceOf[ReportResponse]
     val jobMapResp = (coordinator !? JobsListRequest()).asInstanceOf[JobsListResponse]
     Assert.assertTrue(jobMapResp.jobsList.contains(resp.jobId.toString))
   }
 
   @Test
   def canGetResult() {
-    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]
+    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String])).asInstanceOf[ReportResponse]
     while ((coordinator !? StatusRequest(rptResp.jobId)).asInstanceOf[StatusResponse].jobStatus != JobStatus.COMPLETE) {
       // peg coordinator until job is complete
     }
@@ -84,7 +84,7 @@ class ActorsTest {
   @Test
   def jobWithoutRetentionDateUsesDefault() {
 
-    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None)).asInstanceOf[ReportResponse]
+    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String])).asInstanceOf[ReportResponse]
     val defaultRetentionDate = DateTime.now().plusDays(reportManager.getDefaultRetentionDays)
 
     while ((coordinator !? StatusRequest(rptResp.jobId)).asInstanceOf[StatusResponse].jobStatus != JobStatus.COMPLETE) {
@@ -125,7 +125,8 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     List("test_def")
   }
 
-  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int]) {
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int]) = runReport(defId, rptId, rptType, retentionDays, Map.empty[String, String])
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int], reportParameters: scala.collection.Map[String, String]) {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
     var entity = new mutable.HashMap[String, Any]()

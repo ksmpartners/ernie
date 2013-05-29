@@ -32,6 +32,7 @@ import net.liftweb.http.GoneResponse
 import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JBool
 import scala.xml.NodeSeq
+import scala.collection.JavaConversions.asJavaCollection
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
@@ -227,7 +228,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   private var testJobHTMLID: Long = -1L
   private var testJobCSVID: Long = -1L
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-53")))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-104")))
   @Test
   def canPostJob() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -244,10 +245,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
-
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
       testJobID = reportResponse.getJobId()
       Assert.assertTrue(testJobID > -1L)
+      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Location", req.hostAndPath + "/jobs/" + testJobID)))
     }
   }
 

@@ -8,9 +8,10 @@
 package com.ksmpartners.ernie.engine
 
 import com.ksmpartners.ernie.model.{ DeleteStatus, ReportType, JobStatus }
+import scala.collection.immutable
 
 /** Request that the report defId be generated resulting in an output of type rptType */
-case class ReportRequest(defId: String, rptType: ReportType, retentionPeriod: Option[Int])
+case class ReportRequest(defId: String, rptType: ReportType, retentionPeriod: Option[Int], reportParameters: immutable.Map[String, String])
 /** The response to the given ReportRequest */
 case class ReportResponse(jobId: Long, jobStatus: JobStatus, req: ReportRequest)
 /** Request the resulting file for the given jobId */
@@ -38,7 +39,7 @@ case class JobsListRequest()
 /** The response to the given JobsListRequest */
 case class JobsListResponse(jobsList: Array[String], req: JobsListRequest)
 /** Request that the definition defId be generated into a rptType document */
-case class JobRequest(defId: String, rptType: ReportType, jobId: Long, retentionPeriod: Option[Int])
+case class JobRequest(defId: String, rptType: ReportType, jobId: Long, retentionPeriod: Option[Int], reportParameters: immutable.Map[String, String])
 /** The response(s) associated with the given JobRequest */
 case class JobResponse(jobStatus: JobStatus, rptId: Option[String], req: JobRequest)
 /** Request that the Actor be shut down */
