@@ -45,7 +45,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
     log.debug("in act()")
     loop {
       react {
-        case req@ReportRequest(rptId, rptType, retentionOption) => {
+        case req@ReportRequest(rptId, rptType, retentionOption, reportParameters) => {
           val jobId = generateJobId()
           jobIdToResultMap += (jobId -> new JobEntity(jobId, rptId, JobStatus.IN_PROGRESS, rptType))
           reportManager.getDefinition(rptId).map(m => if ((m.getEntity.getUnsupportedReportTypes != null) && m.getEntity.getUnsupportedReportTypes.contains(rptType)) {
@@ -63,7 +63,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
             else if (retentionDate.isAfter(DateTime.now().plusDays(reportManager.getMaximumRetentionDays))) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM, req)
             else {
               sender ! ReportResponse(jobId, JobStatus.IN_PROGRESS, req)
-              worker ! JobRequest(rptId, rptType, jobId, retentionOption)
+              worker ! JobRequest(rptId, rptType, jobId, retentionOption, reportParameters)
             }
           })
         }
@@ -177,13 +177,25 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
     log.debug("in act()")
     loop {
       react {
-        case req@JobRequest(defId, rptType, jobId, retentionOption) => {
+        case req@JobRequest(defId, rptType, jobId, retentionOption, reportParameters) => {
           sender ! JobResponse(JobStatus.IN_PROGRESS, None, req)
           var resultStatus = JobStatus.COMPLETE
           var rptId: Option[String] = None
           try {
-            rptId = Some(runReport(defId, jobId, rptType, retentionOption))
+            rptId = Some(runReport(defId, jobId, rptType, retentionOption, reportParameters))
           } catch {
+            case ex: ParameterNullException => {
+              log.error("Caught exception while generating report: {}", ex.getMessage)
+              resultStatus = JobStatus.FAILED_PARAMETER_NULL
+            }
+            case ex: InvalidParameterValuesException => {
+              log.error("Caught exception while generating report: {}", ex.getMessage)
+              resultStatus = JobStatus.FAILED_INVALID_PARAMETER_VALUES
+            }
+            case ex: UnsupportedDataTypeException => {
+              log.error("Caught exception while generating report: {}", ex.getMessage)
+              resultStatus = JobStatus.FAILED_UNSUPPORTED_PARAMETER_TYPE
+            }
             case ex: ReportManager.RetentionDateAfterMaximumException => {
               log.error("Caught exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM
@@ -220,10 +232,10 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
     this
   }
 
-  private def runReport(defId: String, jobId: Long, rptType: ReportType, retentionOption: Option[Int]): String = {
+  private def runReport(defId: String, jobId: Long, rptType: ReportType, retentionOption: Option[Int], reportParameters: immutable.Map[String, String]): String = {
     log.debug("Running report {} for jobId {}...", defId, jobId)
     val rptId = "REPORT_" + jobId
-    rptGenerator.runReport(defId, rptId, rptType, retentionOption)
+    rptGenerator.runReport(defId, rptId, rptType, retentionOption, reportParameters)
     log.debug("Done running report {} for jobId {}...", defId, jobId)
     rptId
   }

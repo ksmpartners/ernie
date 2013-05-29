@@ -35,7 +35,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   @BeforeTest
   def setup() {
     val byteArr = Array[Byte](1, 2, 3)
-    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null))
+    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null, null))
   }
 
   @AfterTest
@@ -153,7 +153,8 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     List("def_1")
   }
 
-  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int]) {
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int]) = runReport(defId, rptId, rptType, retentionDays, Map.empty[String, String])
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int], reportParameters: scala.collection.Map[String, String]) {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
     var entity = new mutable.HashMap[String, Any]()

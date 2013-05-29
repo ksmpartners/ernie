@@ -24,18 +24,20 @@ public class DefinitionEntity extends ModelObject {
     private String defId;
     private String createdUser;
     private List<String> paramNames;
+    private List<ParameterEntity> params;
     private String defDescription;
     private List<ReportType> unsupportedReportTypes;
 
     public DefinitionEntity() {}
 
-    public DefinitionEntity(DateTime createdDate, String defId, String createdUser, List<String> paramNames, String defDescription, List<ReportType> unsupportedReportTypes) {
+    public DefinitionEntity(DateTime createdDate, String defId, String createdUser, List<String> paramNames, String defDescription, List<ReportType> unsupportedReportTypes, List<ParameterEntity> params) {
         this.createdDate = createdDate;
         this.defId = defId;
         this.createdUser = createdUser;
         this.paramNames = paramNames;
         this.defDescription = defDescription;
         this.unsupportedReportTypes = unsupportedReportTypes;
+        this.params = params;
     }
 
     @JsonSerialize(using = ISODateSerializer.class)
@@ -86,5 +88,13 @@ public class DefinitionEntity extends ModelObject {
 
     public void setUnsupportedReportTypes(List<ReportType> unsupportedReportTypes) {
         this.unsupportedReportTypes = unsupportedReportTypes;
+    }
+
+    public List<ParameterEntity> getParams() {
+        return this.params;
+    }
+
+    public void setParams(List<ParameterEntity> params) {
+        this.params = params;
     }
 }
