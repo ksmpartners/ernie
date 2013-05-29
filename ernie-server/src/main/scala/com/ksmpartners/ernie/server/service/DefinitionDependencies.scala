@@ -84,6 +84,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       val response = (coordinator !? engine.DeleteDefinitionRequest(defId)).asInstanceOf[engine.DeleteDefinitionResponse]
       if (response.deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteDefinitionResponse(response.deleteStatus))
       else if (response.deleteStatus == DeleteStatus.NOT_FOUND) Full(NotFoundResponse("Definition not found"))
+      else if (response.deleteStatus == DeleteStatus.FAILED_IN_USE) Full(ConflictResponse())
       else Full(BadResponse())
     }
     def put(defId: String, req: net.liftweb.http.Req) = {
@@ -106,11 +107,10 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
     }
   }
 
-  case class ConflictResponse() extends LiftResponse with HeaderDefaults {
-    def toResponse = InMemoryResponse(Array(), headers, cookies, 409)
-  }
-
   case class DefinitionCreatedResponse() extends LiftResponse with HeaderDefaults {
     def toResponse = InMemoryResponse(Array(), headers, cookies, 201)
   }
+}
+case class ConflictResponse() extends LiftResponse with HeaderDefaults {
+  def toResponse = InMemoryResponse(Array(), headers, cookies, 409)
 }

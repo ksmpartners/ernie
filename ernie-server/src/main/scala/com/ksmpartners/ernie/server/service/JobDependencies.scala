@@ -50,13 +50,12 @@ trait JobDependencies extends RequiresCoordinator
         val req = deserialize(body.open_!, classOf[model.ReportRequest])
         val response = (coordinator !? engine.ReportRequest(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays),
           { val params: collection.immutable.Map[String, String] = if (req.getReportParameters != null) req.getReportParameters.toMap else Map.empty[String, String]; params })).asInstanceOf[engine.ReportResponse]
-        if (response.jobStatus == JobStatus.IN_PROGRESS)
-          getJsonResponse(new model.ReportResponse(response.jobId, response.jobStatus), 201, List(("Location", hostAndPath + "/jobs/" + response.jobId)))
-        else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM)
+        if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM)
           Full(ResponseWithReason(BadResponse(), "Retention date exceeds maximum"))
         else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_PAST)
           Full(ResponseWithReason(BadResponse(), "Retention date before request time"))
-        else Full(BadResponse())
+        else
+          getJsonResponse(new model.ReportResponse(response.jobId, response.jobStatus), 201, List(("Location", hostAndPath + "/jobs/" + response.jobId)))
       } catch {
         case e: IOException => {
           log.error("Caught exception while handling request: {}", e.getMessage)

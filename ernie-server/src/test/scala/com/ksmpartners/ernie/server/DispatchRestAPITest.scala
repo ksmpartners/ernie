@@ -33,6 +33,7 @@ import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JBool
 import scala.xml.NodeSeq
 import scala.collection.JavaConversions.asJavaCollection
+import com.ksmpartners.ernie.server.service.ConflictResponse
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
@@ -396,7 +397,21 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-120")))
   @Test(dependsOnMethods = Array("canPostJob"))
+  def cantDeleteInUseDef() {
+    val mockReq = new MockWriteAuthReq("/defs/test_def")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ConflictResponse])
+    }
+  }
+
+  @Test(dependsOnMethods = Array("cantDeleteInUseDef"))
   def canCompleteJob() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
 
