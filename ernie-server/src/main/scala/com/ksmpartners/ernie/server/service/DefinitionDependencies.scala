@@ -69,7 +69,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
         val defEntity = defEnt.get.getEntity
         getJsonResponse(defEntity)
       } else {
-        Full(BadResponse())
+        Full(NotFoundResponse())
       }
     }
     /* def del(defId: String) = try {

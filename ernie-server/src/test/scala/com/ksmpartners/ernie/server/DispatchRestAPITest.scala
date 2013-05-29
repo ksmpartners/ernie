@@ -742,6 +742,20 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-96")))
+  @Test
+  def cantGetDefDetailForNonExistentReportDef() {
+    val mockReq = new MockReadAuthReq("/defs/invalid_def")
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI.apply(req).apply()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotFoundResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 404)
+    }
+  }
+
   @TestSpecs(Array(new TestSpec(key = "ERNIE-80")))
   @Test
   def canGetDefDetail() {
