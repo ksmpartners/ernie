@@ -29,8 +29,8 @@
 [x]** Find framework for REST API testing
 [x]** JaCoCo for code coverage reports
 [ ]** Finalize test process/standards
-[ ]*** Unit tests
-[ ]**** Minimum code coverage
+[x]*** Unit tests
+[x]**** Minimum code coverage
 [x]*** System tests
 [x]---> Not needed. Can cover REST with unit tests
 [x]* Initial state
@@ -65,7 +65,7 @@
 [x]* Split filesystem management into new class ReportManager
 [x]** Look into CAS frameworks for Java/Scala
 [x]*** Use standard file structure for storing definitions/results
-[ ]* Look into BIRT .rptdesign validation
+[x]* Look into BIRT .rptdesign validation
 [x]* Add CSV generation to ReportGenerator (CSV Emitter for BIRT)
 [x]** Verify CSV generation package meets license standards
 [x]--> Uses Eclipse Public License
