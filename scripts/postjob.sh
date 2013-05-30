@@ -9,8 +9,8 @@ echo "time that the report output should be retained for future download when re
 echo "report be run."
 echo ""
 echo ""
-$2 | tr '[:lower:]' '[:upper:]' > $d
-curl -v -X POST -d '{"defId":"'$1'","rptType":"'$2'","retentionDays":'$3',"reportParameters":null}' -H "Content-type: application/json" --header "Accept: application/vnd.ksmpartners.ernie+json" --header "Authorization: SAML tVdbc7JMEr73V1i+lynDQVGxolXDyYCCQRGjN1scRkA5yQxC/PWLmFgxm7yb3arviuqe7qef7p5D\
+rptType=$(echo $2 | tr '[:lower:]' '[:upper:]') 
+curl -v -X POST -d '{"defId":"'$1'","rptType":"'$rptType'","retentionDays":'$3',"reportParameters":null}' -H "Content-type: application/json" --header "Accept: application/vnd.ksmpartners.ernie+json" --header "Authorization: SAML tVdbc7JMEr73V1i+lynDQVGxolXDyYCCQRGjN1scRkA5yQxC/PWLmFgxm7yb3arviuqe7qef7p5D\
 84SsKKSHACGY4SCJm2UUxmhYa0etPIuHiYUCNIytCKIhdoZLoM6G9CM5tD5cWu8+JRq1fIzTIUEU\
 RfFYdB6TzCNokqSIV3W2dHwYWa2mLIxagfsv1iUHDNPvtPuW2213O123zbIU2+6xvV5nZ7GVQFbG\
 COVQjhG2Yjxq0STVaZPdNt0zqMGQYodk95Fm2W2racIMVUwqk0eyNX665lQ7Z+Pr54m4Uz65aLgM\

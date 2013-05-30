@@ -1,5 +1,9 @@
 #!/bin/sh
-
+echo "#########################		ERNIE-9 Delete all job output on demand	######################### "
+echo "As a Client Application Developer, I want to be able to delete all report output from the server for "
+echo "a specific job on demand."
+echo ""
+echo ""
 curl -v -X DELETE --header "Accept: application/vnd.ksmpartners.ernie+json" --header "Authorization: SAML tVdbc7JMEr73V1i+lynDQVGxolXDyYCCQRGjN1scRkA5yQxC/PWLmFgxm7yb3arviuqe7qef7p5D\84SsKKSHACGY4SCJm2UUxmhYa0etPIuHiYUCNIytCKIhdoZLoM6G9CM5tD5cWu8+JRq1fIzTIUEU\
 RfFYdB6TzCNokqSIV3W2dHwYWa2mLIxagfsv1iUHDNPvtPuW2213O123zbIU2+6xvV5nZ7GVQFbG\
 COVQjhG2Yjxq0STVaZPdNt0zqMGQYodk95Fm2W2racIMVUwqk0eyNX665lQ7Z+Pr54m4Uz65aLgM\
