@@ -321,6 +321,25 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @Test
+  def cantPostJobWithInvalidDefID() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("INVALID_DEF")
+    mockReportReq.setRptType(ReportType.HTML)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
+      Assert.assertEquals(resp.open_!.asInstanceOf[ResponseWithReason].reason, "No such definition ID")
+    }
+  }
+
   @TestSpecs(Array(new TestSpec(key = "ERNIE-55")))
   @Test
   def cantPostJobWithoutJSONRequest() {
