@@ -12,6 +12,7 @@ import http.LiftRules
 import http.provider.HTTPRequest
 import com.ksmpartners.ernie.server.DispatchRestAPI
 import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.server.service.ServiceRegistry
 
 /**
  * A class that's instantiated early and run.  It allows the application

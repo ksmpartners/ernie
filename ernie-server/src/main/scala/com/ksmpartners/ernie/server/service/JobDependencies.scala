@@ -18,6 +18,7 @@ import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.JsonTranslator
 import com.ksmpartners.ernie.model.{ DeleteStatus, JobStatus }
 import com.ksmpartners.ernie.server.service.JobDependencies._
+import com.ksmpartners.ernie.engine.{ PurgeResponse, PurgeRequest }
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
@@ -47,15 +48,18 @@ trait JobDependencies extends RequiresCoordinator
      */
     def post(body: Box[Array[Byte]], hostAndPath: String): Box[LiftResponse] = {
       try {
-        val req = deserialize(body.open_!, classOf[model.ReportRequest])
-        val response = (coordinator !? engine.ReportRequest(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays),
-          { val params: collection.immutable.Map[String, String] = if (req.getReportParameters != null) req.getReportParameters.toMap else Map.empty[String, String]; params })).asInstanceOf[engine.ReportResponse]
-        if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM)
-          Full(ResponseWithReason(BadResponse(), "Retention date exceeds maximum"))
-        else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_PAST)
-          Full(ResponseWithReason(BadResponse(), "Retention date before request time"))
-        else
-          getJsonResponse(new model.ReportResponse(response.jobId, response.jobStatus), 201, List(("Location", hostAndPath + "/jobs/" + response.jobId)))
+        if (body.isEmpty) Full(BadResponse())
+        else {
+          val req = deserialize(body.open_!, classOf[model.ReportRequest])
+          val response = (coordinator !? engine.ReportRequest(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays),
+            { val params: collection.immutable.Map[String, String] = if (req.getReportParameters != null) req.getReportParameters.toMap else Map.empty[String, String]; params })).asInstanceOf[engine.ReportResponse]
+          if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM)
+            Full(ResponseWithReason(BadResponse(), "Retention date exceeds maximum"))
+          else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_PAST)
+            Full(ResponseWithReason(BadResponse(), "Retention date before request time"))
+          else
+            getJsonResponse(new model.ReportResponse(response.jobId, response.jobStatus), 201, List(("Location", hostAndPath + "/jobs/" + response.jobId)))
+        }
       } catch {
         case e: IOException => {
           log.error("Caught exception while handling request: {}", e.getMessage)
@@ -65,6 +69,11 @@ trait JobDependencies extends RequiresCoordinator
     }
     def post(body: Box[Array[Byte]]): Box[LiftResponse] = post(body, "")
     def post(req: Req): Box[LiftResponse] = post(req.body, req.hostAndPath)
+
+    def purge() = {
+      val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
+      Full(OkResponse)
+    }
   }
 
   /**
