@@ -95,7 +95,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
           val defEnt: DefinitionEntity = deserialize(req.header("DefinitionEntity").open_!, classOf[DefinitionEntity]).asInstanceOf[DefinitionEntity]
           val bAIS = new ByteArrayInputStream(req.body.open_!)
           if (!BirtReportGenerator.isValidDefinition(bAIS)) Full(BadResponse())
-          else if (!reportManager.getAllDefinitionIds.contains(defEnt.getDefId)) Full(NotFoundResponse())
+          else if (!reportManager.getAllDefinitionIds.contains(defId)) Full(NotFoundResponse())
           else {
             reportManager.updateDefinition(defId, defEnt).write(req.body.open_!)
             getJsonResponse(defEnt, 201)

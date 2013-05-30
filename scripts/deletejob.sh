@@ -1,6 +1,6 @@
 #!/bin/sh
 
-wget --header "Accept: application/vnd.ksmpartners.ernie+json" --header "Authorization: SAML tVdbc7JMEr73V1i+lynDQVGxolXDyYCCQRGjN1scRkA5yQxC/PWLmFgxm7yb3arviuqe7qef7p5D\84SsKKSHACGY4SCJm2UUxmhYa0etPIuHiYUCNIytCKIhdoZLoM6G9CM5tD5cWu8+JRq1fIzTIUEU\
+curl -v -X DELETE --header "Accept: application/vnd.ksmpartners.ernie+json" --header "Authorization: SAML tVdbc7JMEr73V1i+lynDQVGxolXDyYCCQRGjN1scRkA5yQxC/PWLmFgxm7yb3arviuqe7qef7p5D\84SsKKSHACGY4SCJm2UUxmhYa0etPIuHiYUCNIytCKIhdoZLoM6G9CM5tD5cWu8+JRq1fIzTIUEU\
 RfFYdB6TzCNokqSIV3W2dHwYWa2mLIxagfsv1iUHDNPvtPuW2213O123zbIU2+6xvV5nZ7GVQFbG\
 COVQjhG2Yjxq0STVaZPdNt0zqMGQYodk95Fm2W2racIMVUwqk0eyNX665lQ7Z+Pr54m4Uz65aLgM\
 vNjCeQbf+bs/8ScJkiUqGxcF3p/WzRe6crxLapG34iQOHCsMztalJCrEfuI2QeglWYD96MfCUOQF\
@@ -24,4 +24,5 @@ yutBIj4fsbsj+PGqLnN7Dx38IV5uXVloStWlaOGfBwbqkao1gdve1aZ1zHesC0Zr/C58PNRX4PGH\
 +CUsn8RucHlpUVNLMAcrUPi3AaEymsfzDOwwzGq77rd2xAc+yLEfL3FVoQjGuFmLf51DGIrctu68\
 K4oYlvg7HR9Ww1N1dY//Ol85Q+diB6/9+SjEtzjfLd4rb7nc+GCcBXaO4c8rzUsPRi2YxQFcJCFs\
 /YdFfS/fxr/gv89/7aAuogOroREFQ/yWwst7O0QVYOy1xhm03Bvvuyj/fOyier7hT8G/qn8qVl4N\
-xdf9/I/z3SMnwfj3hImfG098+QsY/xs=" http://localhost:8080/defs
+xdf9/I/z3SMnwfj3hImfG098+QsY/xs=" http://localhost:8080/jobs/$1/result
+
