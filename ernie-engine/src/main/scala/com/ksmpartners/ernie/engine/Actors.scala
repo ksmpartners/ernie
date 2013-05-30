@@ -68,6 +68,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
               }
             })
           } else {
+            jobIdToResultMap += (jobId -> new JobEntity(jobId, rptId, JobStatus.FAILED_NO_SUCH_DEFINITION, rptType))
             sender ! ReportResponse(jobId, JobStatus.FAILED_NO_SUCH_DEFINITION, req)
           }
         }
