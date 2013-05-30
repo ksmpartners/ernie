@@ -57,6 +57,8 @@ trait JobDependencies extends RequiresCoordinator
             Full(ResponseWithReason(BadResponse(), "Retention date exceeds maximum"))
           else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_PAST)
             Full(ResponseWithReason(BadResponse(), "Retention date before request time"))
+          else if (response.jobStatus == JobStatus.FAILED_NO_SUCH_DEFINITION)
+            Full(ResponseWithReason(BadResponse(), "No such definition ID"))
           else
             getJsonResponse(new model.ReportResponse(response.jobId, response.jobStatus), 201, List(("Location", hostAndPath + "/jobs/" + response.jobId)))
         }

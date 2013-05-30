@@ -47,25 +47,29 @@ class Coordinator(reportManager: ReportManager) extends Actor {
       react {
         case req@ReportRequest(rptId, rptType, retentionOption, reportParameters) => {
           val jobId = generateJobId()
-          jobIdToResultMap += (jobId -> new JobEntity(jobId, rptId, JobStatus.IN_PROGRESS, rptType))
-          reportManager.getDefinition(rptId).map(m => if ((m.getEntity.getUnsupportedReportTypes != null) && m.getEntity.getUnsupportedReportTypes.contains(rptType)) {
-            try {
-              jobIdToResultMap += (jobId -> jobIdToResultMap.get(jobId).map(je => { je.setJobStatus(JobStatus.FAILED_UNSUPPORTED_FORMAT); je }).get)
-            } catch {
-              case e: NoSuchElementException => {
-                log.error("Caught exception while running report: {}", e.getMessage)
+          if (reportManager.getDefinition(rptId).isDefined) {
+            jobIdToResultMap += (jobId -> new JobEntity(jobId, rptId, JobStatus.IN_PROGRESS, rptType))
+            reportManager.getDefinition(rptId).map(m => if ((m.getEntity.getUnsupportedReportTypes != null) && m.getEntity.getUnsupportedReportTypes.contains(rptType)) {
+              try {
+                jobIdToResultMap += (jobId -> jobIdToResultMap.get(jobId).map(je => { je.setJobStatus(JobStatus.FAILED_UNSUPPORTED_FORMAT); je }).get)
+              } catch {
+                case e: NoSuchElementException => {
+                  log.error("Caught exception while running report: {}", e.getMessage)
+                }
               }
-            }
-            sender ! ReportResponse(jobId, JobStatus.FAILED_UNSUPPORTED_FORMAT, req)
+              sender ! ReportResponse(jobId, JobStatus.FAILED_UNSUPPORTED_FORMAT, req)
+            } else {
+              val retentionDate = DateTime.now().plusDays(retentionOption getOrElse reportManager.getDefaultRetentionDays)
+              if (retentionDate.isBefore(DateTime.now()) || retentionDate.isEqual(DateTime.now())) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_PAST, req)
+              else if (retentionDate.isAfter(DateTime.now().plusDays(reportManager.getMaximumRetentionDays))) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM, req)
+              else {
+                sender ! ReportResponse(jobId, JobStatus.IN_PROGRESS, req)
+                worker ! JobRequest(rptId, rptType, jobId, retentionOption, reportParameters)
+              }
+            })
           } else {
-            val retentionDate = DateTime.now().plusDays(retentionOption getOrElse reportManager.getDefaultRetentionDays)
-            if (retentionDate.isBefore(DateTime.now()) || retentionDate.isEqual(DateTime.now())) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_PAST, req)
-            else if (retentionDate.isAfter(DateTime.now().plusDays(reportManager.getMaximumRetentionDays))) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM, req)
-            else {
-              sender ! ReportResponse(jobId, JobStatus.IN_PROGRESS, req)
-              worker ! JobRequest(rptId, rptType, jobId, retentionOption, reportParameters)
-            }
-          })
+            sender ! ReportResponse(jobId, JobStatus.FAILED_NO_SUCH_DEFINITION, req)
+          }
         }
         case req@DeleteRequest(jobId) => {
           if (jobIdToResultMap.contains(jobId)) {

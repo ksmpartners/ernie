@@ -32,6 +32,8 @@ public enum JobStatus {
     FAILED_INVALID_PARAMETER_VALUES,
     /** A parameter in the definition has an unsupported data type */
     FAILED_UNSUPPORTED_PARAMETER_TYPE,
+    /** The specified definition ID does not exist */
+    FAILED_NO_SUCH_DEFINITION,
     /** Job was deleted */
     DELETED,
     /** Job does not exist */
