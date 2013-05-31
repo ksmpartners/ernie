@@ -30,6 +30,7 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
     case req@Req(jobId :: "status" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.jobStatusResource.get(jobId)
     case req@Req(jobId :: "result" :: Nil, _, GetRequest) => (authFilter(req, readRole)_) apply ServiceRegistry.jobResultsResource.get(jobId, Full(req))
     case req@Req(jobId :: "result" :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.jobResultsResource.del(jobId)
+    case req@Req("expired" :: Nil, _, DeleteRequest) => (authFilter(req,writeRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.jobsResource.purge(req)
   })
 
   serve("defs" :: Nil prefix {
