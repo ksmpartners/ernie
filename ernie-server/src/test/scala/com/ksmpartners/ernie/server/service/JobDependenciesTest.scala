@@ -40,7 +40,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
 
   @AfterTest
   def shutdown() {
-    coordinator !? ShutDownRequest()
+    coordinator !? (timeout, ShutDownRequest())
   }
 
   @Test

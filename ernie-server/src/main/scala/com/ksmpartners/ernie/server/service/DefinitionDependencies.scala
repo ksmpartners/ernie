@@ -81,11 +81,15 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       }
     }*/
     def del(defId: String) = {
-      val response = (coordinator !? engine.DeleteDefinitionRequest(defId)).asInstanceOf[engine.DeleteDefinitionResponse]
-      if (response.deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteDefinitionResponse(response.deleteStatus))
-      else if (response.deleteStatus == DeleteStatus.NOT_FOUND) Full(NotFoundResponse("Definition not found"))
-      else if (response.deleteStatus == DeleteStatus.FAILED_IN_USE) Full(ConflictResponse())
-      else Full(BadResponse())
+      val respOpt = (coordinator !? (timeout, engine.DeleteDefinitionRequest(defId))).asInstanceOf[Option[engine.DeleteDefinitionResponse]]
+      if (respOpt.isEmpty) Full(TimeoutResponse())
+      else {
+        val response = respOpt.get
+        if (response.deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteDefinitionResponse(response.deleteStatus))
+        else if (response.deleteStatus == DeleteStatus.NOT_FOUND) Full(NotFoundResponse("Definition not found"))
+        else if (response.deleteStatus == DeleteStatus.FAILED_IN_USE) Full(ConflictResponse())
+        else Full(BadResponse())
+      }
     }
     def put(defId: String, req: net.liftweb.http.Req) = {
 
