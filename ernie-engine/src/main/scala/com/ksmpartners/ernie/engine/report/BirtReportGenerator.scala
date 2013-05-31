@@ -171,11 +171,14 @@ object BirtReportGenerator {
    */
   def isValidDefinition(is: InputStream): Boolean = try {
     if (engine == null) {
+      log.debug("Could not validate, engine not started.")
       return false
     }
     engine.openReportDesign(is)
     true
   } catch {
-    case e: Exception => false
+    case e: Exception =>
+      log.debug("Caught exception while validating definition: {}", e)
+      false
   }
 }
