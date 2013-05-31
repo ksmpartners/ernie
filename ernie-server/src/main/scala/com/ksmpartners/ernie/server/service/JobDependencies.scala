@@ -82,7 +82,7 @@ trait JobDependencies extends RequiresCoordinator
 
     def purge() = {
       val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
-      Full(OkResponse)
+      Full(OkResponse())
     }
   }
 
