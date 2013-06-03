@@ -44,6 +44,7 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
   serve {
     case req => {
       log.error("Got unknown request: {}", req)
+      log.debug("Response: Not Found Response.")
       () => Full(NotFoundResponse())
     }
   }
@@ -56,7 +57,10 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
    * @return the function f, or a ForbiddenResponse if the user is not in the specified role
    */
   private def authFilter(req: Req, role: String)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = {
-    if (isUserInRole(req, role)) f else () => Full(ForbiddenResponse("User is not authorized to perform that action"))
+    if (isUserInRole(req, role)) f else () => {
+      log.debug("Response: Forbidden Response. Reason: User is not authorized to perform that action")
+      Full(ForbiddenResponse("User is not authorized to perform that action"))
+    }
   }
 
   /**
@@ -66,7 +70,10 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
    * @return the function f, or a NotAcceptableResponse if the user does not accept the correct ctype
    */
   private def ctypeFilter(req: Req)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = {
-    if (acceptsErnieJson(req)) f else () => Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_FULL))
+    if (acceptsErnieJson(req)) f else () => {
+      log.debug("Response: Not Acceptable Response. Reason: Resource only serves " + ModelObject.TYPE_FULL)
+      Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_FULL))
+    }
   }
 
   def shutdown() {
