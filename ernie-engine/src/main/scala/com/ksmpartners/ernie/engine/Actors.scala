@@ -26,6 +26,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
   private lazy val worker: Worker = new Worker(getReportGenerator(reportManager))
   //private val jobIdToResultMap = new mutable.HashMap[Long, (JobStatus, Option[String] /* rptId */ )]()
   private val jobIdToResultMap = new mutable.HashMap[Long, JobEntity]() /* rptId */ //    public JobEntity(Long jobId, String rptId, JobStatus jobStatus, String defId) {
+  private var timeout: Long = 1000L
 
   override def start(): Actor = {
     log.debug("in start()")
@@ -153,7 +154,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
             })
         }
         case ShutDownRequest() => {
-          worker !? ShutDownRequest()
+          worker !? (timeout, ShutDownRequest())
           sender ! ShutDownResponse()
           exit()
         }
@@ -163,6 +164,10 @@ class Coordinator(reportManager: ReportManager) extends Actor {
   }
 
   private var currJobId = System.currentTimeMillis
+
+  def setTimeout(t: Long) {
+    timeout = t
+  }
 
   private def generateJobId(): Long = {
     currJobId += 1
