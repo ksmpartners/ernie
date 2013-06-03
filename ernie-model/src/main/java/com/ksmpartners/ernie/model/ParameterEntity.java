@@ -21,13 +21,13 @@ import java.util.List;
 public class ParameterEntity extends ModelObject {
 
     private String paramName;
-    private Integer dataType;
+    private String dataType;
     private Boolean allowNull;
     private String defaultValue;
 
     public ParameterEntity() {}
 
-    public ParameterEntity(String paramName, Integer dataType, Boolean allowNull, String defaultValue) {
+    public ParameterEntity(String paramName, String dataType, Boolean allowNull, String defaultValue) {
         this.paramName = paramName;
         this.dataType = dataType;
         this.allowNull = allowNull;
@@ -50,11 +50,11 @@ public class ParameterEntity extends ModelObject {
         this.defaultValue = defaultValue;
     }
 
-    public Integer getDataType() {
+    public String getDataType() {
         return dataType;
     }
 
-    public void setDataType(Integer dataType) {
+    public void setDataType(String dataType) {
         this.dataType = dataType;
     }
 

@@ -54,11 +54,13 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
         entity += (ReportManager.createdUser -> "default")
         entity += (ReportManager.retentionDate -> DateTime.now().plusDays(retentionDate getOrElse (reportManager.getDefaultRetentionDays)))
         var rptParams: Map[String, Any] = reportParameters
+        //Ensure all parameter values are supported by the definition
         reportParameters.foreach(param => reportManager.getDefinition(defId).get.getEntity.getParams.toList.find(p => p.getParamName == param._1) match {
           case Some(paramEntity) => rptParams += (paramEntity.getParamName -> stringToBirtParamData(param._2, paramEntity))
         })
         val entParams = reportManager.getDefinition(defId).get.getEntity.getParams
-        if (entParams != null) entParams.toList.foreach(param => if (!rptParams.contains(param.getParamName)) rptParams += (param.getParamName -> stringToBirtParamData(null, param)))
+        if (entParams != null) entParams.toList.foreach(param =>
+          if (!rptParams.contains(param.getParamName)) rptParams += (param.getParamName -> stringToBirtParamData(param.getDefaultValue, param)))
         entity += (ReportManager.paramMap -> rptParams)
         try_(reportManager.putReport(entity)) { rptOutputStream =>
           runReport(defInputStream, rptOutputStream, rptType, rptParams)
@@ -68,16 +70,17 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
   }
 
   def stringToBirtParamData(data: String = null, param: ParameterEntity): Any = {
-    if ((data == null) && (!param.getAllowNull)) throw new ParameterNullException(param.getParamName);
-    else param.getDataType.toInt match {
-      case TYPE_BOOLEAN => data.toBoolean
-      case TYPE_DATE => Date.parse(data)
-      case TYPE_DATE_TIME => DateTime.parse(data)
-      case TYPE_DECIMAL => data.toDouble
-      case TYPE_FLOAT => data.toFloat
-      case TYPE_INTEGER => data.toInt.asInstanceOf[Integer]
-      case TYPE_STRING => data
-      case TYPE_TIME => Time.valueOf(data)
+    if (((data == null) || (data == "")) && (!param.getAllowNull)) throw new ParameterNullException(param.getParamName);
+    else param.getDataType match { //TODO: do not hardcode data type names. http://www.eclipse.org/birt/ref/rom/elements/ScalarParameter.html#Property-dataType
+      case "boolean" => data.toBoolean
+      case "date" => Date.parse(data)
+      case "dateTime" => DateTime.parse(data)
+      case "decimal" => data.toDouble
+      case "float" => data.toFloat
+      case "integer" => data.toInt.asInstanceOf[Integer]
+      case "string" => data
+      case "time" => Time.valueOf(data)
+      case "any" => data
       case _ => throw new UnsupportedDataTypeException(param.getParamName)
     }
   }
@@ -180,5 +183,8 @@ object BirtReportGenerator {
     case e: Exception =>
       log.debug("Caught exception while validating definition: {}", e)
       false
+    case e: Exception => {
+      false
+    }
   }
 }
