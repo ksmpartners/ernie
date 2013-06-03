@@ -35,6 +35,9 @@ import scala.xml.NodeSeq
 import scala.collection.JavaConversions.asJavaCollection
 import com.ksmpartners.ernie.server.service.ConflictResponse
 
+import com.ksmpartners.ernie.engine.PurgeResponse
+import com.ksmpartners.ernie.engine.PurgeRequest
+
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   var outputDir: File = null
@@ -51,6 +54,52 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @BeforeClass
   def setup() {
     outputDir = new File(properties.get("output.dir").toString)
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-127")))
+  @Test
+  def cantPurgeReportResultsWithoutWriteAuth() {
+    val mockReq = new MockNoAuthReq("/jobs/expired")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-129")))
+  @Test
+  def canPurgeReportResults() {
+    val mockReq = new MockWriteAuthReq("/jobs/expired")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[OkResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-131")))
+  @Test
+  def cantPurgeReportResultsWithoutJSONRequest() {
+    val mockReq = new MockWriteAuthReq("/jobs/expired")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
   }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-87")))
