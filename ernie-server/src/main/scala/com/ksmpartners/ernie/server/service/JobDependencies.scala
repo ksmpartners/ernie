@@ -35,8 +35,10 @@ trait JobDependencies extends RequiresCoordinator
      */
     def get(uriPrefix: String) = {
       val respOpt = (coordinator !? (timeout, engine.JobsListRequest())).asInstanceOf[Option[engine.JobsListResponse]]
-      if (respOpt.isEmpty) Full(TimeoutResponse())
-      else {
+      if (respOpt.isEmpty) {
+        log.debug("Response: Timeout Response.")
+        Full(TimeoutResponse())
+      } else {
         val response = respOpt.get
         val jobsMap: util.Map[String, String] = new util.HashMap
         response.jobsList.foreach({ jobId =>
@@ -52,27 +54,35 @@ trait JobDependencies extends RequiresCoordinator
      */
     def post(body: Box[Array[Byte]], hostAndPath: String): Box[LiftResponse] = {
       try {
-        if (body.isEmpty) Full(BadResponse())
-        else {
+        if (body.isEmpty) {
+          log.debug("Response: Bad Response. Reason: Undefined byte array")
+          Full(BadResponse())
+        } else {
           val req = deserialize(body.open_!, classOf[model.ReportRequest])
           val respOpt = (coordinator !? (timeout, engine.ReportRequest(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays),
             { val params: collection.immutable.Map[String, String] = if (req.getReportParameters != null) req.getReportParameters.toMap else Map.empty[String, String]; params }))).asInstanceOf[Option[engine.ReportResponse]]
-          if (respOpt.isEmpty) Full(TimeoutResponse())
-          else {
+          if (respOpt.isEmpty) {
+            log.debug("Response: Timeout Response.")
+            Full(TimeoutResponse())
+          } else {
             val response = respOpt.get
-            if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM)
+            if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM) {
+              log.debug("Response: Bad Response. Reason: Retention date exceeds maximum")
               Full(ResponseWithReason(BadResponse(), "Retention date exceeds maximum"))
-            else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_PAST)
+            } else if (response.jobStatus == JobStatus.FAILED_RETENTION_DATE_PAST) {
+              log.debug("Response: Bad Response. Reason: Retention date before request time")
               Full(ResponseWithReason(BadResponse(), "Retention date before request time"))
-            else if (response.jobStatus == JobStatus.FAILED_NO_SUCH_DEFINITION)
+            } else if (response.jobStatus == JobStatus.FAILED_NO_SUCH_DEFINITION) {
+              log.debug("Response: Bad Response. Reason: No such definition ID")
               Full(ResponseWithReason(BadResponse(), "No such definition ID"))
-            else
+            } else
               getJsonResponse(new model.ReportResponse(response.jobId, response.jobStatus), 201, List(("Location", hostAndPath + "/jobs/" + response.jobId)))
           }
         }
       } catch {
         case e: IOException => {
           log.error("Caught exception while handling request: {}", e.getMessage)
+          log.debug("Response: Bad Response. Reason: Exception thrown in post request")
           Full(BadResponse())
         }
       }
@@ -82,6 +92,7 @@ trait JobDependencies extends RequiresCoordinator
 
     def purge(): Box[LiftResponse] = {
       val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
+      log.debug("Response: Ok Response.")
       Full(OkResponse())
     }
   }
@@ -95,11 +106,15 @@ trait JobDependencies extends RequiresCoordinator
      */
     def get(jobId: String) = {
       val respOpt = (coordinator !? (timeout, engine.StatusRequest(jobId.toLong))).asInstanceOf[Option[engine.StatusResponse]]
-      if (respOpt.isEmpty) Full(TimeoutResponse())
-      else {
+      if (respOpt.isEmpty) {
+        log.debug("Response: Timeout Response.")
+        Full(TimeoutResponse())
+      } else {
         val response = respOpt.get
-        if (response.jobStatus == JobStatus.DELETED) Full(GoneResponse())
-        else getJsonResponse(new model.StatusResponse(response.jobStatus))
+        if (response.jobStatus == JobStatus.DELETED) {
+          log.debug("Response: Gone Response.")
+          Full(GoneResponse())
+        } else getJsonResponse(new model.StatusResponse(response.jobStatus))
       }
     }
   }
@@ -119,16 +134,26 @@ trait JobDependencies extends RequiresCoordinator
      */
     def get(jobId: String, req: Box[Req]): Box[LiftResponse] = {
       val statusRespOpt = (coordinator !? (timeout, engine.StatusRequest(jobId.toLong))).asInstanceOf[Option[engine.StatusResponse]]
-      if (statusRespOpt.isEmpty) Full(TimeoutResponse())
-      else {
+      if (statusRespOpt.isEmpty) {
+        log.debug("Response: Timeout Response")
+        Full(TimeoutResponse())
+      } else {
         val statusResponse = statusRespOpt.get
-        if (statusResponse.jobStatus == JobStatus.DELETED) Full(GoneResponse())
-        else if (statusResponse.jobStatus == JobStatus.NO_SUCH_JOB) Full(NotFoundResponse())
-        else if (statusResponse.jobStatus != JobStatus.COMPLETE) Full(BadResponse())
-        else {
+        if (statusResponse.jobStatus == JobStatus.DELETED) {
+          log.debug("Response: Gone Response")
+          Full(GoneResponse())
+        } else if (statusResponse.jobStatus == JobStatus.NO_SUCH_JOB) {
+          log.debug("Response: Not Found Response:")
+          Full(NotFoundResponse())
+        } else if (statusResponse.jobStatus != JobStatus.COMPLETE) {
+          log.debug("Response: Bad Response. Reason: Get attempted on incomplete job.")
+          Full(BadResponse())
+        } else {
           val respOpt = (coordinator !? (timeout, engine.ResultRequest(jobId.toLong))).asInstanceOf[Option[engine.ResultResponse]]
-          if (respOpt.isEmpty) Full(TimeoutResponse())
-          else {
+          if (respOpt.isEmpty) {
+            log.debug("Response: Timeout Response")
+            Full(TimeoutResponse())
+          } else {
             val response = respOpt.get
             if (response.rptId.isDefined) {
               val rptId = response.rptId.get
@@ -141,13 +166,19 @@ trait JobDependencies extends RequiresCoordinator
                   ("Content-Length" -> fileStream.available.toString) ::
                   ("Content-Disposition" -> ("attachment; filename=\"" + fileName + "\"")) :: Nil
 
-              if (!req.isEmpty && !req.open_!.headers.contains(("Accept", header(0)._2))) Full(NotAcceptableResponse("Resource only serves " + report.getReportType.toString))
-              else Full(StreamingResponse(
-                fileStream,
-                () => { fileStream.close() }, // On end method.
-                fileStream.available,
-                header, Nil, 200))
+              if (!req.isEmpty && !req.open_!.headers.contains(("Accept", header(0)._2))) {
+                log.debug("Response: Not Acceptable Response. Reason: Resource only serves " + report.getReportType.toString)
+                Full(NotAcceptableResponse("Resource only serves " + report.getReportType.toString))
+              } else {
+                log.debug("Response: Streaming Response.")
+                Full(StreamingResponse(
+                  fileStream,
+                  () => { fileStream.close() }, // On end method.
+                  fileStream.available,
+                  header, Nil, 200))
+              }
             } else {
+              log.debug("Response: Bad Response. Reason: Report ID is undefined.")
               Full(BadResponse())
             }
           }
@@ -160,12 +191,22 @@ trait JobDependencies extends RequiresCoordinator
      */
     def del(jobId: String): Box[LiftResponse] = {
       val respOpt = (coordinator !? (timeout, engine.DeleteRequest(jobId.toLong))).asInstanceOf[Option[engine.DeleteResponse]]
-      if (respOpt.isEmpty) Full(TimeoutResponse())
-      else {
+      if (respOpt.isEmpty) {
+        log.debug("Response: Timeout Response")
+        Full(TimeoutResponse())
+      } else {
         val response = respOpt.get
         if (response.deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteResponse(response.deleteStatus))
-        else if (response.deleteStatus == DeleteStatus.NOT_FOUND) Full(NotFoundResponse("Job ID not found"))
-        else Full(BadResponse())
+        else if (response.deleteStatus == DeleteStatus.NOT_FOUND) {
+          log.debug("Response: Not Found Response. Reason: Job ID not found")
+          Full(NotFoundResponse("Job ID not found"))
+        } else if (response.deleteStatus == DeleteStatus.FAILED_IN_USE) {
+          log.debug("Response: Conflict Response")
+          Full(ConflictResponse())
+        } else {
+          log.debug("Response: Bad Response. Reason: Definition deletion failed")
+          Full(BadResponse())
+        }
       }
     }
   }
