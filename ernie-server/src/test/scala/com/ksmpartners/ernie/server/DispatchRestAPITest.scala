@@ -71,7 +71,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-103")))
+  /* @TestSpecs(Array(new TestSpec(key = "ERNIE-103")))
   @Test
   def cantReplaceReportDefsForInvalidDefFile() {
     val mockReq = new MockWriteAuthReq("/defs/test_def2")
@@ -92,7 +92,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.open_!.isInstanceOf[BadResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 400)
     }
-  }
+  }  */
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-85")))
   @Test
@@ -864,13 +864,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val defEnt = new DefinitionEntity()
     defEnt.setCreatedUser("default")
     defEnt.setDefId("test_def2")
-    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
-
-    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
-
-    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
-
-    mockReq.body = scala.xml.XML.loadFile(file)
+    mockReq.body = DispatchRestAPI.serialize(defEnt).getBytes
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
@@ -889,15 +883,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-48"), new TestSpec(key = "ERNIE-100"), new TestSpec(key = "ERNIE-101")))
   @Test(dependsOnMethods = Array("canPostDefs"))
   def canPutDefs() {
-    val mockReq = new MockWriteAuthReq("/defs/test_def2")
+    val mockReq = new MockWriteAuthReq("/defs/test_def2/rptdesign")
     mockReq.method = "PUT"
 
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
-
-    val defEnt = new DefinitionEntity()
-    defEnt.setCreatedUser("default2")
-    defEnt.setDefId("test_def2")
-    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
 
     mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
 
@@ -914,7 +903,43 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
 
       val defEntRsp: DefinitionEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DefinitionEntity])
-      Assert.assertEquals(defEntRsp.getCreatedUser, "default2")
+
+      Assert.assertEquals(defEntRsp.getDefId, "test_def2")
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-135")))
+  @Test(dependsOnMethods = Array("canPutDefs"))
+  def canPutDefsWithParams() {
+    val mockReq = new MockWriteAuthReq("/defs/test_def2/rptdesign")
+    mockReq.method = "PUT"
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
+
+    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def_params.rptdesign").getPath)
+
+    mockReq.body = scala.xml.XML.loadFile(file)
+    log.info("putting params def " + file.getAbsolutePath)
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+
+      Assert.assertEquals(resp.open_!.toResponse.code, 201)
+
+      val defEntRsp: DefinitionEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DefinitionEntity])
+
+      Assert.assertEquals(defEntRsp.getDefId, "test_def2")
+
+      val params = defEntRsp.getParams
+
+      Assert.assertTrue(params != null)
+
+      Assert.assertTrue(params.size > 0)
+
+      Assert.assertEquals(params.get(0).getParamName, "MinQuantityInStock")
+
     }
   }
 
@@ -966,17 +991,12 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-56")))
-  @Test
-  def invalidDefinitionPostReturns400() {
-    val mockReq = new MockWriteAuthReq("/defs")
-    mockReq.method = "POST"
+  @Test(dependsOnMethods = Array("canPostDefs"))
+  def invalidDefinitionPutReturns400() {
+    val mockReq = new MockWriteAuthReq("/defs/test_def2/rptdesign")
+    mockReq.method = "PUT"
 
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
-
-    val defEnt = new DefinitionEntity()
-    defEnt.setCreatedUser("default")
-    defEnt.setDefId("test_def2")
-    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
 
     mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
 
@@ -988,7 +1008,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
       Assert.assertEquals(resp.open_!.toResponse.code, 400)
 
-      Assert.assertTrue(resp.open_!.isInstanceOf[BadResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
 
     }
   }
@@ -1004,13 +1024,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val defEnt = new DefinitionEntity()
     defEnt.setCreatedUser("default")
     defEnt.setDefId("test_def2")
-    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
-
-    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
-
-    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
-
-    mockReq.body = scala.xml.XML.loadFile(file)
+    mockReq.body = DispatchRestAPI.serialize(defEnt).getBytes
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
@@ -1034,13 +1048,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val defEnt = new DefinitionEntity()
     defEnt.setCreatedUser("default")
     defEnt.setDefId("test_def2")
-    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
-
-    mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
-
-    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath)
-
-    mockReq.body = scala.xml.XML.loadFile(file)
+    mockReq.body = DispatchRestAPI.serialize(defEnt).getBytes
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
@@ -1056,15 +1064,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-98")))
   @Test
   def cantPutDefsWithoutWriteAuth() {
-    val mockReq = new MockNoAuthReq("/defs/test_def2")
+    val mockReq = new MockNoAuthReq("/defs/test_def2/rptdesign")
     mockReq.method = "PUT"
 
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
-
-    val defEnt = new DefinitionEntity()
-    defEnt.setCreatedUser("default")
-    defEnt.setDefId("test_def2")
-    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
 
     mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
 
@@ -1086,15 +1089,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-102")))
   @Test
   def cantPutDefsWithoutJSONRequest() {
-    val mockReq = new MockWriteAuthReq("/defs/test_def2")
+    val mockReq = new MockWriteAuthReq("/defs/test_def2/rptdesign")
     mockReq.method = "PUT"
 
     mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
-
-    val defEnt = new DefinitionEntity()
-    defEnt.setCreatedUser("default")
-    defEnt.setDefId("test_def2")
-    mockReq.headers += ("DefinitionEntity" -> List(DispatchRestAPI.serialize(defEnt)))
 
     mockReq.headers += ("Content-Type" -> List("application/rptdesign+xml"))
 
