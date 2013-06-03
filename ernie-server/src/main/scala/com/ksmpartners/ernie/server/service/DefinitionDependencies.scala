@@ -38,22 +38,39 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       getJsonResponse(new model.ReportDefinitionMapResponse(defMap))
     }
     def post(req: net.liftweb.http.Req) = {
+      var ctype = ""
+      var defEntString = ""
+      req.headers.foreach({ tup =>
+        if (tup._1.equalsIgnoreCase("Content-Type"))
+          ctype = tup._2
+        else if (tup._1.equalsIgnoreCase("DefinitionEntity"))
+          defEntString = tup._2
+      })
 
-      if (!req.headers.contains(("Content-Type", "application/rptdesign+xml"))) Full(ResponseWithReason(BadResponse(), "Unacceptable Content-Type"))
-      else if (req.headers.find(f => f._1 == "DefinitionEntity").isDefined) {
+      if (!ctype.contains("application/rptdesign+xml")) {
+        log.debug("Request has wrong content type")
+        Full(ResponseWithReason(BadResponse(), "Unacceptable Content-Type"))
+      } else if (!defEntString.isEmpty) {
         try {
           val defEnt: DefinitionEntity = deserialize(req.header("DefinitionEntity").open_!, classOf[DefinitionEntity]).asInstanceOf[DefinitionEntity]
-          if (!BirtReportGenerator.isValidDefinition(new ByteArrayInputStream(req.body.open_!))) Full(BadResponse())
-          else if (reportManager.getAllDefinitionIds.contains(defEnt.getDefId)) {
+          if (!BirtReportGenerator.isValidDefinition(new ByteArrayInputStream(req.body.open_!))) {
+            log.debug("Invalid def")
+            Full(BadResponse())
+          } else if (reportManager.getAllDefinitionIds.contains(defEnt.getDefId)) {
             Full(ConflictResponse())
           } else {
             reportManager.putDefinition(defEnt).write(req.body.open_!)
             getJsonResponse(defEnt, 201, List(("Location", req.hostAndPath + "/defs/" + defEnt.getDefId)))
           }
         } catch {
-          case e: Exception => Full(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity header"))
+          case e: Exception =>
+            log.debug("Caught exception while handling POST {}", e)
+            Full(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity header"))
         }
-      } else Full(ResponseWithReason(BadResponse(), "No DefinitionEntity header"))
+      } else {
+        log.debug("No DefinitionEntity header")
+        Full(ResponseWithReason(BadResponse(), "No DefinitionEntity header"))
+      }
     }
   }
 
