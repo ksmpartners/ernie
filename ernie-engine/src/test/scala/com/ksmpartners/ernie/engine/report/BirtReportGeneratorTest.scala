@@ -65,15 +65,15 @@ class BirtReportGeneratorTest {
 
   @Test
   def canValidateReportDefinition() {
-    var result = true
+    var result = false
     var file = new File(Thread.currentThread.getContextClassLoader.getResource("test_def.rptdesign").getPath)
     try {
-      result = result && BirtReportGenerator.isValidDefinition(new FileInputStream(file))
+      result = BirtReportGenerator.isValidDefinition(new FileInputStream(file))
     }
     Assert.assertTrue(result)
     try {
       file = File.createTempFile("fail_def", ".rptdesign")
-      result = result && BirtReportGenerator.isValidDefinition(new FileInputStream(file))
+      result = BirtReportGenerator.isValidDefinition(new FileInputStream(file))
     }
     Assert.assertFalse(result)
   }

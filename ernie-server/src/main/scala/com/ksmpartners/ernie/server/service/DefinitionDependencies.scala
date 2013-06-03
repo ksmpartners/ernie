@@ -12,11 +12,12 @@ import java.util
 import net.liftweb.common.{ Box, Full }
 import net.liftweb.http._
 import com.ksmpartners.ernie.server.JsonTranslator
-import com.ksmpartners.ernie.model.{ DeleteStatus, DefinitionEntity, JobStatus }
+import com.ksmpartners.ernie.model.{ ParameterEntity, DeleteStatus, DefinitionEntity, JobStatus }
 import java.io.{ ByteArrayInputStream, IOException }
-import scala.collection.mutable
+import scala.collection.{ JavaConversions, mutable }
 import com.ksmpartners.ernie.engine.report.{ Definition, BirtReportGenerator, ReportManager }
 import net.liftweb.http.BadResponse
+import scala.collection.JavaConversions._
 import net.liftweb.common.Full
 import org.slf4j.{ LoggerFactory, Logger }
 
@@ -116,16 +117,44 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
           val defEnt = defOpt.get.getEntity
           try {
             val bAIS = new ByteArrayInputStream(req.body.open_!)
+<<<<<<< HEAD
             if (!BirtReportGenerator.isValidDefinition(bAIS)) {
               log.debug("Response: Bad Response. Reason: Malformed report design")
               Full(ResponseWithReason(BadResponse(), "Malformed report design"))
             } else {
+=======
+
+            if (!BirtReportGenerator.isValidDefinition(bAIS)) Full(ResponseWithReason(BadResponse(), "Unable to validate report design"))
+            else {
+
+              val rptDesign = scala.xml.XML.load(new ByteArrayInputStream(req.body.open_!))
+
+              var paramList: java.util.List[ParameterEntity] = if (defEnt.getParams == null) new java.util.ArrayList[ParameterEntity]() else defEnt.getParams
+
+              (rptDesign \\ "parameters").foreach(f => f.child.foreach(g => {
+                var param = new ParameterEntity()
+                param.setParamName((g \ "@name").text)
+                g.child.foreach(prop => (prop \ "@name").text match {
+                  case "allowBlank" => param.setAllowNull(prop.text == "true")
+                  case "dataType" => param.setDataType(prop.text)
+                  case "defaultValue" => param.setDefaultValue(prop.text)
+                  case _ =>
+                })
+                if ((param.getParamName != "") && (param.getDataType != "") && (param.getDefaultValue != "") && (param.getAllowNull != "")) paramList.add(param)
+              }))
+
+              defEnt.setParams(paramList)
+
+              defEnt.getParams.toList.foreach(f => log.info(f.getParamName))
+
               reportManager.updateDefinition(defId, defEnt).write(req.body.open_!)
               getJsonResponse(defEnt, 201)
             }
           } catch {
             case e: Exception => {
+
               log.debug("Response: Bad Response. Reason: Malformed report design")
+
               Full(ResponseWithReason(BadResponse(), "Malformed report design"))
             }
           }

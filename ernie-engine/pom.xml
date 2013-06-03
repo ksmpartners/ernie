@@ -26,7 +26,7 @@
         <dependency>
             <groupId>org.eclipse.birt.runtime</groupId>
             <artifactId>org.eclipse.birt.runtime</artifactId>
-            <version>4.2.0</version>
+            <version>4.2.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
