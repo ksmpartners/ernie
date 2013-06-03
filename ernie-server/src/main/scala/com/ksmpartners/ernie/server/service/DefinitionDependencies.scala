@@ -99,12 +99,12 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
           log.debug("Response: Conflict Response")
           Full(ConflictResponse())
         } else {
-          log.debug("Response: Bad Response. Reason: Definition deletion failed.") ***
+          log.debug("Response: Bad Response. Reason: Definition deletion failed.")
           Full(BadResponse())
         }
       }
     }
-    def put(defId: String, req: net.liftweb.http.Req) = {
+    def put(defId: String, req: net.liftweb.http.Req): Box[LiftResponse] = {
       if (req.body.isEmpty) {
         log.debug("Response: Bad Response. Reason: No report design in request body")
         Full(ResponseWithReason(BadResponse(), "No report design in request body"))
@@ -117,16 +117,11 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
           val defEnt = defOpt.get.getEntity
           try {
             val bAIS = new ByteArrayInputStream(req.body.open_!)
-<<<<<<< HEAD
+
             if (!BirtReportGenerator.isValidDefinition(bAIS)) {
-              log.debug("Response: Bad Response. Reason: Malformed report design")
-              Full(ResponseWithReason(BadResponse(), "Malformed report design"))
+              log.debug("Response: Bad Response. Reason: Unable to validate report design")
+              Full(ResponseWithReason(BadResponse(), "Unable to validate report design"))
             } else {
-=======
-
-            if (!BirtReportGenerator.isValidDefinition(bAIS)) Full(ResponseWithReason(BadResponse(), "Unable to validate report design"))
-            else {
-
               val rptDesign = scala.xml.XML.load(new ByteArrayInputStream(req.body.open_!))
 
               var paramList: java.util.List[ParameterEntity] = if (defEnt.getParams == null) new java.util.ArrayList[ParameterEntity]() else defEnt.getParams
@@ -151,7 +146,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
               getJsonResponse(defEnt, 201)
             }
           } catch {
-            case e: Exception => {
+            case _ => {
 
               log.debug("Response: Bad Response. Reason: Malformed report design")
 
