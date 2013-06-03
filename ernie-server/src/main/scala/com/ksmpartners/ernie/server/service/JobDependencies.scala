@@ -72,9 +72,9 @@ trait JobDependencies extends RequiresCoordinator
     def post(body: Box[Array[Byte]]): Box[LiftResponse] = post(body, "")
     def post(req: Req): Box[LiftResponse] = post(req.body, req.hostAndPath)
 
-    def purge() = {
+    def purge(): Box[LiftResponse] = {
       val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
-      Full(OkResponse)
+      Full(OkResponse())
     }
   }
 
