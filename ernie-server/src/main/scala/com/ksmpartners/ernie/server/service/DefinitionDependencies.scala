@@ -88,6 +88,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       }
     }*/
     def del(defId: String) = {
+
       val respOpt = (coordinator !? (timeout, engine.DeleteDefinitionRequest(defId))).asInstanceOf[Option[engine.DeleteDefinitionResponse]]
       if (respOpt.isEmpty) {
         log.debug("Response: Timeout Response.")
@@ -145,12 +146,10 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
                   case "defaultValue" => param.setDefaultValue(prop.text)
                   case _ =>
                 })
-                if ((param.getParamName != "") && (param.getDataType != "") && (param.getDefaultValue != "") && (param.getAllowNull != "")) paramList.add(param)
+                if ((param.getParamName != "") && (param.getDataType != "") && (param.getDefaultValue != "") && (param.getAllowNull != null)) paramList.add(param)
               }))
 
               defEnt.setParams(paramList)
-
-              defEnt.getParams.toList.foreach(f => log.info(f.getParamName))
 
               reportManager.updateDefinition(defId, defEnt).write(req.body.open_!)
               getJsonResponse(defEnt, 201)

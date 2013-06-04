@@ -1,31 +1,29 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Written by Eclipse BIRT 1.0 -->
-<report xmlns=" http://www.eclipse.org/birt/2005/design" version="1">
-    <property name="createdBy">Eclipse BIRT Designer Version 1.0.0 Build &lt;20050405-1230></property>
+<report version="1" xmlns=" http://www.eclipse.org/birt/2005/design">
+    <property name="createdBy">Eclipse BIRT Designer Version 1.0.0 Build &lt;20050405-1230&gt;</property>
     <property name="units">in</property>
     <styles>
-        <style name="report"/>
-        <style name="label"/>
-        <style name="text"/>
-        <style name="data"/>
-        <style name="table"/>
-        <style name="grid"/>
-        <style name="list"/>
-        <style name="image"/>
+        <style name="report"></style>
+        <style name="label"></style>
+        <style name="text"></style>
+        <style name="data"></style>
+        <style name="table"></style>
+        <style name="grid"></style>
+        <style name="list"></style>
+        <style name="image"></style>
     </styles>
     <page-setup>
         <simple-master-page name="Simple MasterPage">
             <page-header>
                 <grid>
                     <property name="width">100%</property>
-                    <column/>
+                    <column></column>
                     <row>
                         <cell>
                             <property name="fontSize">xx-large</property>
                             <property name="fontWeight">bold</property>
                             <property name="textAlign">center</property>
                             <text>
-                                <text-property name="content"><![CDATA[Title]]></text-property>
+                                <text-property name="content">Title</text-property>
                             </text>
                         </cell>
                     </row>

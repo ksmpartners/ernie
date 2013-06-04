@@ -1001,7 +1001,6 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val mockReq = new MockNoAuthReq("/defs/test_def2")
     mockReq.method = "DELETE"
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
-
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
@@ -1029,6 +1028,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-97")))
   @Test
   def cantDeleteDefsWithoutCorrectAcceptHeader() {
+
     val mockReq = new MockWriteAuthReq("/defs/test_def2")
     mockReq.method = "DELETE"
 
@@ -1160,6 +1160,120 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
       Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
 
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-133")))
+  @Test(dependsOnMethods = Array("canPutDefsWithParams"))
+  def cantPostJobWithInvalidParamDataTypes() {
+    var mockReq: MockHttpServletRequest = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def2")
+    mockReportReq.setRptType(ReportType.PDF)
+    val rptParams: java.util.HashMap[String, String] = new java.util.HashMap[String, String]()
+    rptParams.put("MinQuantityInStock", "string data")
+    mockReportReq.setReportParameters(rptParams)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
+    var testParamsJobID = -1L
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 201)
+      val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
+      testParamsJobID = reportResponse.getJobId()
+      Assert.assertTrue(testParamsJobID > -1L)
+    }
+
+    mockReq = new MockReadAuthReq("/jobs/" + testParamsJobID + "/status")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    var jobRunning = true
+    val end = System.currentTimeMillis + (1000 * 5)
+    while (jobRunning && (System.currentTimeMillis < end)) {
+      MockWeb.testReq(mockReq) { req =>
+        val resp = DispatchRestAPI(req)()
+        resp.map(r =>
+          if (r.isInstanceOf[PlainTextResponse])
+            if (DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus != JobStatus.IN_PROGRESS) {
+            jobRunning = false
+            Assert.assertTrue(DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.FAILED_INVALID_PARAMETER_VALUES)
+          })
+      }
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-133")))
+  @Test(dependsOnMethods = Array("canPutDefsWithParams"))
+  def cantPostJobWithoutNonNullParam() {
+    var mockReq: MockHttpServletRequest = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def2")
+    mockReportReq.setRptType(ReportType.PDF)
+
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
+    var testParamsJobID = -1L
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 201)
+      val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
+      testParamsJobID = reportResponse.getJobId()
+      Assert.assertTrue(testParamsJobID > -1L)
+    }
+
+    mockReq = new MockReadAuthReq("/jobs/" + testParamsJobID + "/status")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    var jobRunning = true
+    val end = System.currentTimeMillis + (1000 * 5)
+    while (jobRunning && (System.currentTimeMillis < end)) {
+      MockWeb.testReq(mockReq) { req =>
+        val resp = DispatchRestAPI(req)()
+        resp.map(r =>
+          if (r.isInstanceOf[PlainTextResponse])
+            if (DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus != JobStatus.IN_PROGRESS) {
+            jobRunning = false
+            Assert.assertTrue(DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.FAILED_PARAMETER_NULL)
+          })
+      }
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-134")))
+  @Test(dependsOnMethods = Array("canPutDefsWithParams"))
+  def canPostJobWithParams() {
+    val mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def2")
+    mockReportReq.setRptType(ReportType.PDF)
+    val rptParams: java.util.HashMap[String, String] = new java.util.HashMap[String, String]()
+    rptParams.put("MinQuantityInStock", "500")
+    mockReportReq.setReportParameters(rptParams)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 201)
+      val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
+      val testParamsJobID = reportResponse.getJobId()
+      Assert.assertTrue(testParamsJobID > -1L)
+      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Location", req.hostAndPath + "/jobs/" + testParamsJobID)))
     }
   }
 

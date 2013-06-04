@@ -229,11 +229,17 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
               log.error("Caught exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_UNSUPPORTED_FORMAT
             }
+            case ex: ClassCastException => {
+              log.error("Caught exception while generating report: {}", ex.getMessage)
+              resultStatus = JobStatus.FAILED_INVALID_PARAMETER_VALUES
+            }
             case ex: Exception => {
               log.error("Caught exception while generating report: {}", ex.getMessage)
+              log.error(ex.getStackTraceString)
               resultStatus = JobStatus.FAILED
             }
           }
+
           sender ! JobResponse(resultStatus, rptId, req)
         }
         case ShutDownRequest() => {

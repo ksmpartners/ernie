@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.engine.report
 
 import java.io.{ OutputStream, InputStream }
 import scala.collection._
-import com.ksmpartners.ernie.model.{ ReportType, ReportEntity, DefinitionEntity }
+import com.ksmpartners.ernie.model.{ ParameterEntity, ReportType, ReportEntity, DefinitionEntity }
 import com.ksmpartners.ernie.engine.report.ReportManager._
 import java.util
 import org.joda.time.DateTime
@@ -122,6 +122,7 @@ object ReportManager {
   val createdUser = "createdUser"
   val paramNames = "paramNames"
   val paramMap = "paramMap"
+  val params = "params"
   val description = "description"
   val retentionDate = "retentionDate"
   val reportType = "fileType"
@@ -166,6 +167,15 @@ object ReportManager {
         paramList.add(param)
       }
       defEnt.setParamNames(paramList)
+    }
+
+    if (entity.contains(params)) {
+      val paramMap = entity.get(params).get.asInstanceOf[List[ParameterEntity]]
+      val paramList = new util.ArrayList[ParameterEntity]()
+      for (param <- paramMap) {
+        paramList.add(param)
+      }
+      defEnt.setParams(paramList)
     }
 
     if (entity.contains(unsupportedReportTypes)) {

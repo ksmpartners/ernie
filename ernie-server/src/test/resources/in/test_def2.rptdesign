@@ -1,7 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Written by Eclipse BIRT 1.0 -->
-<report xmlns=" http://www.eclipse.org/birt/2005/design" version="2">
-    <property name="createdBy">Eclipse BIRT Designer Version 1.0.1 Build &lt;20050729-0746></property>
+<report version="2" xmlns=" http://www.eclipse.org/birt/2005/design">
+    <property name="createdBy">Eclipse BIRT Designer Version 1.0.1 Build &lt;20050729-0746&gt;</property>
     <property name="units">in</property>
     <list-property name="configVars">
         <structure>
@@ -17,14 +15,14 @@
             <property name="allowBlank">false</property>
             <property name="format">Unformatted</property>
             <property name="controlType">text-box</property>
-          <!--  <expression name="defaultValue">1000</expression>!-->
+          
         </scalar-parameter>
     </parameters>
     <data-sources>
-        <oda-data-source extensionID="org.eclipse.birt.report.data.oda.sampledb" name="Classic Models"/>
+        <oda-data-source name="Classic Models" extensionID="org.eclipse.birt.report.data.oda.sampledb"></oda-data-source>
     </data-sources>
     <data-sets>
-        <oda-data-set extensionID="org.eclipse.birt.report.data.oda.jdbc.JdbcSelectDataSet" name="Products List">
+        <oda-data-set name="Products List" extensionID="org.eclipse.birt.report.data.oda.jdbc.JdbcSelectDataSet">
             <property name="dataSource">Classic Models</property>
             <list-property name="parameters">
                 <structure>
@@ -48,7 +46,7 @@
             <page-footer>
                 <text>
                     <property name="contentType">html</property>
-                    <text-property name="content"><![CDATA[<value-of>new Date()</value-of>]]></text-property>
+                    <text-property name="content">&lt;value-of&gt;new Date()&lt;/value-of&gt;</text-property>
                 </text>
             </page-footer>
         </simple-master-page>
@@ -78,7 +76,7 @@
                         <property name="borderTopColor">#808080</property>
                         <property name="borderTopStyle">solid</property>
                         <property name="borderTopWidth">thin</property>
-                        <expression name="uri">"http://download1.eclipse.org/birt/downloads/examples/images/ClassicLogo.jpg"</expression>
+                        <expression name="uri">&quot;http://download1.eclipse.org/birt/downloads/examples/images/ClassicLogo.jpg&quot;</expression>
                     </image>
                 </cell>
                 <cell>
@@ -94,9 +92,9 @@
                     <text>
                         <property name="fontFamily">sans-serif</property>
                         <property name="contentType">html</property>
-                        <text-property name="content"><![CDATA[701 Gateway Boulevard,<BR>
-San Francisco, CA 94107<BR>
-<BR>]]></text-property>
+                        <text-property name="content">701 Gateway Boulevard,&lt;BR&gt;
+San Francisco, CA 94107&lt;BR&gt;
+&lt;BR&gt;</text-property>
                     </text>
                     <label>
                         <property name="fontFamily">sans-serif</property>
@@ -106,7 +104,7 @@ San Francisco, CA 94107<BR>
                     </label>
                     <data>
                         <property name="fontFamily">sans-serif</property>
-                        <expression name="valueExpr">"Products with quantity in stock &lt; " + params["MinQuantityInStock"]</expression>
+                        <expression name="valueExpr">&quot;Products with quantity in stock &lt; &quot; + params[&quot;MinQuantityInStock&quot;]</expression>
                     </data>
                 </cell>
             </row>
@@ -126,12 +124,12 @@ San Francisco, CA 94107<BR>
             <list-property name="paramBindings">
                 <structure>
                     <property name="paramName">quantity_in_stock</property>
-                    <expression name="expression">params["MinQuantityInStock"]</expression>
+                    <expression name="expression">params[&quot;MinQuantityInStock&quot;]</expression>
                 </structure>
             </list-property>
-            <column/>
-            <column/>
-            <column/>
+            <column></column>
+            <column></column>
+            <column></column>
             <header>
                 <row>
                     <property name="backgroundColor">#FFFF80</property>
@@ -172,7 +170,7 @@ San Francisco, CA 94107<BR>
                         <structure>
                             <property name="operator">lt</property>
                             <property name="backgroundColor">#FF0000</property>
-                            <expression name="testExpr">row["QUANTITYINSTOCK"]</expression>
+                            <expression name="testExpr">row[&quot;QUANTITYINSTOCK&quot;]</expression>
                             <expression name="value1">100</expression>
                         </structure>
                     </list-property>
@@ -188,7 +186,7 @@ San Francisco, CA 94107<BR>
                                     <expression name="value1">0</expression>
                                 </structure>
                             </list-property>
-                            <expression name="valueExpr">row["PRODUCTNAME"]</expression>
+                            <expression name="valueExpr">row[&quot;PRODUCTNAME&quot;]</expression>
                         </data>
                     </cell>
                     <cell>
@@ -203,7 +201,7 @@ San Francisco, CA 94107<BR>
                                     <expression name="value1">0</expression>
                                 </structure>
                             </list-property>
-                            <expression name="valueExpr">row["PRODUCTVENDOR"]</expression>
+                            <expression name="valueExpr">row[&quot;PRODUCTVENDOR&quot;]</expression>
                         </data>
                     </cell>
                     <cell>
@@ -217,16 +215,16 @@ San Francisco, CA 94107<BR>
                                     <expression name="value1">0</expression>
                                 </structure>
                             </list-property>
-                            <expression name="valueExpr">row["QUANTITYINSTOCK"]</expression>
+                            <expression name="valueExpr">row[&quot;QUANTITYINSTOCK&quot;]</expression>
                         </data>
                     </cell>
                 </row>
             </detail>
             <footer>
                 <row>
-                    <cell/>
-                    <cell/>
-                    <cell/>
+                    <cell></cell>
+                    <cell></cell>
+                    <cell></cell>
                 </row>
             </footer>
         </table>

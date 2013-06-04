@@ -87,7 +87,6 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   def purgeTest() {
 
     val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
-    purgeResp.purgedRptIds.foreach(f => log.info(f))
     Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_2"))
     Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_4"))
     Assert.assertFalse(purgeResp.purgedRptIds.contains("REPORT_1"))

@@ -133,10 +133,15 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     val defEnt = if (entity.isLeft) createDefinitionEntity(entity.left.get) else entity.right.get
     val defId = defEnt.getDefId
     val defEntFile = new File(rptDefDir, defId + ".entity")
+    defEntFile.delete
+    defEntFile.createNewFile
+
     try_(new FileOutputStream(defEntFile, false)) { fos =>
       mapper.writeValue(fos, defEnt)
     }
+
     definitionEntities += (defId -> defEnt)
+
     if (!entityOnly) {
       val file = new File(rptDefDir, defId + ".rptdesign")
       log.info("Updating definition: {}", file)
