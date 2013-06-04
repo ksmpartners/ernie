@@ -35,6 +35,7 @@ import com.ksmpartners.ernie.engine.ShutDownRequest
 import com.ksmpartners.ernie.engine.PurgeResponse
 import net.liftweb.http.BadResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
+import org.specs2.time.TimeConversions._
 
 class JobDependenciesTest extends JobDependencies with JsonTranslator {
 
@@ -154,11 +155,11 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
 
     var statusRespBox = jobStatusResource.get(rptResp.getJobId.toString).open_!.asInstanceOf[PlainTextResponse]
     var statusResp = deserialize(statusRespBox.text, classOf[model.StatusResponse])
-    while (statusResp.getJobStatus != JobStatus.COMPLETE) {
+    val end = System.currentTimeMillis + (1000 * 5)
+    while ((statusResp.getJobStatus != JobStatus.COMPLETE) && (System.currentTimeMillis() < end)) {
       statusRespBox = jobStatusResource.get(rptResp.getJobId.toString).open_!.asInstanceOf[PlainTextResponse]
       statusResp = deserialize(statusRespBox.text, classOf[model.StatusResponse])
     }
-
     val resultRespBox = jobResultsResource.get(rptResp.getJobId.toString)
     val resultResp = resultRespBox.open_!.asInstanceOf[StreamingResponse]
     Assert.assertEquals(resultResp.code, 200)

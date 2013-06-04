@@ -92,8 +92,13 @@ trait JobDependencies extends RequiresCoordinator
 
     def purge(): Box[LiftResponse] = {
       val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
-      log.debug("Response: Ok Response.")
-      Full(OkResponse())
+      if (purgeResp.deleteStatus == DeleteStatus.SUCCESS) {
+        log.debug("Response: Ok Response.")
+        Full(OkResponse())
+      } else {
+        log.debug("Response: Internal server error response.")
+        Full(InternalServerErrorResponse())
+      }
     }
   }
 
@@ -167,6 +172,7 @@ trait JobDependencies extends RequiresCoordinator
                   ("Content-Disposition" -> ("attachment; filename=\"" + fileName + "\"")) :: Nil
 
               if (!req.isEmpty && !req.open_!.headers.contains(("Accept", header(0)._2))) {
+                fileStream.close
                 log.debug("Response: Not Acceptable Response. Reason: Resource only serves " + report.getReportType.toString)
                 Full(NotAcceptableResponse("Resource only serves " + report.getReportType.toString))
               } else {

@@ -72,6 +72,7 @@ trait ReportManager {
    */
   def putDefinition(entity: Map[String, Any]): OutputStream
   def putDefinition(entity: DefinitionEntity): OutputStream
+  def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): OutputStream
   /**
    * Return an OutputStream into which content can be put. The entity must contain information about the
    * definition being added. Required fields are: RPT_ID, SOURCE_DEF_ID, REPORT_TYPE, and CREATED_USER. Optional fields
@@ -87,8 +88,8 @@ trait ReportManager {
    */
   def updateDefinition(defId: String, entity: Map[String, Any]): OutputStream
   def updateDefinition(defId: String, entity: DefinitionEntity): OutputStream
-  def updateDefinitionEntity(defId: String, entity: Map[String, Any]): OutputStream
-  def updateDefinitionEntity(defId: String, entity: DefinitionEntity): OutputStream
+  def updateDefinitionEntity(defId: String, entity: Map[String, Any])
+  def updateDefinitionEntity(defId: String, entity: DefinitionEntity)
   def updateDefinition(defId: String, entity: Either[Map[String, Any], DefinitionEntity], entityOnly: Boolean): OutputStream
 
   /**

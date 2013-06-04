@@ -485,7 +485,8 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
     var jobRunning = true
-    while (jobRunning) {
+    val end = System.currentTimeMillis + (1000 * 5)
+    while (jobRunning && (System.currentTimeMillis < end)) {
       MockWeb.testReq(mockReq) { req =>
         val resp = DispatchRestAPI(req)()
         resp.map(r =>
@@ -504,7 +505,8 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
     var jobRunning = true
-    while (jobRunning) {
+    val end = System.currentTimeMillis + (1000 * 5)
+    while (jobRunning && (System.currentTimeMillis < end)) {
       MockWeb.testReq(mockReq) { req =>
         val resp = DispatchRestAPI(req)()
         resp.map(r =>
@@ -524,7 +526,8 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
     var jobRunning = true
-    while (jobRunning) {
+    val end = System.currentTimeMillis + (1000 * 5)
+    while (jobRunning && (System.currentTimeMillis < end)) {
       MockWeb.testReq(mockReq) { req =>
         val resp = DispatchRestAPI(req)()
         resp.map(r =>

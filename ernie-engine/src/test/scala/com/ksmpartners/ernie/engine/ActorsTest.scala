@@ -160,11 +160,6 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     }
   }
 
-  override def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType) {
-    if (!isStarted)
-      throw new IllegalStateException("ReportGenerator is not started")
-  }
-
   override def shutdown() {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")

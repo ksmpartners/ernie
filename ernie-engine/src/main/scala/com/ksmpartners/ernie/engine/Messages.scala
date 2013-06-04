@@ -33,7 +33,7 @@ case class DeleteDefinitionResponse(deleteStatus: DeleteStatus, req: DeleteDefin
 /** Request purge of all expired reports */
 case class PurgeRequest()
 /** The response to the given PurgeRequest */
-case class PurgeResponse(purgedRptIds: List[String], req: PurgeRequest)
+case class PurgeResponse(deleteStatus: DeleteStatus, purgedRptIds: List[String], req: PurgeRequest)
 /** Request a list of the currently known jobIds */
 case class JobsListRequest()
 /** The response to the given JobsListRequest */

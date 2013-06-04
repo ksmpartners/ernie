@@ -103,22 +103,17 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     getReportContent(report.getRptId)
   }
 
-  override def putDefinition(entity: Map[String, Any]): OutputStream = {
-    log.info("Putting definition from entity: {}", entity)
-    val defEnt = createDefinitionEntity(entity)
-    val defId = defEnt.getDefId
-    val defEntFile = new File(rptDefDir, defId + ".entity")
-    try_(new FileOutputStream(defEntFile)) { fos =>
-      mapper.writeValue(fos, defEnt)
-    }
-    val file = new File(rptDefDir, defId + ".rptdesign")
-    log.info("Putting new definition: {}", file)
-    definitions += (defId -> file)
-    definitionEntities += (defId -> defEnt)
-    new FileOutputStream(file)
+  override def putDefinition(entity: Map[String, Any]): OutputStream = putDefinition(Left(entity))
+  override def putDefinition(entity: DefinitionEntity): OutputStream = {
+    if ((entity.getDefId == null) || (entity.getDefId.length <= 0))
+      throw new IllegalArgumentException("Entity must contain defId")
+    if ((entity.getCreatedUser == null) || (entity.getCreatedUser.length <= 0))
+      throw new IllegalArgumentException("Entity must contain createdUser")
+    putDefinition(Right(entity))
   }
 
-  override def putDefinition(entity: DefinitionEntity): OutputStream = {
+  override def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): OutputStream = {
+    val entity = if (entityEither.isLeft) createDefinitionEntity(entityEither.left.get) else entityEither.right.get
     log.info("Putting definition from entity: {}", entity)
     val defEnt = entity
     val defId = defEnt.getDefId
@@ -154,9 +149,11 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
 
   override def updateDefinition(defId: String, entity: DefinitionEntity): OutputStream = updateDefinition(defId, Right(entity), false)
 
-  override def updateDefinitionEntity(defId: String, entity: Map[String, Any]): OutputStream = updateDefinition(defId, Left(entity), true)
+  override def updateDefinitionEntity(defId: String, entity: Map[String, Any]) {
+    updateDefinition(defId, Left(entity), true)
+  }
 
-  override def updateDefinitionEntity(defId: String, entity: DefinitionEntity): OutputStream = {
+  override def updateDefinitionEntity(defId: String, entity: DefinitionEntity) {
     updateDefinition(defId, Right(entity), true)
   }
 

@@ -89,8 +89,8 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
    * Method that runs the .rtpdesign file in the input stream defInputStream, and outputs the results to
    * rptOutputStream as rptType
    */
-  def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType) = runReport(defInputStream, rptOutputStream, rptType, Map.empty[String, Any])
-  def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType, rptParams: Map[String, Any]) {
+  private def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType): Unit = runReport(defInputStream, rptOutputStream, rptType, Map.empty[String, Any])
+  private def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType, rptParams: Map[String, Any]): Unit = {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     val design = engine.openReportDesign(defInputStream)
     var renderOption: RenderOption = null
@@ -113,19 +113,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
       }
     }
     renderOption.setOutputStream(rptOutputStream)
-    runReport(design, renderOption, rptParams)
-  }
-
-  /**
-   * Method that creates and runs a BIRT task based on the given design and options
-   */
-  private def runReport(design: IReportRunnable, option: RenderOption, rptParams: Map[String, Any]) {
-    val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
-    task.setRenderOption(option)
-    task.setParameterValues(rptParams)
-    rptParams.foreach(f => { task.setParameterValue(f._1, f._2); if (!task.validateParameters) throw new InvalidParameterValuesException(f._1) })
-    task.run()
-    task.close()
+    BirtReportGenerator.runReport(design, renderOption, rptParams)
   }
 
   /**
@@ -186,5 +174,17 @@ object BirtReportGenerator {
     case e: Exception => {
       false
     }
+  }
+
+  /**
+   * Method that creates and runs a BIRT task based on the given design and options
+   */
+  private def runReport(design: IReportRunnable, option: RenderOption, rptParams: Map[String, Any]) = synchronized {
+    val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
+    task.setRenderOption(option)
+    task.setParameterValues(rptParams)
+    rptParams.foreach(f => { task.setParameterValue(f._1, f._2); if (!task.validateParameters) throw new InvalidParameterValuesException(f._1) })
+    task.run()
+    task.close()
   }
 }
