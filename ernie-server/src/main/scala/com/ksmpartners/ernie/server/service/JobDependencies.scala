@@ -56,7 +56,7 @@ trait JobDependencies extends RequiresCoordinator
       try {
         if (body.isEmpty) {
           log.debug("Response: Bad Response. Reason: Undefined byte array")
-          Full(BadResponse())
+          Full(ResponseWithReason(BadResponse(), "Undefined byte array")
         } else {
           val req = deserialize(body.open_!, classOf[model.ReportRequest])
           val respOpt = (coordinator !? (timeout, engine.ReportRequest(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays),
@@ -83,7 +83,7 @@ trait JobDependencies extends RequiresCoordinator
         case e: IOException => {
           log.error("Caught exception while handling request: {}", e.getMessage)
           log.debug("Response: Bad Response. Reason: Exception thrown in post request")
-          Full(BadResponse())
+          Full(ResponseWithReason(BadResponse(), "Exception thrown in post request")
         }
       }
     }
@@ -151,8 +151,8 @@ trait JobDependencies extends RequiresCoordinator
           log.debug("Response: Not Found Response:")
           Full(NotFoundResponse())
         } else if (statusResponse.jobStatus != JobStatus.COMPLETE) {
-          log.debug("Response: Bad Response. Reason: Get attempted on incomplete job.")
-          Full(BadResponse())
+          log.debug("Response: Bad Response. Reason: Get request on incomplete job.")
+          Full(ResponseWithReason(BadResponse(), "Get request on incomplete job")
         } else {
           val respOpt = (coordinator !? (timeout, engine.ResultRequest(jobId.toLong))).asInstanceOf[Option[engine.ResultResponse]]
           if (respOpt.isEmpty) {
@@ -185,7 +185,7 @@ trait JobDependencies extends RequiresCoordinator
               }
             } else {
               log.debug("Response: Bad Response. Reason: Report ID is undefined.")
-              Full(BadResponse())
+              Full(ResponseWithReason(BadResponse(),"Report ID is undefined")
             }
           }
         }
@@ -211,7 +211,7 @@ trait JobDependencies extends RequiresCoordinator
           Full(ConflictResponse())
         } else {
           log.debug("Response: Bad Response. Reason: Definition deletion failed")
-          Full(BadResponse())
+          Full(ResponseWithReason(BadResponse(),"Definition deletion failed")
         }
       }
     }

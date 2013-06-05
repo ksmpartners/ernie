@@ -104,7 +104,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
           Full(ConflictResponse())
         } else {
           log.debug("Response: Bad Response. Reason: Definition deletion failed.")
-          Full(BadResponse())
+          Full(ResponseWithReason(BadResponse(), "Definition deletion failed")
         }
       }
     }
@@ -116,9 +116,12 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       })
 
       if (!ctype.contains("application/rptdesign+xml")) {
-        log.debug("Response: Bad Response. Reason: No report design in request body")
+        log.debug("Response: Bad Response. Reason: Unacceptable Content-Type")
         Full(ResponseWithReason(BadResponse(), "Unacceptable Content-Type"))
-      } else if (req.body.isEmpty) Full(ResponseWithReason(BadResponse(), "No report design in request body"));
+      } else if (req.body.isEmpty) {
+        log.debug("Response: Bad Response. Reason: No report design in request body")
+        Full(ResponseWithReason(BadResponse(), "No report design in request body"))
+      };
       else {
         val defOpt: Option[Definition] = reportManager.getDefinition(defId)
         if (defOpt.isEmpty) {
@@ -156,9 +159,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
             }
           } catch {
             case _ => {
-
               log.debug("Response: Bad Response. Reason: Malformed report design")
-
               Full(ResponseWithReason(BadResponse(), "Malformed report design"))
             }
           }
