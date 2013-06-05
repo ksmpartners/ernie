@@ -37,6 +37,7 @@ import com.ksmpartners.ernie.server.service.{ ServiceRegistry, ConflictResponse 
 
 import com.ksmpartners.ernie.engine.PurgeResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
+import scala.collection.JavaConversions
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
@@ -1384,6 +1385,23 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-139"), new TestSpec(key = "ERNIE-140")))
+  @Test(dependsOnMethods = Array("canCompleteJobCSV"))
+  def canGetJobsCatalog() {
+    val mockReq = new MockReadAuthReq("/jobs/catalog")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
+      Assert.assertTrue(jobCatalogResp.getJobsCatalog.size > 0)
     }
   }
 

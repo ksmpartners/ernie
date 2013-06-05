@@ -175,6 +175,22 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
           val jobsList: Array[String] = jobIdToResultMap.keySet.map({ _.toString }).toArray
           sender ! JobsListResponse(jobsList, req)
         }
+        case req@JobsCatalogRequest(jobStatus) => {
+          val jobsList: List[JobEntity] = if ((jobStatus.isDefined) && (jobStatus.get == JobStatus.FAILED)) jobIdToResultMap.filter(f => f._2.getJobStatus match {
+            case JobStatus.FAILED => true
+            case JobStatus.FAILED_INVALID_PARAMETER_VALUES => true
+            case JobStatus.FAILED_NO_SUCH_DEFINITION => true
+            case JobStatus.FAILED_PARAMETER_NULL => true
+            case JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM => true
+            case JobStatus.FAILED_RETENTION_DATE_PAST => true
+            case JobStatus.FAILED_UNSUPPORTED_FORMAT => true
+            case JobStatus.FAILED_UNSUPPORTED_PARAMETER_TYPE => true
+            case _ => false
+          }).map(f => f._2) toList
+          else if ((jobStatus.isDefined) && (jobStatus.get != JobStatus.FAILED)) jobIdToResultMap.filter(f => f._2.getJobStatus == jobStatus.get).map(f => f._2) toList
+          else jobIdToResultMap.map(f => f._2).toList
+          sender ! JobsCatalogResponse(jobsList, req)
+        }
         case JobResponse(jobStatus, rptId, req) => {
           log.info("Got notify for jobId {} with status {}", req.jobId, jobStatus)
           try {
