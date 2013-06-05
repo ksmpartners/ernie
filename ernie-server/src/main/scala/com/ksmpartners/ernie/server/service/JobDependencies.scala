@@ -185,7 +185,7 @@ trait JobDependencies extends RequiresCoordinator
               }
             } else {
               log.debug("Response: Bad Response. Reason: Report ID is undefined.")
-              Full(ResponseWithReason(BadResponse(),"Report ID is undefined"))
+              Full(ResponseWithReason(BadResponse(), "Report ID is undefined"))
             }
           }
         }
@@ -211,7 +211,7 @@ trait JobDependencies extends RequiresCoordinator
           Full(ConflictResponse())
         } else {
           log.debug("Response: Bad Response. Reason: Definition deletion failed")
-          Full(ResponseWithReason(BadResponse(),"Definition deletion failed"))
+          Full(ResponseWithReason(BadResponse(), "Definition deletion failed"))
         }
       }
     }
