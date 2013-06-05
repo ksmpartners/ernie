@@ -669,6 +669,20 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @Test
+  def cantGetJobStatusWithoutLongJobID() {
+    val mockReq = new MockReadAuthReq("/jobs/test/status")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
+      Assert.assertEquals(resp.open_!.asInstanceOf[ResponseWithReason].reason, "Job ID provided is not a number: test")
+    }
+  }
+
   @TestSpecs(Array(new TestSpec(key = "ERNIE-61")))
   @Test(dependsOnMethods = Array("canPostJob"))
   def jobStatusServiceReturnsJSON() {
@@ -1274,6 +1288,52 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       val testParamsJobID = reportResponse.getJobId()
       Assert.assertTrue(testParamsJobID > -1L)
       Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Location", req.hostAndPath + "/jobs/" + testParamsJobID)))
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-145"), new TestSpec(key = "ERNIE-146")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def canGetReportDetail() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result/detail")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val rptDetailResponse: ReportEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportEntity])
+      Assert.assertEquals(rptDetailResponse.getRptId, jobToRptId(testJobID))
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-147")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def cantGetReportDetailWithoutJSONRequest() {
+    val mockReq = new MockReadAuthReq("/jobs/1/result/detail")
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-143")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def cantGetReportDetailWithoutReadAuth() {
+    val mockReq = new MockNoAuthReq("/jobs/1/result/detail")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
 

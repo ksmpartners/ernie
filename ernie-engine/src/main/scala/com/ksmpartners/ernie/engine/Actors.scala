@@ -36,7 +36,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
     reportManager.getAllReportIds.foreach(f => if (reportManager.getReport(f).isDefined) try {
       val report = reportManager.getReport(f).get
       val jobId = rptToJobId(report.getRptId)
-      jobIdToResultMap += (jobId -> new JobEntity(jobId, report.getRptId, JobStatus.COMPLETE, report.getReportType))
+      jobIdToResultMap += (jobId -> new JobEntity(jobId, report.getSourceDefId, JobStatus.COMPLETE, report.getReportType))
     } catch {
       case e: Exception => {
         log.error("Caught exception while loading completed reports from disk: {}", e.getMessage)
@@ -50,11 +50,11 @@ class Coordinator(reportManager: ReportManager) extends Actor {
     log.debug("in act()")
     loop {
       react {
-        case req@ReportRequest(rptId, rptType, retentionOption, reportParameters) => {
+        case req@ReportRequest(defId, rptType, retentionOption, reportParameters) => {
           val jobId = generateJobId()
-          if (reportManager.getDefinition(rptId).isDefined) {
-            jobIdToResultMap += (jobId -> new JobEntity(jobId, rptId, JobStatus.IN_PROGRESS, rptType))
-            reportManager.getDefinition(rptId).map(m => if ((m.getEntity.getUnsupportedReportTypes != null) && m.getEntity.getUnsupportedReportTypes.contains(rptType)) {
+          if (reportManager.getDefinition(defId).isDefined) {
+            jobIdToResultMap += (jobId -> new JobEntity(jobId, defId, JobStatus.IN_PROGRESS, rptType))
+            reportManager.getDefinition(defId).map(m => if ((m.getEntity.getUnsupportedReportTypes != null) && m.getEntity.getUnsupportedReportTypes.contains(rptType)) {
               try {
                 jobIdToResultMap += (jobId -> jobIdToResultMap.get(jobId).map(je => { je.setJobStatus(JobStatus.FAILED_UNSUPPORTED_FORMAT); je }).get)
               } catch {
@@ -69,22 +69,22 @@ class Coordinator(reportManager: ReportManager) extends Actor {
               else if (retentionDate.isAfter(DateTime.now().plusDays(reportManager.getMaximumRetentionDays))) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM, req)
               else {
                 sender ! ReportResponse(jobId, JobStatus.IN_PROGRESS, req)
-                worker ! JobRequest(rptId, rptType, jobId, retentionOption, reportParameters)
+                worker ! JobRequest(defId, rptType, jobId, retentionOption, reportParameters)
               }
             })
           } else {
-            jobIdToResultMap += (jobId -> new JobEntity(jobId, rptId, JobStatus.FAILED_NO_SUCH_DEFINITION, rptType))
+            jobIdToResultMap += (jobId -> new JobEntity(jobId, defId, JobStatus.FAILED_NO_SUCH_DEFINITION, rptType))
             sender ! ReportResponse(jobId, JobStatus.FAILED_NO_SUCH_DEFINITION, req)
           }
         }
         case req@DeleteRequest(jobId) => {
           if (jobIdToResultMap.contains(jobId)) {
             if ((jobIdToResultMap.get(jobId).map(je => je.getJobStatus).getOrElse(null) == JobStatus.COMPLETE) &&
-              (jobIdToResultMap.get(jobId).map(je => je.getRptId).getOrElse(null) != null)) {
+              (jobIdToResultMap.get(jobId).map(je => je.getDefId).getOrElse(null) != null)) {
               // TODO: Consider wrapping in a try/catch to handle any exceptions that might get thrown.
               // Update DeleteResponse to contain the result of the deletion
               try {
-                reportManager.deleteReport(jobIdToResultMap.get(jobId).map(je => je.getRptId).get)
+                reportManager.deleteReport(jobIdToResultMap.get(jobId).map(je => je.getDefId).get)
                 jobIdToResultMap.update(jobId, jobIdToResultMap.get(jobId).map(je => { je.setJobStatus(JobStatus.DELETED); je }).get) //(JobStatus.DELETED, Some(jobIdToResultMap.get(jobId).get._2.get)))
                 sender ! DeleteResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus match {
                   case JobStatus.DELETED => DeleteStatus.SUCCESS
@@ -102,7 +102,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
             }).getOrElse(DeleteStatus.FAILED), req) // TODO: Send back "jobIdToResultMap.get(jobId).get._1" because the status could be PENDING or FAILED
           } else sender ! DeleteResponse(DeleteStatus.NOT_FOUND, req) //no such job
         } case req@DeleteDefinitionRequest(defId) => {
-          if (jobIdToResultMap.find(p => p._2.getRptId == defId).isDefined) sender ! DeleteDefinitionResponse(DeleteStatus.FAILED_IN_USE, req)
+          if (jobIdToResultMap.find(p => p._2.getDefId == defId).isDefined) sender ! DeleteDefinitionResponse(DeleteStatus.FAILED_IN_USE, req)
           else try {
             reportManager.deleteDefinition(defId)
             sender ! DeleteDefinitionResponse(DeleteStatus.SUCCESS, req)
@@ -111,22 +111,26 @@ class Coordinator(reportManager: ReportManager) extends Actor {
         case req@PurgeRequest() => {
           var purgedReports: List[String] = Nil
           var deleteStatus = DeleteStatus.SUCCESS
-          jobIdToResultMap.foreach(f => if ((f._2 != null) && (f._2.getRptId != null)) {
-            val rptId = f._2.getRptId
-            if (reportManager.getReport(rptId).isDefined) {
-              if (reportManager.getReport(rptId).get.getRetentionDate.isBeforeNow) {
-                purgedReports ::= rptId
-                try {
-                  reportManager.deleteReport(rptId)
-                  jobIdToResultMap.update(f._1, jobIdToResultMap.get(f._1).map(je => { je.setJobStatus(JobStatus.DELETED); je.setRptId(rptId); je }).get)
-                } catch {
-                  case e: NoSuchElementException => {
-                    log.error("Caught exception while purging reports: {}", e.getMessage)
-                    deleteStatus = DeleteStatus.FAILED
-                  }
-                  case e: Exception => {
-                    log.error("Caught exception while purging reports: {}", e.getMessage)
-                    deleteStatus = DeleteStatus.FAILED
+          jobIdToResultMap.foreach(f => if ((f._2 != null)) {
+            val rptOpt = reportManager.getReport(jobToRptId(f._1))
+            if ((f._2.getJobStatus == JobStatus.COMPLETE) && (rptOpt isDefined)) {
+              val rptId = rptOpt.get.getRptId
+
+              if (reportManager.getReport(rptId).isDefined) {
+                if (reportManager.getReport(rptId).get.getRetentionDate.isBeforeNow) {
+                  purgedReports ::= rptId
+                  try {
+                    reportManager.deleteReport(rptId)
+                    jobIdToResultMap.update(f._1, jobIdToResultMap.get(f._1).map(je => { je.setJobStatus(JobStatus.DELETED); je }).get)
+                  } catch {
+                    case e: NoSuchElementException => {
+                      log.error("Caught exception while purging reports: {}", e.getMessage)
+                      deleteStatus = DeleteStatus.FAILED
+                    }
+                    case e: Exception => {
+                      log.error("Caught exception while purging reports: {}", e.getMessage)
+                      deleteStatus = DeleteStatus.FAILED
+                    }
                   }
                 }
               }
@@ -136,11 +140,13 @@ class Coordinator(reportManager: ReportManager) extends Actor {
           sender ! PurgeResponse(deleteStatus, purgedReports, req)
         }
         case req@StatusRequest(jobId) => {
-          //sender ! StatusResponse(jobIdToResultMap.getOrElse(jobId, { val je = new JobEntity(); je.setJobStatus(JobStatus.NO_SUCH_JOB); je }).getJobStatus, req)
           sender ! StatusResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus) getOrElse (JobStatus.NO_SUCH_JOB), req)
         }
+        case req@ReportDetailRequest(jobId) => {
+          sender ! ReportDetailResponse(jobIdToResultMap.get(jobId).map(je => reportManager.getReport(jobToRptId(je.getJobId)).map(f => f.getEntity)) getOrElse None, req)
+        }
         case req@ResultRequest(jobId) => {
-          sender ! ResultResponse(jobIdToResultMap.get(jobId).map(je => je.getRptId) orElse (None), req)
+          sender ! ResultResponse(jobIdToResultMap.get(jobId).map(je => je.getDefId) orElse (None), req)
         }
         case req@JobsListRequest() => {
           val jobsList: Array[String] = jobIdToResultMap.keySet.map({ _.toString }).toArray
@@ -149,7 +155,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
         case JobResponse(jobStatus, rptId, req) => {
           log.info("Got notify for jobId {} with status {}", req.jobId, jobStatus)
           try {
-            jobIdToResultMap += (req.jobId -> jobIdToResultMap.get(req.jobId).map(je => { je.setJobStatus(jobStatus); je.setRptId(rptId.get); je }).get)
+            jobIdToResultMap += (req.jobId -> jobIdToResultMap.get(req.jobId).map(je => { je.setJobStatus(jobStatus); je.setDefId(rptId.get); je }).get)
           } catch {
             case e: NoSuchElementException => {
               log.error("Caught exception while running report: {}", e.getMessage)

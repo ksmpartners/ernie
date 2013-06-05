@@ -193,6 +193,25 @@ trait JobDependencies extends RequiresCoordinator
     }
 
     /**
+     * Retrieves details for output from a given jobId
+     */
+    def getDetail(jobId: String, req: Box[Req]): Box[LiftResponse] = {
+      val respOpt = (coordinator !? (timeout, engine.ReportDetailRequest(jobId.toLong))).asInstanceOf[Option[engine.ReportDetailResponse]]
+      if (respOpt.isDefined) {
+        if (respOpt.get.rptEntity.isDefined) {
+          log.debug("Response: Report Entity")
+          getJsonResponse(respOpt.get.rptEntity.get)
+        } else {
+          log.debug("Response: Not Found Response")
+          Full(NotFoundResponse())
+        }
+      } else {
+        log.debug("Response: Internal Server Error Response")
+        Full(InternalServerErrorResponse())
+      }
+    }
+
+    /**
      * Purges the report output for a given jobId
      */
     def del(jobId: String): Box[LiftResponse] = {
