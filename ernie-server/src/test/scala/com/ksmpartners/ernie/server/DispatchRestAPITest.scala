@@ -1388,7 +1388,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-139"), new TestSpec(key = "ERNIE-140")))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-152"), new TestSpec(key = "ERNIE-153")))
   @Test(dependsOnMethods = Array("canCompleteJobCSV"))
   def canGetJobsCatalog() {
     val mockReq = new MockReadAuthReq("/jobs/catalog")
