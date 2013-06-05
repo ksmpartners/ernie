@@ -13,6 +13,7 @@ import com.ksmpartners.ernie.model.{ DeleteStatus, JobEntity, ReportType, JobSta
 import com.ksmpartners.ernie.engine.report._
 import org.slf4j.LoggerFactory
 import org.joda.time.DateTime
+import com.ksmpartners.ernie.util.Utility._
 import org.eclipse.birt.report.engine.api.UnsupportedFormatException
 
 /**
@@ -24,8 +25,8 @@ class Coordinator(reportManager: ReportManager) extends Actor {
   private val log = LoggerFactory.getLogger(classOf[Coordinator])
 
   private lazy val worker: Worker = new Worker(getReportGenerator(reportManager))
-  //private val jobIdToResultMap = new mutable.HashMap[Long, (JobStatus, Option[String] /* rptId */ )]()
   private val jobIdToResultMap = new mutable.HashMap[Long, JobEntity]() /* rptId */ //    public JobEntity(Long jobId, String rptId, JobStatus jobStatus, String defId) {
+  private var timeout: Long = 1000L
 
   override def start(): Actor = {
     log.debug("in start()")
@@ -34,9 +35,13 @@ class Coordinator(reportManager: ReportManager) extends Actor {
 
     reportManager.getAllReportIds.foreach(f => if (reportManager.getReport(f).isDefined) try {
       val report = reportManager.getReport(f).get
-      val jobId = report.getRptId.replaceAll("REPORT_", "").toLong
+      val jobId = rptToJobId(report.getRptId)
       jobIdToResultMap += (jobId -> new JobEntity(jobId, report.getRptId, JobStatus.COMPLETE, report.getReportType))
-    } catch { case _ => {} })
+    } catch {
+      case e: Exception => {
+        log.error("Caught exception while loading completed reports from disk: {}", e.getMessage)
+      }
+    })
 
     this
   }
@@ -105,27 +110,34 @@ class Coordinator(reportManager: ReportManager) extends Actor {
         }
         case req@PurgeRequest() => {
           var purgedReports: List[String] = Nil
+          var deleteStatus = DeleteStatus.SUCCESS
           jobIdToResultMap.foreach(f => if ((f._2 != null) && (f._2.getRptId != null)) {
             val rptId = f._2.getRptId
             if (reportManager.getReport(rptId).isDefined) {
               if (reportManager.getReport(rptId).get.getRetentionDate.isBeforeNow) {
                 purgedReports ::= rptId
-                reportManager.deleteReport(rptId)
                 try {
+                  reportManager.deleteReport(rptId)
                   jobIdToResultMap.update(f._1, jobIdToResultMap.get(f._1).map(je => { je.setJobStatus(JobStatus.DELETED); je.setRptId(rptId); je }).get)
                 } catch {
                   case e: NoSuchElementException => {
                     log.error("Caught exception while purging reports: {}", e.getMessage)
+                    deleteStatus = DeleteStatus.FAILED
+                  }
+                  case e: Exception => {
+                    log.error("Caught exception while purging reports: {}", e.getMessage)
+                    deleteStatus = DeleteStatus.FAILED
                   }
                 }
               }
             }
           })
 
-          sender ! PurgeResponse(purgedReports, req)
+          sender ! PurgeResponse(deleteStatus, purgedReports, req)
         }
         case req@StatusRequest(jobId) => {
-          sender ! StatusResponse(jobIdToResultMap.getOrElse(jobId, { val je = new JobEntity(); je.setJobStatus(JobStatus.NO_SUCH_JOB); je }).getJobStatus, req)
+          //sender ! StatusResponse(jobIdToResultMap.getOrElse(jobId, { val je = new JobEntity(); je.setJobStatus(JobStatus.NO_SUCH_JOB); je }).getJobStatus, req)
+          sender ! StatusResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus) getOrElse (JobStatus.NO_SUCH_JOB), req)
         }
         case req@ResultRequest(jobId) => {
           sender ! ResultResponse(jobIdToResultMap.get(jobId).map(je => je.getRptId) orElse (None), req)
@@ -153,7 +165,7 @@ class Coordinator(reportManager: ReportManager) extends Actor {
             })
         }
         case ShutDownRequest() => {
-          worker !? ShutDownRequest()
+          worker !? (timeout, ShutDownRequest())
           sender ! ShutDownResponse()
           exit()
         }
@@ -163,6 +175,10 @@ class Coordinator(reportManager: ReportManager) extends Actor {
   }
 
   private var currJobId = System.currentTimeMillis
+
+  def setTimeout(t: Long) {
+    timeout = t
+  }
 
   private def generateJobId(): Long = {
     currJobId += 1
@@ -213,11 +229,17 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
               log.error("Caught exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_UNSUPPORTED_FORMAT
             }
+            case ex: ClassCastException => {
+              log.error("Caught exception while generating report: {}", ex.getMessage)
+              resultStatus = JobStatus.FAILED_INVALID_PARAMETER_VALUES
+            }
             case ex: Exception => {
               log.error("Caught exception while generating report: {}", ex.getMessage)
+              log.error(ex.getStackTraceString)
               resultStatus = JobStatus.FAILED
             }
           }
+
           sender ! JobResponse(resultStatus, rptId, req)
         }
         case ShutDownRequest() => {
@@ -239,7 +261,7 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
 
   private def runReport(defId: String, jobId: Long, rptType: ReportType, retentionOption: Option[Int], reportParameters: immutable.Map[String, String]): String = {
     log.debug("Running report {} for jobId {}...", defId, jobId)
-    val rptId = "REPORT_" + jobId
+    val rptId = jobToRptId(jobId)
     rptGenerator.runReport(defId, rptId, rptType, retentionOption, reportParameters)
     log.debug("Done running report {} for jobId {}...", defId, jobId)
     rptId

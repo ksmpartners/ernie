@@ -34,7 +34,7 @@ trait ReportGenerator {
   /**
    * Run the given defInputStream and store the output in rptOutputStream as rptType
    */
-  def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType)
+  //def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType)
 
   /**
    * Method to be called after all the reports have been run.

@@ -12,11 +12,12 @@ import java.util
 import net.liftweb.common.{ Box, Full }
 import net.liftweb.http._
 import com.ksmpartners.ernie.server.JsonTranslator
-import com.ksmpartners.ernie.model.{ DeleteStatus, DefinitionEntity, JobStatus }
+import com.ksmpartners.ernie.model.{ ParameterEntity, DeleteStatus, DefinitionEntity, JobStatus }
 import java.io.{ ByteArrayInputStream, IOException }
-import scala.collection.mutable
-import com.ksmpartners.ernie.engine.report.{ BirtReportGenerator, ReportManager }
+import scala.collection.{ JavaConversions, mutable }
+import com.ksmpartners.ernie.engine.report.{ Definition, BirtReportGenerator, ReportManager }
 import net.liftweb.http.BadResponse
+import scala.collection.JavaConversions._
 import net.liftweb.common.Full
 import org.slf4j.{ LoggerFactory, Logger }
 
@@ -39,21 +40,26 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
     }
     def post(req: net.liftweb.http.Req) = {
 
-      if (!req.headers.contains(("Content-Type", "application/rptdesign+xml"))) Full(ResponseWithReason(BadResponse(), "Unacceptable Content-Type"))
-      else if (req.headers.find(f => f._1 == "DefinitionEntity").isDefined) {
-        try {
-          val defEnt: DefinitionEntity = deserialize(req.header("DefinitionEntity").open_!, classOf[DefinitionEntity]).asInstanceOf[DefinitionEntity]
-          if (!BirtReportGenerator.isValidDefinition(new ByteArrayInputStream(req.body.open_!))) Full(BadResponse())
-          else if (reportManager.getAllDefinitionIds.contains(defEnt.getDefId)) {
-            Full(ConflictResponse())
-          } else {
-            reportManager.putDefinition(defEnt).write(req.body.open_!)
-            getJsonResponse(defEnt, 201, List(("Location", req.hostAndPath + "/defs/" + defEnt.getDefId)))
-          }
-        } catch {
-          case e: Exception => Full(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity header"))
+      if (req.body.isEmpty) {
+        log.debug("Response: Bad Response. Reason: No DefinitionEntity in request body")
+        Full(ResponseWithReason(BadResponse(), "No DefinitionEntity in request body"))
+      } else try {
+        val defEnt: DefinitionEntity = deserialize(req.body.open_!, classOf[DefinitionEntity]).asInstanceOf[DefinitionEntity]
+        if (reportManager.getAllDefinitionIds.contains(defEnt.getDefId)) {
+          log.debug("Response: Conflict Response.")
+          Full(ConflictResponse())
+        } else {
+          reportManager.putDefinition(defEnt).write(req.body.open_!)
+          getJsonResponse(defEnt, 201, List(("Location", req.hostAndPath + "/defs/" + defEnt.getDefId)))
         }
-      } else Full(ResponseWithReason(BadResponse(), "No DefinitionEntity header"))
+      } catch {
+
+        case e: Exception => {
+          log.debug("Response: Bad Response. Reason: Malformed DefinitionEntity")
+          Full(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity"))
+        }
+
+      }
     }
   }
 
@@ -69,6 +75,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
         val defEntity = defEnt.get.getEntity
         getJsonResponse(defEntity)
       } else {
+        log.debug("Response: Not Found Response.")
         Full(NotFoundResponse())
       }
     }
@@ -81,29 +88,82 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       }
     }*/
     def del(defId: String) = {
-      val response = (coordinator !? engine.DeleteDefinitionRequest(defId)).asInstanceOf[engine.DeleteDefinitionResponse]
-      if (response.deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteDefinitionResponse(response.deleteStatus))
-      else if (response.deleteStatus == DeleteStatus.NOT_FOUND) Full(NotFoundResponse("Definition not found"))
-      else if (response.deleteStatus == DeleteStatus.FAILED_IN_USE) Full(ConflictResponse())
-      else Full(BadResponse())
+
+      val respOpt = (coordinator !? (timeout, engine.DeleteDefinitionRequest(defId))).asInstanceOf[Option[engine.DeleteDefinitionResponse]]
+      if (respOpt.isEmpty) {
+        log.debug("Response: Timeout Response.")
+        Full(TimeoutResponse())
+      } else {
+        val response = respOpt.get
+        if (response.deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteDefinitionResponse(response.deleteStatus))
+        else if (response.deleteStatus == DeleteStatus.NOT_FOUND) {
+          log.debug("Response: Not Found Response.")
+          Full(NotFoundResponse("Definition not found"))
+        } else if (response.deleteStatus == DeleteStatus.FAILED_IN_USE) {
+          log.debug("Response: Conflict Response")
+          Full(ConflictResponse())
+        } else {
+          log.debug("Response: Bad Response. Reason: Definition deletion failed.")
+          Full(BadResponse())
+        }
+      }
     }
     def put(defId: String, req: net.liftweb.http.Req) = {
+      var ctype = ""
+      req.headers.foreach({ tup =>
+        if (tup._1.equalsIgnoreCase("Content-Type"))
+          ctype = tup._2
+      })
 
-      if (!req.headers.contains(("Content-Type", "application/rptdesign+xml"))) Full(ResponseWithReason(BadResponse(), "Unacceptable Content-Type"))
-      else if (req.headers.find(f => f._1 == "DefinitionEntity").isDefined) {
-        try {
-          val defEnt: DefinitionEntity = deserialize(req.header("DefinitionEntity").open_!, classOf[DefinitionEntity]).asInstanceOf[DefinitionEntity]
-          val bAIS = new ByteArrayInputStream(req.body.open_!)
-          if (!BirtReportGenerator.isValidDefinition(bAIS)) Full(BadResponse())
-          else if (!reportManager.getAllDefinitionIds.contains(defId)) Full(NotFoundResponse())
-          else {
-            reportManager.updateDefinition(defId, defEnt).write(req.body.open_!)
-            getJsonResponse(defEnt, 201)
+      if (!ctype.contains("application/rptdesign+xml")) {
+        log.debug("Response: Bad Response. Reason: No report design in request body")
+        Full(ResponseWithReason(BadResponse(), "Unacceptable Content-Type"))
+      } else if (req.body.isEmpty) Full(ResponseWithReason(BadResponse(), "No report design in request body"));
+      else {
+        val defOpt: Option[Definition] = reportManager.getDefinition(defId)
+        if (defOpt.isEmpty) {
+          log.debug("Response: Not Found Response.")
+          Full(NotFoundResponse("Definition not found"))
+        } else {
+          val defEnt = defOpt.get.getEntity
+          try {
+            val bAIS = new ByteArrayInputStream(req.body.open_!)
+
+            if (!BirtReportGenerator.isValidDefinition(bAIS)) {
+              log.debug("Response: Bad Response. Reason: Unable to validate report design")
+              Full(ResponseWithReason(BadResponse(), "Unable to validate report design"))
+            } else {
+              val rptDesign = scala.xml.XML.load(new ByteArrayInputStream(req.body.open_!))
+
+              var paramList: java.util.List[ParameterEntity] = if (defEnt.getParams == null) new java.util.ArrayList[ParameterEntity]() else defEnt.getParams
+
+              (rptDesign \\ "parameters").foreach(f => f.child.foreach(g => {
+                var param = new ParameterEntity()
+                param.setParamName((g \ "@name").text)
+                g.child.foreach(prop => (prop \ "@name").text match {
+                  case "allowBlank" => param.setAllowNull(prop.text == "true")
+                  case "dataType" => param.setDataType(prop.text)
+                  case "defaultValue" => param.setDefaultValue(prop.text)
+                  case _ =>
+                })
+                if ((param.getParamName != "") && (param.getDataType != "") && (param.getDefaultValue != "") && (param.getAllowNull != null)) paramList.add(param)
+              }))
+
+              defEnt.setParams(paramList)
+
+              reportManager.updateDefinition(defId, defEnt).write(req.body.open_!)
+              getJsonResponse(defEnt, 201)
+            }
+          } catch {
+            case _ => {
+
+              log.debug("Response: Bad Response. Reason: Malformed report design")
+
+              Full(ResponseWithReason(BadResponse(), "Malformed report design"))
+            }
           }
-        } catch {
-          case e: Exception => Full(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity header"))
         }
-      } else Full(ResponseWithReason(BadResponse(), "No DefinitionEntity header"))
+      }
     }
   }
 

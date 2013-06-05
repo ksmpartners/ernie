@@ -25,6 +25,7 @@ class ActorsTest {
   private var coordinator: Coordinator = null
 
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.ActorsTest")
+  private val timeout = 1000L
 
   @BeforeClass
   def setup() {
@@ -46,36 +47,52 @@ class ActorsTest {
 
   @AfterClass
   def shutdown() {
-    val sResp = (coordinator !? ShutDownRequest()).asInstanceOf[ShutDownResponse]
+    val sResp = (coordinator !? (timeout, ShutDownRequest())).asInstanceOf[Option[ShutDownResponse]]
   }
 
   @Test
   def canRequestReportAndRetrieveStatus() {
-    val resp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String])).asInstanceOf[ReportResponse]
-    val statusResp = (coordinator !? StatusRequest(resp.jobId)).asInstanceOf[StatusResponse]
+    val respOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String]))).asInstanceOf[Option[ReportResponse]]
+    Assert.assertTrue(respOpt.isDefined)
+    val resp = respOpt.get
+    val statusRespOpt = (coordinator !? (timeout, StatusRequest(resp.jobId))).asInstanceOf[Option[StatusResponse]]
+    Assert.assertTrue(statusRespOpt isDefined)
+    val statusResp = statusRespOpt.get
     Assert.assertNotSame(statusResp.jobStatus, JobStatus.NO_SUCH_JOB)
   }
 
   @Test
   def statusForMissingJobIsNoSuchJob() {
-    val statusResp = (coordinator !? StatusRequest(0)).asInstanceOf[StatusResponse]
+    val statusRespOpt = (coordinator !? (timeout, StatusRequest(0))).asInstanceOf[Option[StatusResponse]]
+    Assert.assertTrue(statusRespOpt isDefined)
+    val statusResp = statusRespOpt.get
     Assert.assertEquals(statusResp.jobStatus, JobStatus.NO_SUCH_JOB)
   }
 
   @Test
   def canRequestJobMap() {
-    val resp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String])).asInstanceOf[ReportResponse]
-    val jobMapResp = (coordinator !? JobsListRequest()).asInstanceOf[JobsListResponse]
+    val respOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String]))).asInstanceOf[Option[ReportResponse]]
+    Assert.assertTrue(respOpt.isDefined)
+    val resp = respOpt.get
+    val jobMapRespOpt = (coordinator !? (timeout, JobsListRequest())).asInstanceOf[Option[JobsListResponse]]
+    Assert.assertTrue(jobMapRespOpt isDefined)
+    val jobMapResp: JobsListResponse = jobMapRespOpt.get
     Assert.assertTrue(jobMapResp.jobsList.contains(resp.jobId.toString))
   }
 
   @Test
   def canGetResult() {
-    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String])).asInstanceOf[ReportResponse]
-    while ((coordinator !? StatusRequest(rptResp.jobId)).asInstanceOf[StatusResponse].jobStatus != JobStatus.COMPLETE) {
-      // peg coordinator until job is complete
-    }
-    val resultResp = (coordinator !? ResultRequest(rptResp.jobId)).asInstanceOf[ResultResponse]
+    val rptRespOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String]))).asInstanceOf[Option[ReportResponse]]
+    Assert.assertTrue(rptRespOpt.isDefined)
+    val rptResp = rptRespOpt.get
+    var statusRespOpt: Option[StatusResponse] = None
+    do {
+      statusRespOpt = (coordinator !? (timeout, StatusRequest(rptResp.jobId))).asInstanceOf[Option[StatusResponse]]
+      Assert.assertTrue(statusRespOpt.isDefined)
+    } while (statusRespOpt.get.jobStatus == JobStatus.IN_PROGRESS)
+    val resultRespOpt = (coordinator !? (timeout, ResultRequest(rptResp.jobId))).asInstanceOf[Option[ResultResponse]]
+    Assert.assertTrue(resultRespOpt.isDefined)
+    val resultResp = resultRespOpt.get
     Assert.assertTrue(resultResp.rptId.isDefined)
     Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).isDefined)
   }
@@ -84,14 +101,18 @@ class ActorsTest {
   @Test
   def jobWithoutRetentionDateUsesDefault() {
 
-    val rptResp = (coordinator !? ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String])).asInstanceOf[ReportResponse]
+    val rptRespOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String]))).asInstanceOf[Option[ReportResponse]]
+    Assert.assertTrue(rptRespOpt isDefined)
+    val rptResp = rptRespOpt.get
     val defaultRetentionDate = DateTime.now().plusDays(reportManager.getDefaultRetentionDays)
-
-    while ((coordinator !? StatusRequest(rptResp.jobId)).asInstanceOf[StatusResponse].jobStatus != JobStatus.COMPLETE) {
-      // peg coordinator until job is complete
-    }
-    val resultResp = (coordinator !? ResultRequest(rptResp.jobId)).asInstanceOf[ResultResponse]
-
+    var statusRespOpt: Option[StatusResponse] = None
+    do {
+      statusRespOpt = (coordinator !? (timeout, StatusRequest(rptResp.jobId))).asInstanceOf[Option[StatusResponse]]
+      Assert.assertTrue(statusRespOpt isDefined)
+    } while (statusRespOpt.get.jobStatus != JobStatus.COMPLETE)
+    val resultRespOpt = (coordinator !? (timeout, ResultRequest(rptResp.jobId))).asInstanceOf[Option[ResultResponse]]
+    Assert.assertTrue(resultRespOpt isDefined)
+    val resultResp: ResultResponse = resultRespOpt.get
     Assert.assertTrue(resultResp.rptId.isDefined)
     Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).isDefined)
     Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).get.getRetentionDate.dayOfYear == defaultRetentionDate.dayOfYear)
@@ -137,11 +158,6 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     try_(reportManager.putReport(entity)) { os =>
       os.write(rptId.getBytes)
     }
-  }
-
-  override def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType) {
-    if (!isStarted)
-      throw new IllegalStateException("ReportGenerator is not started")
   }
 
   override def shutdown() {

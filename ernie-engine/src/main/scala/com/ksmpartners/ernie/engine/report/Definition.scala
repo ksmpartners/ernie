@@ -37,6 +37,7 @@ class Definition protected[report] (defEntity: DefinitionEntity) {
     defEnt.setDefDescription(defEntity.getDefDescription)
     defEnt.setDefId(defEntity.getDefId)
     defEnt.setParamNames(defEntity.getParamNames)
+    defEnt.setParams(defEntity.getParams)
     defEnt
   }
 

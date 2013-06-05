@@ -82,4 +82,8 @@ object Utility {
         throw new FileNotFoundException("Failed to delete file: " + file)
     }
   }
+
+  def jobToRptId(jobId: Long): String = "REPORT_" + jobId.toString
+  def rptToJobId(rptId: String): Long = rptId.replaceAll("REPORT_", "").toLong
+
 }

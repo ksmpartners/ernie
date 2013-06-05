@@ -91,7 +91,7 @@ public class DefinitionEntity extends ModelObject {
     }
 
     public List<ParameterEntity> getParams() {
-        return this.params;
+        return params;
     }
 
     public void setParams(List<ParameterEntity> params) {

@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.engine.report
 
 import java.io.{ OutputStream, InputStream }
 import scala.collection._
-import com.ksmpartners.ernie.model.{ ReportType, ReportEntity, DefinitionEntity }
+import com.ksmpartners.ernie.model.{ ParameterEntity, ReportType, ReportEntity, DefinitionEntity }
 import com.ksmpartners.ernie.engine.report.ReportManager._
 import java.util
 import org.joda.time.DateTime
@@ -72,6 +72,7 @@ trait ReportManager {
    */
   def putDefinition(entity: Map[String, Any]): OutputStream
   def putDefinition(entity: DefinitionEntity): OutputStream
+  def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): OutputStream
   /**
    * Return an OutputStream into which content can be put. The entity must contain information about the
    * definition being added. Required fields are: RPT_ID, SOURCE_DEF_ID, REPORT_TYPE, and CREATED_USER. Optional fields
@@ -87,8 +88,8 @@ trait ReportManager {
    */
   def updateDefinition(defId: String, entity: Map[String, Any]): OutputStream
   def updateDefinition(defId: String, entity: DefinitionEntity): OutputStream
-  def updateDefinitionEntity(defId: String, entity: Map[String, Any]): OutputStream
-  def updateDefinitionEntity(defId: String, entity: DefinitionEntity): OutputStream
+  def updateDefinitionEntity(defId: String, entity: Map[String, Any])
+  def updateDefinitionEntity(defId: String, entity: DefinitionEntity)
   def updateDefinition(defId: String, entity: Either[Map[String, Any], DefinitionEntity], entityOnly: Boolean): OutputStream
 
   /**
@@ -121,6 +122,7 @@ object ReportManager {
   val createdUser = "createdUser"
   val paramNames = "paramNames"
   val paramMap = "paramMap"
+  val params = "params"
   val description = "description"
   val retentionDate = "retentionDate"
   val reportType = "fileType"
@@ -165,6 +167,15 @@ object ReportManager {
         paramList.add(param)
       }
       defEnt.setParamNames(paramList)
+    }
+
+    if (entity.contains(params)) {
+      val paramMap = entity.get(params).get.asInstanceOf[List[ParameterEntity]]
+      val paramList = new util.ArrayList[ParameterEntity]()
+      for (param <- paramMap) {
+        paramList.add(param)
+      }
+      defEnt.setParams(paramList)
     }
 
     if (entity.contains(unsupportedReportTypes)) {

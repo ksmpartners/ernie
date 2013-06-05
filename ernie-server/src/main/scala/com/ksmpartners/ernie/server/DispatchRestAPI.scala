@@ -25,24 +25,26 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
   private val log = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DispatchRestAPI")
 
   serve("jobs" :: Nil prefix {
-    case req@Req(Nil, _, PostRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.jobsResource.post(req)
-    case req@Req(Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.jobsResource.get("/jobs")
-    case req@Req(jobId :: "status" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.jobStatusResource.get(jobId)
-    case req@Req(jobId :: "result" :: Nil, _, GetRequest) => (authFilter(req, readRole)_) apply ServiceRegistry.jobResultsResource.get(jobId, Full(req))
-    case req@Req(jobId :: "result" :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.jobResultsResource.del(jobId)
+    case req@Req(Nil, _, PostRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.post(req))
+    case req@Req(Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.get("/jobs"))
+    case req@Req(jobId :: "status" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobStatusResource.get(jobId))
+    case req@Req(jobId :: "result" :: Nil, _, GetRequest) => (authFilter(req, readRole)_) apply (() => ServiceRegistry.jobResultsResource.get(jobId, Full(req)))
+    case req@Req(jobId :: "result" :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobResultsResource.del(jobId))
+    case req@Req("expired" :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.purge())
   })
 
   serve("defs" :: Nil prefix {
-    case req@Req(Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.defsResource.get("/defs")
-    case req@Req(Nil, _, PostRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.defsResource.post(req)
-    case req@Req(defId :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.defDetailResource.get(defId)
-    case req@Req(defId :: Nil, _, PutRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.defDetailResource.put(defId, req)
-    case req@Req(defId :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply ServiceRegistry.defDetailResource.del(defId)
+    case req@Req(Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.defsResource.get("/defs"))
+    case req@Req(Nil, _, PostRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.defsResource.post(req))
+    case req@Req(defId :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.defDetailResource.get(defId))
+    case req@Req(defId :: "rptdesign" :: Nil, _, PutRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.defDetailResource.put(defId, req))
+    case req@Req(defId :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.defDetailResource.del(defId))
   })
 
   serve {
     case req => {
       log.error("Got unknown request: {}", req)
+      log.debug("Response: Not Found Response.")
       () => Full(NotFoundResponse())
     }
   }
@@ -55,7 +57,10 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
    * @return the function f, or a ForbiddenResponse if the user is not in the specified role
    */
   private def authFilter(req: Req, role: String)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = {
-    if (isUserInRole(req, role)) f else () => Full(ForbiddenResponse("User is not authorized to perform that action"))
+    if (isUserInRole(req, role)) f else () => {
+      log.debug("Response: Forbidden Response. Reason: User is not authorized to perform that action")
+      Full(ForbiddenResponse("User is not authorized to perform that action"))
+    }
   }
 
   /**
@@ -65,7 +70,10 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
    * @return the function f, or a NotAcceptableResponse if the user does not accept the correct ctype
    */
   private def ctypeFilter(req: Req)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = {
-    if (acceptsErnieJson(req)) f else () => Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_FULL))
+    if (acceptsErnieJson(req)) f else () => {
+      log.debug("Response: Not Acceptable Response. Reason: Resource only serves " + ModelObject.TYPE_FULL)
+      Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_FULL))
+    }
   }
 
   def shutdown() {

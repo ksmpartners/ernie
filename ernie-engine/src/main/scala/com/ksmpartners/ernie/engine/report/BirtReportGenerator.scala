@@ -54,11 +54,21 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
         entity += (ReportManager.createdUser -> "default")
         entity += (ReportManager.retentionDate -> DateTime.now().plusDays(retentionDate getOrElse (reportManager.getDefaultRetentionDays)))
         var rptParams: Map[String, Any] = reportParameters
-        reportParameters.foreach(param => reportManager.getDefinition(defId).get.getEntity.getParams.toList.find(p => p.getParamName == param._1) match {
-          case Some(paramEntity) => rptParams += (paramEntity.getParamName -> stringToBirtParamData(param._2, paramEntity))
-        })
+        //Ensure all parameter values are supported by the definition
+        if (reportManager.getDefinition(defId).get.getEntity.getParams != null)
+          reportParameters.foreach(param => reportManager.getDefinition(defId).get.getEntity.getParams.toList.find(p => p.getParamName == param._1) match {
+            case Some(paramEntity) => rptParams += (paramEntity.getParamName -> stringToBirtParamData(param._2, paramEntity))
+          })
+
         val entParams = reportManager.getDefinition(defId).get.getEntity.getParams
-        if (entParams != null) entParams.toList.foreach(param => if (!rptParams.contains(param.getParamName)) rptParams += (param.getParamName -> stringToBirtParamData(null, param)))
+
+        if (entParams != null) {
+          entParams.toList.foreach(param =>
+            if (!rptParams.contains(param.getParamName)) {
+              rptParams += (param.getParamName -> stringToBirtParamData(param.getDefaultValue, param))
+            })
+        }
+
         entity += (ReportManager.paramMap -> rptParams)
         try_(reportManager.putReport(entity)) { rptOutputStream =>
           runReport(defInputStream, rptOutputStream, rptType, rptParams)
@@ -68,17 +78,24 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
   }
 
   def stringToBirtParamData(data: String = null, param: ParameterEntity): Any = {
-    if ((data == null) && (!param.getAllowNull)) throw new ParameterNullException(param.getParamName);
-    else param.getDataType.toInt match {
-      case TYPE_BOOLEAN => data.toBoolean
-      case TYPE_DATE => Date.parse(data)
-      case TYPE_DATE_TIME => DateTime.parse(data)
-      case TYPE_DECIMAL => data.toDouble
-      case TYPE_FLOAT => data.toFloat
-      case TYPE_INTEGER => data.toInt.asInstanceOf[Integer]
-      case TYPE_STRING => data
-      case TYPE_TIME => Time.valueOf(data)
-      case _ => throw new UnsupportedDataTypeException(param.getParamName)
+    if (((data == null) || (data == "")) && (!param.getAllowNull)) {
+      throw new ParameterNullException(param.getParamName)
+    } else try {
+      param.getDataType match { //TODO: do not hardcode data type names. http://www.eclipse.org/birt/ref/rom/elements/ScalarParameter.html#Property-dataType
+        case "boolean" => data.toBoolean
+        case "date" => Date.parse(data)
+        case "dateTime" => DateTime.parse(data)
+        case "decimal" => data.toDouble
+        case "float" => data.toFloat
+        case "integer" => data.toInt.asInstanceOf[Integer]
+        case "string" => data
+        case "time" => Time.valueOf(data)
+        case "any" => data
+        case _ => throw new UnsupportedDataTypeException(param.getParamName)
+      }
+    } catch {
+      case e: UnsupportedDataTypeException => throw new UnsupportedDataTypeException(param.getParamName)
+      case e: Exception => throw new ClassCastException()
     }
   }
 
@@ -86,8 +103,8 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
    * Method that runs the .rtpdesign file in the input stream defInputStream, and outputs the results to
    * rptOutputStream as rptType
    */
-  def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType) = runReport(defInputStream, rptOutputStream, rptType, Map.empty[String, Any])
-  def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType, rptParams: Map[String, Any]) {
+  private def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType): Unit = runReport(defInputStream, rptOutputStream, rptType, Map.empty[String, Any])
+  private def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: ReportType, rptParams: Map[String, Any]): Unit = {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     val design = engine.openReportDesign(defInputStream)
     var renderOption: RenderOption = null
@@ -110,19 +127,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
       }
     }
     renderOption.setOutputStream(rptOutputStream)
-    runReport(design, renderOption, rptParams)
-  }
-
-  /**
-   * Method that creates and runs a BIRT task based on the given design and options
-   */
-  private def runReport(design: IReportRunnable, option: RenderOption, rptParams: Map[String, Any]) {
-    val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
-    task.setRenderOption(option)
-    task.setParameterValues(rptParams)
-    rptParams.foreach(f => { task.setParameterValue(f._1, f._2); if (!task.validateParameters) throw new InvalidParameterValuesException(f._1) })
-    task.run()
-    task.close()
+    BirtReportGenerator.runReport(design, renderOption, rptParams)
   }
 
   /**
@@ -171,11 +176,30 @@ object BirtReportGenerator {
    */
   def isValidDefinition(is: InputStream): Boolean = try {
     if (engine == null) {
+      log.debug("Could not validate, engine not started.")
       return false
     }
     engine.openReportDesign(is)
     true
   } catch {
-    case e: Exception => false
+    case e: Exception =>
+      log.debug("Caught exception while validating definition: {}", e)
+      false
+    case e: Exception => {
+      false
+    }
+  }
+
+  /**
+   * Method that creates and runs a BIRT task based on the given design and options
+   */
+  private def runReport(design: IReportRunnable, option: RenderOption, rptParams: Map[String, Any]) = synchronized {
+    val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
+    task.setRenderOption(option)
+    task.setParameterValues(rptParams)
+    rptParams.foreach(f => { task.setParameterValue(f._1, f._2); if (!task.validateParameters) throw new InvalidParameterValuesException(f._1) })
+
+    task.run()
+    task.close()
   }
 }

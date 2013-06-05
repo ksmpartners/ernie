@@ -29,6 +29,8 @@ object ServiceRegistry extends JobDependencies
 
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.ServiceRegistry")
 
+  def getTimeout: Long = timeout
+
   protected val properties: Properties = {
 
     val propsPath = System.getProperty(propertiesFileNameProp)
@@ -80,6 +82,7 @@ object ServiceRegistry extends JobDependencies
 
     val coord = new Coordinator(reportManager) with BirtReportGeneratorFactory
     coord.start()
+    coord.setTimeout(timeout)
     coord
   }
 
@@ -98,6 +101,12 @@ object ServiceRegistry extends JobDependencies
   def init() {
     log.info("BEGIN Initializing ServiceRegistry...")
     log.info("Loaded properties: {}", properties.toString)
+    timeout = if (properties.contains("timeout")) try {
+      properties.get("timeout").asInstanceOf[Long]
+    } catch {
+      case _ => 1000L
+    }
+    else 1000L
     log.info("END Initializing ServiceRegistry...")
   }
 

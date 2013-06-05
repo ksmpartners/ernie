@@ -68,14 +68,19 @@ class MemoryReportManager extends ReportManager {
     getReportContent(report.getRptId)
   }
 
-  override def putDefinition(entity: Map[String, Any]): OutputStream = {
-    val definitionEntity = createDefinitionEntity(entity)
-    new LocalBOS(definitionEntity.getDefId, { (id, content) =>
-      putDefinition(id, content, definitionEntity)
-    })
-  }
+  override def putDefinition(entity: Map[String, Any]): OutputStream = putDefinition(Left(entity))
 
   override def putDefinition(entity: DefinitionEntity): OutputStream = {
+    if ((entity.getDefId == null) || (entity.getDefId.length <= 0))
+      throw new IllegalArgumentException("Entity must contain defId")
+    if ((entity.getCreatedUser == null) || (entity.getCreatedUser.length <= 0))
+      throw new IllegalArgumentException("Entity must contain createdUser")
+    putDefinition(Right(entity))
+
+  }
+
+  override def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): OutputStream = {
+    val entity = if (entityEither.isLeft) createDefinitionEntity(entityEither.left.get) else entityEither.right.get
     new LocalBOS(entity.getDefId, { (id, content) =>
       putDefinition(id, content, entity)
     })
@@ -95,12 +100,15 @@ class MemoryReportManager extends ReportManager {
 
   override def updateDefinition(defId: String, entity: Map[String, Any]): OutputStream = updateDefinition(defId, Left(entity), false)
 
-  override def updateDefinitionEntity(defId: String, entity: Map[String, Any]): OutputStream = updateDefinition(defId, Left(entity), true)
+  override def updateDefinitionEntity(defId: String, entity: Map[String, Any]) {
+    updateDefinition(defId, Left(entity), true)
+  }
 
   override def updateDefinition(defId: String, entity: DefinitionEntity): OutputStream = updateDefinition(defId, Right(entity), false)
 
-  override def updateDefinitionEntity(defId: String, entity: DefinitionEntity): OutputStream = updateDefinition(defId, Right(entity), true)
-
+  override def updateDefinitionEntity(defId: String, entity: DefinitionEntity) {
+    updateDefinition(defId, Right(entity), true)
+  }
   override def putReport(entity: Map[String, Any]): OutputStream = {
     val rptEntity = createReportEntity(entity)
     new LocalBOS(rptEntity.getRptId, { (id, content) =>
