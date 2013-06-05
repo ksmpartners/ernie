@@ -16,6 +16,7 @@ object PropertyNames {
   val authModeProp = "authentication.mode"
   val rptDefsDirProp = "rpt.def.dir"
   val outputDirProp = "output.dir"
+  val jobDirProp = "jobs.dir"
   val defaultRetentionPeriod = "retention.period.default"
   val maximumRetentionPeriod = "retention.period.maximum"
 }

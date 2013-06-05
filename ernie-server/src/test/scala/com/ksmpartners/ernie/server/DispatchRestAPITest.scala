@@ -33,7 +33,7 @@ import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JBool
 import scala.xml.NodeSeq
 import scala.collection.JavaConversions.asJavaCollection
-import com.ksmpartners.ernie.server.service.ConflictResponse
+import com.ksmpartners.ernie.server.service.{ ServiceRegistry, ConflictResponse }
 
 import com.ksmpartners.ernie.engine.PurgeResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
@@ -46,6 +46,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @AfterClass
   def shutdown() {
     DispatchRestAPI.shutdown()
+    (new File(properties.get("jobs.dir").toString)).listFiles.foreach(f => f.delete())
     for (file <- outputDir.listFiles()) {
       recDel(file)
     }
@@ -53,6 +54,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   @BeforeClass
   def setup() {
+    (new File(properties.get("jobs.dir").toString)).listFiles.foreach(f => f.delete())
     outputDir = new File(properties.get("output.dir").toString)
   }
 
@@ -441,7 +443,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertTrue(resp.open_!.isInstanceOf[BadResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
       Assert.assertEquals(resp.open_!.toResponse.code, 400)
     }
   }
@@ -919,8 +921,6 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-
-
   @TestSpecs(Array(new TestSpec(key = "ERNIE-47"), new TestSpec(key = "ERNIE-49")))
   @Test(dependsOnMethods = Array("canDeleteDefs"))
   def canPostDefs() {
@@ -989,7 +989,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def_params.rptdesign").getPath)
 
     mockReq.body = scala.xml.XML.loadFile(file)
-    log.info("putting params def " + file.getAbsolutePath)
+
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
@@ -1313,6 +1313,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-147")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def cantGetReportDetailWithoutJSONRequest() {
+
     val mockReq = new MockReadAuthReq("/jobs/1/result/detail")
     mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
 
@@ -1328,6 +1329,53 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def cantGetReportDetailWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/jobs/1/result/detail")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 403)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-139"), new TestSpec(key = "ERNIE-140")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def canGetJobDetail() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID)
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val jobDetailResponse: JobEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobEntity])
+      Assert.assertEquals(jobDetailResponse.getJobStatus, JobStatus.COMPLETE)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-141")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def cantGetJobDetailWithoutJSONRequest() {
+
+    val mockReq = new MockReadAuthReq("/jobs/1")
+    mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-137")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def cantGetJobDetailWithoutReadAuth() {
+    val mockReq = new MockNoAuthReq("/jobs/1")
 
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
@@ -1384,8 +1432,9 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
 class TestBoot extends Boot {
   def setUpAndBoot() {
-    val url = Thread.currentThread.getContextClassLoader.getResource("default.props")
+    val url = Thread.currentThread.getContextClassLoader.getResource("test.props")
     System.setProperty(propertiesFileNameProp, url.getPath)
+
     boot()
   }
 }

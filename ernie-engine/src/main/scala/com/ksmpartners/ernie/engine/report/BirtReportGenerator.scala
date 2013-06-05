@@ -53,6 +53,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
         entity += (ReportManager.reportType -> rptType)
         entity += (ReportManager.createdUser -> "default")
         entity += (ReportManager.retentionDate -> DateTime.now().plusDays(retentionDate getOrElse (reportManager.getDefaultRetentionDays)))
+
         var rptParams: Map[String, Any] = reportParameters
         //Ensure all parameter values are supported by the definition
         if (reportManager.getDefinition(defId).get.getEntity.getParams != null)
@@ -70,6 +71,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
         }
 
         entity += (ReportManager.paramMap -> rptParams)
+        entity += (ReportManager.startDate -> DateTime.now)
         try_(reportManager.putReport(entity)) { rptOutputStream =>
           runReport(defInputStream, rptOutputStream, rptType, rptParams)
         }

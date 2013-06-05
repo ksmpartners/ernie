@@ -21,6 +21,8 @@ import java.util.Map;
 public class ReportEntity extends ModelObject {
 
     private DateTime createdDate;
+    private DateTime startDate;
+    private DateTime finishDate;
     private DateTime retentionDate;
     private String rptId;
     private String sourceDefId;
@@ -30,7 +32,7 @@ public class ReportEntity extends ModelObject {
 
     public ReportEntity() {}
 
-    public ReportEntity(DateTime createdDate, DateTime retentionDate, String rptId, String sourceDefId, String createdUser, Map<String, String> params, ReportType reportType) {
+    public ReportEntity(DateTime createdDate, DateTime retentionDate, String rptId, String sourceDefId, String createdUser, Map<String, String> params, ReportType reportType, DateTime startDate, DateTime finishDate) {
         this.createdDate = createdDate;
         this.retentionDate = retentionDate;
         this.rptId = rptId;
@@ -38,6 +40,8 @@ public class ReportEntity extends ModelObject {
         this.createdUser = createdUser;
         this.params = params;
         this.reportType = reportType;
+        this.startDate = startDate;
+        this.finishDate = finishDate;
     }
 
     @JsonSerialize(using = ISODateSerializer.class)
@@ -59,6 +63,27 @@ public class ReportEntity extends ModelObject {
     public void setRetentionDate(DateTime retentionDate) {
         this.retentionDate = retentionDate;
     }
+
+    @JsonSerialize(using = ISODateSerializer.class)
+    public DateTime getStartDate() {
+        return startDate;
+    }
+
+    @JsonSerialize(using = ISODateSerializer.class)
+    public void setStartDate(DateTime startDate) {
+        this.startDate = startDate;
+    }
+
+    @JsonSerialize(using = ISODateSerializer.class)
+    public DateTime getFinishDate() {
+        return finishDate;
+    }
+
+    @JsonSerialize(using = ISODateSerializer.class)
+    public void setFinishDate(DateTime finishDate) {
+        this.finishDate = finishDate;
+    }
+
 
     public String getRptId() {
         return rptId;

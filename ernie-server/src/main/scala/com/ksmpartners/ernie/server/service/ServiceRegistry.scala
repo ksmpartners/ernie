@@ -80,7 +80,12 @@ object ServiceRegistry extends JobDependencies
 
   protected val coordinator: Coordinator = {
 
-    val coord = new Coordinator(reportManager) with BirtReportGeneratorFactory
+    if (!properties.stringPropertyNames.contains(jobDirProp)) {
+      throw new RuntimeException("Properties file does not contain property " + jobDirProp)
+    }
+    val jobDir = properties.get(jobDirProp).toString
+
+    val coord = new Coordinator(jobDir, reportManager) with BirtReportGeneratorFactory
     coord.start()
     coord.setTimeout(timeout)
     coord

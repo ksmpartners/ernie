@@ -79,14 +79,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
         Full(NotFoundResponse())
       }
     }
-    /* def del(defId: String) = try {
-      reportManager.deleteDefinition(defId)
-      Full(OkResponse())
-    } catch {
-      case e: Exception => {
-        Full(BadResponse())
-      }
-    }*/
+
     def del(defId: String) = {
 
       val respOpt = (coordinator !? (timeout, engine.DeleteDefinitionRequest(defId))).asInstanceOf[Option[engine.DeleteDefinitionResponse]]
@@ -108,6 +101,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
         }
       }
     }
+
     def put(defId: String, req: net.liftweb.http.Req) = {
       var ctype = ""
       req.headers.foreach({ tup =>
@@ -121,8 +115,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       } else if (req.body.isEmpty) {
         log.debug("Response: Bad Response. Reason: No report design in request body")
         Full(ResponseWithReason(BadResponse(), "No report design in request body"))
-      };
-      else {
+      }; else {
         val defOpt: Option[Definition] = reportManager.getDefinition(defId)
         if (defOpt.isEmpty) {
           log.debug("Response: Not Found Response.")

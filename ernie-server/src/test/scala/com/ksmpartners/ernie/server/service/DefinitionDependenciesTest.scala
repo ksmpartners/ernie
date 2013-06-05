@@ -13,6 +13,7 @@ import org.testng.Assert
 import net.liftweb.http.PlainTextResponse
 import com.ksmpartners.ernie.model.DefinitionEntity
 import org.joda.time.DateTime
+import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.MapperUtility._
 import com.ksmpartners.ernie.engine.Coordinator
 
@@ -21,7 +22,7 @@ class DefinitionDependenciesTest extends DefinitionDependencies {
   val reportManager = new MemoryReportManager
 
   val coordinator: Coordinator = {
-    val coord = new Coordinator(reportManager) with TestReportGeneratorFactory
+    val coord = new Coordinator(createTempDirectory.getAbsolutePath, reportManager) with TestReportGeneratorFactory
     coord.start()
     coord
   }

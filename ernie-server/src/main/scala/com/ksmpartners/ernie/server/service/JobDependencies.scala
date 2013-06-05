@@ -33,7 +33,7 @@ trait JobDependencies extends RequiresCoordinator
     /**
      * Return a Box[ListResponse] containing a map of jobId to URI for that jobId
      */
-    def get(uriPrefix: String) = {
+    def getMap(uriPrefix: String) = {
       val respOpt = (coordinator !? (timeout, engine.JobsListRequest())).asInstanceOf[Option[engine.JobsListResponse]]
       if (respOpt.isEmpty) {
         log.debug("Response: Timeout Response.")
@@ -47,6 +47,23 @@ trait JobDependencies extends RequiresCoordinator
         getJsonResponse(new model.JobsMapResponse(jobsMap))
       }
     }
+
+    /**
+     * Return a Box[ListResponse] containing a JobEntity
+     */
+    def get(jobId: String) = {
+      val respOpt = (coordinator !? (timeout, engine.JobDetailRequest(jobId.toLong))).asInstanceOf[Option[engine.JobDetailResponse]]
+      if (respOpt.isEmpty) {
+        log.debug("Response: Timeout Response.")
+        Full(TimeoutResponse())
+      } else {
+        val response = respOpt.get
+        if (response.jobEntity isDefined)
+          getJsonResponse(response.jobEntity.get)
+        else Full(NotFoundResponse())
+      }
+    }
+
     /**
      * Sends the given ReportRequest to the Coordinator to be scheduled
      *
@@ -185,7 +202,7 @@ trait JobDependencies extends RequiresCoordinator
               }
             } else {
               log.debug("Response: Bad Response. Reason: Report ID is undefined.")
-              Full(ResponseWithReason(BadResponse(),"Report ID is undefined"))
+              Full(ResponseWithReason(BadResponse(), "Report ID is undefined"))
             }
           }
         }
@@ -230,7 +247,7 @@ trait JobDependencies extends RequiresCoordinator
           Full(ConflictResponse())
         } else {
           log.debug("Response: Bad Response. Reason: Definition deletion failed")
-          Full(ResponseWithReason(BadResponse(),"Definition deletion failed"))
+          Full(ResponseWithReason(BadResponse(), "Definition deletion failed"))
         }
       }
     }
