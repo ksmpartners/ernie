@@ -905,6 +905,8 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+
+
   @TestSpecs(Array(new TestSpec(key = "ERNIE-47"), new TestSpec(key = "ERNIE-49")))
   @Test(dependsOnMethods = Array("canDeleteDefs"))
   def canPostDefs() {

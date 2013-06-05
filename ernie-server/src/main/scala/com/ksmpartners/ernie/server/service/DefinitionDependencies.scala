@@ -104,7 +104,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
           Full(ConflictResponse())
         } else {
           log.debug("Response: Bad Response. Reason: Definition deletion failed.")
-          Full(ResponseWithReason(BadResponse(), "Definition deletion failed")
+          Full(ResponseWithReason(BadResponse(), "Definition deletion failed"))
         }
       }
     }
