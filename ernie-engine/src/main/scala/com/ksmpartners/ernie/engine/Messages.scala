@@ -7,7 +7,7 @@
 
 package com.ksmpartners.ernie.engine
 
-import com.ksmpartners.ernie.model.{ DeleteStatus, ReportType, JobStatus }
+import com.ksmpartners.ernie.model._
 import scala.collection.immutable
 
 /** Request that the report defId be generated resulting in an output of type rptType */
@@ -46,3 +46,11 @@ case class JobResponse(jobStatus: JobStatus, rptId: Option[String], req: JobRequ
 case class ShutDownRequest()
 /** The response that indicates that the Actor's facilities are shut down */
 case class ShutDownResponse()
+/**Request details for a given report */
+case class ReportDetailRequest(jobId: Long)
+/**The response associated with the given ReportDetailRequest*/
+case class ReportDetailResponse(rptEntity: Option[ReportEntity], req: ReportDetailRequest)
+/**Request details for a given job */
+case class JobDetailRequest(jobId: Long)
+/**The response associated with the given ReportDetailRequest*/
+case class JobDetailResponse(jobEntity: Option[JobEntity], req: ReportDetailRequest)

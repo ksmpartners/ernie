@@ -7,8 +7,9 @@
 
 package com.ksmpartners.ernie.engine.report
 
-import com.ksmpartners.ernie.model.DefinitionEntity
+import com.ksmpartners.ernie.model.{ ReportType, DefinitionEntity }
 import org.joda.time.DateTime
+import collection.JavaConversions._
 
 /**
  * Immutable wrapper class for sharing DefinitionEntity data
@@ -18,6 +19,11 @@ class Definition protected[report] (defEntity: DefinitionEntity) {
   private lazy val paramNames: Array[String] = {
     val jParamNames = defEntity.getParamNames
     if (jParamNames == null) new Array(0) else jParamNames.toArray.map({ _.toString })
+  }
+
+  private lazy val unsupportedReportTypes: Array[ReportType] = {
+    val jUnsupportedReportTypes: java.util.List[ReportType] = defEntity.getUnsupportedReportTypes
+    if (jUnsupportedReportTypes == null) new Array(0) else jUnsupportedReportTypes.toArray.map(f => f.asInstanceOf[ReportType])
   }
 
   def getCreatedDate: DateTime = defEntity.getCreatedDate
@@ -30,6 +36,8 @@ class Definition protected[report] (defEntity: DefinitionEntity) {
 
   def getDefDescription: String = defEntity.getDefDescription
 
+  def getUnsupportedReportTypes: Array[ReportType] = unsupportedReportTypes
+
   def getEntity: DefinitionEntity = {
     val defEnt = new DefinitionEntity()
     defEnt.setCreatedDate(defEntity.getCreatedDate)
@@ -38,6 +46,7 @@ class Definition protected[report] (defEntity: DefinitionEntity) {
     defEnt.setDefId(defEntity.getDefId)
     defEnt.setParamNames(defEntity.getParamNames)
     defEnt.setParams(defEntity.getParams)
+    defEnt.setUnsupportedReportTypes(defEntity.getUnsupportedReportTypes)
     defEnt
   }
 

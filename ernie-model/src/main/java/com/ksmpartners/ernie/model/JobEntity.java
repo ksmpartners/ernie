@@ -21,15 +21,15 @@ import java.util.List;
 public class JobEntity extends ModelObject {
 
     private Long jobId;
-    private String rptId;
+    private String defId;
     private JobStatus jobStatus;
     private ReportType rptType;
 
     public JobEntity() {}
 
-    public JobEntity(Long jobId, String rptId, JobStatus jobStatus, ReportType rptType) {
+    public JobEntity(Long jobId, String defId, JobStatus jobStatus, ReportType rptType) {
         this.jobId = jobId;
-        this.rptId = rptId;
+        this.defId = defId;
         this.jobStatus = jobStatus;
         this.rptType = rptType;
     }
@@ -38,8 +38,8 @@ public class JobEntity extends ModelObject {
         return jobId;
     }
 
-    public String getRptId() {
-        return rptId;
+    public String getDefId() {
+        return defId;
     }
 
     public JobStatus getJobStatus() {
@@ -53,8 +53,8 @@ public class JobEntity extends ModelObject {
         this.jobId = jobId;
     }
 
-    public void setRptId(String rptId) {
-        this.rptId = rptId;
+    public void setDefId(String defId) {
+        this.defId = defId;
     }
 
     public void setJobStatus(JobStatus jobStatus) {
