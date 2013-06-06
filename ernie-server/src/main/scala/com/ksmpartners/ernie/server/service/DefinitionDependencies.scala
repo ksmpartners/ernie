@@ -38,6 +38,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       })
       getJsonResponse(new model.ReportDefinitionMapResponse(defMap))
     }
+
     def post(req: net.liftweb.http.Req) = {
 
       if (req.body.isEmpty) {
@@ -79,6 +80,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
         Full(NotFoundResponse())
       }
     }
+
     /* def del(defId: String) = try {
       reportManager.deleteDefinition(defId)
       Full(OkResponse())

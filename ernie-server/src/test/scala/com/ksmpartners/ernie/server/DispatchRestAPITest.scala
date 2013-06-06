@@ -33,10 +33,8 @@ import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JBool
 import scala.xml.NodeSeq
 import scala.collection.JavaConversions.asJavaCollection
-import com.ksmpartners.ernie.server.service.ConflictResponse
-
-import com.ksmpartners.ernie.engine.PurgeResponse
-import com.ksmpartners.ernie.engine.PurgeRequest
+import com.ksmpartners.ernie.server.service.{ ServiceRegistry, ConflictResponse }
+import org.joda.time.{ Days, DateTime }
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
@@ -1305,6 +1303,22 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val rptDetailResponse: ReportEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportEntity])
       Assert.assertEquals(rptDetailResponse.getRptId, jobToRptId(testJobID))
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-124")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def undefinedRetentionDateSetsAsDefault() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result/detail")
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val rptDetailResponse: ReportEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportEntity])
+      Assert.assertEquals(Days.daysBetween(rptDetailResponse.getCreatedDate.toDateMidnight(), rptDetailResponse.getRetentionDate.toDateMidnight()).getDays(), ServiceRegistry.getDefaultRetentionDays)
     }
   }
 
