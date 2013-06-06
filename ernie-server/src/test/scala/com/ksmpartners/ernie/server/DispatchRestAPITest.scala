@@ -42,21 +42,35 @@ import scala.collection.JavaConversions
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   var outputDir: File = null
+  var jobsDir: File = null
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DispatchRestAPITest")
 
   @AfterClass
   def shutdown() {
     DispatchRestAPI.shutdown()
-    (new File(properties.get("jobs.dir").toString)).listFiles.foreach(f => f.delete())
     for (file <- outputDir.listFiles()) {
       recDel(file)
     }
+    for (file <- jobsDir.listFiles()) {
+      recDel(file)
+    }
+
+    var keep = new File(outputDir, ".keep")
+    keep.createNewFile()
+    keep = new File(jobsDir, ".keep")
+    keep.createNewFile()
   }
 
   @BeforeClass
   def setup() {
-    (new File(properties.get("jobs.dir").toString)).listFiles.foreach(f => f.delete())
     outputDir = new File(properties.get("output.dir").toString)
+    jobsDir = new File(properties.get("jobs.dir").toString)
+    if (outputDir.exists())
+      recDel(outputDir)
+    if (jobsDir.exists())
+      recDel(jobsDir)
+    outputDir.mkdir()
+    jobsDir.mkdir()
   }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-127")))
@@ -571,11 +585,11 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
     MockWeb.testReq(mockReq) { req =>
       val respBox = DispatchRestAPI(req)()
-      Assert.assertTrue(respBox.isDefined)
-      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse])
+      Assert.assertTrue(respBox.isDefined, "Response is not defined")
+      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse], "Response is not of type StreamingResponse")
 
       val resultResp = respBox.open_!.asInstanceOf[StreamingResponse]
-      Assert.assertEquals(resultResp.code, 200)
+      Assert.assertEquals(resultResp.code, 200, "Status code is not 200")
       Assert.assertTrue(resultResp.headers.contains(("Content-Type", "application/html")) && resultResp.headers.contains(("Content-Disposition", "attachment; filename=\"REPORT_" + testJobHTMLID + ".html\"")))
     }
   }

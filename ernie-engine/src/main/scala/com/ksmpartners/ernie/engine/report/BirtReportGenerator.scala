@@ -185,7 +185,7 @@ object BirtReportGenerator {
     true
   } catch {
     case e: Exception =>
-      log.debug("Caught exception while validating definition: {}", e)
+      log.debug("Caught exception while validating definition: {}", e.getMessage)
       false
     case e: Exception => {
       false
