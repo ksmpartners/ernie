@@ -53,4 +53,8 @@ case class ReportDetailResponse(rptEntity: Option[ReportEntity], req: ReportDeta
 /**Request details for a given job */
 case class JobDetailRequest(jobId: Long)
 /**The response associated with the given ReportDetailRequest*/
-case class JobDetailResponse(jobEntity: Option[JobEntity], req: ReportDetailRequest)
+case class JobDetailResponse(jobEntity: Option[JobEntity], req: JobDetailRequest)
+/**Request a catalog for some subset of jobs */
+case class JobsCatalogRequest(jobStatus: Option[JobStatus])
+/**The response associated with the given ReportDetailRequest*/
+case class JobsCatalogResponse(catalog: List[JobEntity], req: JobsCatalogRequest)

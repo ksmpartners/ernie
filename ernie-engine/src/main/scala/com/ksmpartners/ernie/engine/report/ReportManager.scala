@@ -126,6 +126,10 @@ object ReportManager {
   val description = "description"
   val retentionDate = "retentionDate"
   val reportType = "fileType"
+  val startDate = "startDate"
+  val submitDate = "submitDate"
+  val finishDate = "finishDate"
+  val rptEntity = "rptEntity"
   val sourceDefId = "sourceDefId"
   val unsupportedReportTypes = "unsupportedReportTypes"
 

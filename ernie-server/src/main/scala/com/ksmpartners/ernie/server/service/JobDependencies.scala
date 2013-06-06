@@ -16,9 +16,10 @@ import java.util
 import collection.JavaConversions._
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.JsonTranslator
-import com.ksmpartners.ernie.model.{ DeleteStatus, JobStatus }
+import com.ksmpartners.ernie.model.{ JobsCatalogResponse, JobEntity, DeleteStatus, JobStatus }
 import com.ksmpartners.ernie.server.service.JobDependencies._
 import com.ksmpartners.ernie.engine.{ PurgeResponse, PurgeRequest }
+import scala.collection.JavaConversions
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
@@ -33,7 +34,7 @@ trait JobDependencies extends RequiresCoordinator
     /**
      * Return a Box[LiftResponse] containing a map of jobId to URI for that jobId
      */
-    def get(uriPrefix: String) = {
+    def getMap(uriPrefix: String) = {
       val respOpt = (coordinator !? (timeout, engine.JobsListRequest())).asInstanceOf[Option[engine.JobsListResponse]]
       if (respOpt.isEmpty) {
         log.debug("Response: Timeout Response.")
@@ -45,6 +46,43 @@ trait JobDependencies extends RequiresCoordinator
           jobsMap.put(jobId, uriPrefix + "/" + jobId)
         })
         getJsonResponse(new model.JobsMapResponse(jobsMap))
+      }
+    }
+
+    /**
+     * Return a Box[ListResponse] containing a catalog of all JobEntities
+     */
+    def getCatalog(): Box[LiftResponse] = getCatalog(None)
+    def getCatalog(catalog: Option[String]): Box[LiftResponse] = {
+      val respOpt = (coordinator !? (timeout, engine.JobsCatalogRequest(catalog match {
+        case Some("failed") => Some(JobStatus.FAILED)
+        case Some("successful") => Some(JobStatus.COMPLETE)
+        case Some("") => None
+        case None => None
+      }))).asInstanceOf[Option[engine.JobsCatalogResponse]]
+      if (respOpt.isEmpty) {
+        log.debug("Response: Timeout Response.")
+        Full(TimeoutResponse())
+      } else {
+        val jobsCatalog: util.ArrayList[JobEntity] = new util.ArrayList
+        respOpt.get.catalog.foreach(f => jobsCatalog.add(f))
+        getJsonResponse(new JobsCatalogResponse(jobsCatalog))
+      }
+    }
+
+    /**
+     * Return a Box[ListResponse] containing a JobEntity
+     */
+    def get(jobId: String) = {
+      val respOpt = (coordinator !? (timeout, engine.JobDetailRequest(jobId.toLong))).asInstanceOf[Option[engine.JobDetailResponse]]
+      if (respOpt.isEmpty) {
+        log.debug("Response: Timeout Response.")
+        Full(TimeoutResponse())
+      } else {
+        val response = respOpt.get
+        if (response.jobEntity isDefined)
+          getJsonResponse(response.jobEntity.get)
+        else Full(NotFoundResponse())
       }
     }
 

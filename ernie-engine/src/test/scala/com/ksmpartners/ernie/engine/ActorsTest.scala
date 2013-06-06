@@ -38,7 +38,7 @@ class ActorsTest {
       val byteArr = new Array[Byte](file.length().asInstanceOf[Int])
       fis.read(byteArr)
       reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null, null))
-      coordinator = new Coordinator(reportManager) with TestReportGeneratorFactory
+      coordinator = new Coordinator(createTempDirectory.getAbsolutePath, reportManager) with TestReportGeneratorFactory
       coordinator.start()
     } finally {
       try { fis.close() } catch { case e => }

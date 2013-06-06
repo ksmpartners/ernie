@@ -28,11 +28,11 @@ class MemoryReportManagerTest {
     reportManager.putDefinition("def_3", "DEF_3".getBytes, new DefinitionEntity(DateTime.now(), "def_3", "default", null, "", null, null))
     reportManager.putDefinition("def_4", "DEF_4".getBytes, new DefinitionEntity(DateTime.now(), "def_4", "default", null, "", null, null))
     reportManager.putDefinition("def_5", "DEF_5".getBytes, new DefinitionEntity(DateTime.now(), "def_5", "default", null, "", null, null))
-    reportManager.putReport("rpt_1", "RPT_1".getBytes, new ReportEntity(DateTime.now(), DateTime.now(), "rpt_1", "def_1", "default", null, ReportType.PDF))
-    reportManager.putReport("rpt_2", "RPT_2".getBytes, new ReportEntity(DateTime.now(), DateTime.now(), "rpt_2", "def_2", "default", null, ReportType.PDF))
-    reportManager.putReport("rpt_3", "RPT_3".getBytes, new ReportEntity(DateTime.now(), DateTime.now(), "rpt_3", "def_3", "default", null, ReportType.PDF))
-    reportManager.putReport("rpt_4", "RPT_4".getBytes, new ReportEntity(DateTime.now(), DateTime.now(), "rpt_4", "def_4", "default", null, ReportType.PDF))
-    reportManager.putReport("rpt_5", "RPT_5".getBytes, new ReportEntity(DateTime.now(), DateTime.now(), "rpt_5", "def_5", "default", null, ReportType.PDF))
+    reportManager.putReport("rpt_1", "RPT_1".getBytes, new ReportEntity(DateTime.now(), DateTime.now(), "rpt_1", "def_1", "default", null, ReportType.PDF, null, null))
+    reportManager.putReport("rpt_2", "RPT_2".getBytes, new ReportEntity(DateTime.now(), DateTime.now(), "rpt_2", "def_2", "default", null, ReportType.PDF, null, null))
+    reportManager.putReport("rpt_3", "RPT_3".getBytes, new ReportEntity(DateTime.now(), DateTime.now(), "rpt_3", "def_3", "default", null, ReportType.PDF, null, null))
+    reportManager.putReport("rpt_4", "RPT_4".getBytes, new ReportEntity(DateTime.now(), DateTime.now(), "rpt_4", "def_4", "default", null, ReportType.PDF, null, null))
+    reportManager.putReport("rpt_5", "RPT_5".getBytes, new ReportEntity(DateTime.now(), DateTime.now(), "rpt_5", "def_5", "default", null, ReportType.PDF, null, null))
   }
 
   @Test

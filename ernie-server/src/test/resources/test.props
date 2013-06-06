@@ -4,4 +4,4 @@
 
 rpt.def.dir=./src/test/resources/in
 output.dir=./src/test/resources/out
-jobs.dir=./src/test/resources/jobs
+jobs.dir=./src/test/resources/jobsTest

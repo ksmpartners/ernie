@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
+
+        <!-- =============================================================== -->
+        <!-- Configure the Jetty Server                                      -->
+        <!--                                                                 -->
+        <!-- Documentation of this file format can be found at:              -->
+        <!-- http://docs.codehaus.org/display/JETTY/jetty.xml                -->
+        <!--                                                                 -->
+        <!-- =============================================================== -->
+
+
+<Configure id="Server" class="org.mortbay.jetty.Server">
+
+    <!-- =========================================================== -->
+    <!-- MBeanServer for JMX                                         -->
+    <!-- =========================================================== -->
+
+    <Call id="MBeanServer" class="java.lang.management.ManagementFactory"
+          name="getPlatformMBeanServer"/>
+
+    <Get id="Container" name="container">
+        <Call name="addEventListener">
+            <Arg>
+                <New class="org.mortbay.management.MBeanContainer">
+                    <Arg><Ref id="MBeanServer"/></Arg>
+                    <Set name="managementPort">8082</Set>
+                    <Call name="start" />
+                </New>
+            </Arg>
+        </Call>
+    </Get>
+
+</Configure>

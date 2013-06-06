@@ -11,40 +11,47 @@ import com.ksmpartners.ernie.engine._
 import com.ksmpartners.ernie.engine.report._
 import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.util.MapperUtility._
-import com.ksmpartners.ernie.model.{ ReportEntity, JobStatus, DefinitionEntity, ReportType }
+import com.ksmpartners.ernie.model._
 import com.ksmpartners.ernie.util.Utility._
 import java.io._
 import org.testng.annotations.{ BeforeClass, AfterTest, BeforeTest, Test }
 import net.liftweb.common.Full
-import net.liftweb.http.{ NotFoundResponse, StreamingResponse, PlainTextResponse, BadResponse }
+import net.liftweb.http._
 import org.testng.Assert
 import collection.mutable
 import org.joda.time.DateTime
 import com.ksmpartners.ernie.server.JsonTranslator
-import net.liftweb.http.StreamingResponse
-import net.liftweb.http.BadResponse
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import scala.Array
-import net.liftweb.http.StreamingResponse
 import com.ksmpartners.ernie.engine.ShutDownRequest
-import net.liftweb.http.BadResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
-import net.liftweb.http.StreamingResponse
 import com.ksmpartners.ernie.engine.ShutDownRequest
 import com.ksmpartners.ernie.engine.PurgeResponse
-import net.liftweb.http.BadResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
 import org.specs2.time.TimeConversions._
+import com.ksmpartners.ernie.engine.ShutDownRequest
+import net.liftweb.common.Full
+import com.ksmpartners.ernie.engine.PurgeResponse
+import com.ksmpartners.ernie.engine.PurgeRequest
+import com.ksmpartners.ernie.engine.ShutDownRequest
+import net.liftweb.common.Full
+import com.ksmpartners.ernie.engine.PurgeResponse
+import com.ksmpartners.ernie.engine.PurgeRequest
+import net.liftweb.http.StreamingResponse
+import com.ksmpartners.ernie.engine.ShutDownRequest
+import net.liftweb.common.Full
+import com.ksmpartners.ernie.engine.PurgeResponse
+import com.ksmpartners.ernie.engine.PurgeRequest
 
 class JobDependenciesTest extends JobDependencies with JsonTranslator {
 
   val tempInputDir = createTempDirectory
   val tempOutputDir = createTempDirectory
-
+  val tempJobDir = createTempDirectory
   val reportManager = {
     for (i <- 1 to 4) {
-      var report = new ReportEntity(DateTime.now, if (i % 2 == 0) DateTime.now.minusDays(10) else DateTime.now.plusDays(10), "REPORT_" + i, "test_def", "default", null, ReportType.PDF)
+      var report = new ReportEntity(DateTime.now, if (i % 2 == 0) DateTime.now.minusDays(10) else DateTime.now.plusDays(10), "REPORT_" + i, "test_def", "default", null, ReportType.PDF, null, null)
       try {
         val rptEntFile = new File(tempOutputDir, report.getRptId + ".entity")
         try_(new FileOutputStream(rptEntFile)) { fos =>
@@ -59,6 +66,12 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
         try_(new FileOutputStream(file)) { fos =>
           fos.write("test".getBytes)
         }
+
+        val job = new File(tempJobDir, rptToJobId(report.getRptId) + ".entity")
+        try_(new FileOutputStream(job)) { fos =>
+          mapper.writeValue(fos,
+            new JobEntity(rptToJobId(report.getRptId), JobStatus.COMPLETE, DateTime.now, report.getRptId, null))
+        }
       } catch {
         case e: Exception => {}
       }
@@ -69,7 +82,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
     rptMgr
   }
   val coordinator: Coordinator = {
-    val coord = new Coordinator(reportManager) with TestReportGeneratorFactory
+    val coord = new Coordinator(tempJobDir.getAbsolutePath, reportManager) with TestReportGeneratorFactory
     coord.start()
     coord
   }
@@ -96,7 +109,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   @Test
   def canGetJobsMap() {
     val jobsResource = new JobsResource
-    val respBox = jobsResource.get("/jobs")
+    val respBox = jobsResource.getMap("/jobs")
 
     Assert.assertTrue(respBox.isDefined)
 
@@ -121,7 +134,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   def cantPostNewJobWithBadSyntax() {
     val jobsResource = new JobsResource
     val respBox = jobsResource.post(Full("""{"THIS_IS":"WRONG"}""".getBytes))
-    Assert.assertTrue(respBox.open_!.isInstanceOf[BadResponse])
+    Assert.assertTrue(respBox.open_!.isInstanceOf[ResponseWithReason])
   }
 
   @Test

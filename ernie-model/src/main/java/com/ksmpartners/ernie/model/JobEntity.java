@@ -21,48 +21,64 @@ import java.util.List;
 public class JobEntity extends ModelObject {
 
     private Long jobId;
-    private String defId;
     private JobStatus jobStatus;
-    private ReportType rptType;
+    private DateTime submitDate;
+    private String rptId;
+    private ReportEntity rptEntity;
 
     public JobEntity() {}
 
-    public JobEntity(Long jobId, String defId, JobStatus jobStatus, ReportType rptType) {
+    public JobEntity(Long jobId, JobStatus jobStatus, DateTime submitDate, String rptId, ReportEntity rptEntity) {
         this.jobId = jobId;
-        this.defId = defId;
         this.jobStatus = jobStatus;
-        this.rptType = rptType;
+        this.submitDate = submitDate;
+        this.rptId = rptId;
+        this.rptEntity = rptEntity;
     }
+
+    public String getRptId() {
+        return rptId;
+    }
+
+    public ReportEntity getRptEntity() {
+        return rptEntity;
+    }
+
+    public void setRptId(String rptId) {
+        this.rptId = rptId;
+    }
+
+    public void setRptEntity(ReportEntity rptEntity) {
+        this.rptEntity = rptEntity;
+    }
+
+    @JsonSerialize(using = ISODateSerializer.class)
+    public DateTime getSubmitDate() {
+        return submitDate;
+    }
+
+    @JsonDeserialize(using = ISODateDeserializer.class)
+    public void setSubmitDate(DateTime submitDate) {
+        this.submitDate = submitDate;
+    }
+
 
     public Long getJobId() {
         return jobId;
     }
 
-    public String getDefId() {
-        return defId;
-    }
+
 
     public JobStatus getJobStatus() {
         return jobStatus;
     }
 
-    public ReportType getRptType() {
-        return rptType;
-    }
     public void setJobId(Long jobId) {
         this.jobId = jobId;
     }
 
-    public void setDefId(String defId) {
-        this.defId = defId;
-    }
-
     public void setJobStatus(JobStatus jobStatus) {
         this.jobStatus = jobStatus;
-    }
-
-    public void setRptType(ReportType rptType) {
-        this.rptType = rptType;
     }
 
 }

@@ -7,7 +7,7 @@
 
 package com.ksmpartners.ernie.util
 
-import java.io.{ FileNotFoundException, File, Closeable }
+import java.io.{ IOException, FileNotFoundException, File, Closeable }
 
 object Utility {
 
@@ -85,5 +85,20 @@ object Utility {
 
   def jobToRptId(jobId: Long): String = "REPORT_" + jobId.toString
   def rptToJobId(rptId: String): Long = rptId.replaceAll("REPORT_", "").toLong
+  def createTempDirectory(): File = {
 
+    var temp: File = null
+
+    temp = File.createTempFile("temp", System.nanoTime.toString)
+
+    if (!(temp.delete())) {
+      throw new IOException("Could not delete temp file: " + temp.getAbsolutePath)
+    }
+
+    if (!(temp.mkdir())) {
+      throw new IOException("Could not create temp directory: " + temp.getAbsolutePath)
+    }
+
+    temp
+  }
 }

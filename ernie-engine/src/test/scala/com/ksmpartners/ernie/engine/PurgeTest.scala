@@ -12,7 +12,7 @@ import java.io._
 import report._
 import java.net.URL
 import org.testng.Assert
-import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType, JobStatus }
+import com.ksmpartners.ernie.model._
 import org.joda.time.DateTime
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import org.slf4j.{ LoggerFactory, Logger }
@@ -31,9 +31,10 @@ class PurgeTest {
   def setup() {
     val rptDefDir = createTempDirectory
     val outputDir = createTempDirectory
+    val jobDir = createTempDirectory
 
     for (i <- 1 to 4) {
-      var report = new ReportEntity(DateTime.now, if (i % 2 == 0) DateTime.now.minusDays(10) else DateTime.now.plusDays(10), "REPORT_" + i, "test_def", "default", null, ReportType.PDF)
+      var report = new ReportEntity(DateTime.now, if (i % 2 == 0) DateTime.now.minusDays(10) else DateTime.now.plusDays(10), "REPORT_" + i, "test_def", "default", null, ReportType.PDF, null, null)
       try {
         val rptEntFile = new File(outputDir, report.getRptId + ".entity")
         try_(new FileOutputStream(rptEntFile)) { fos =>
@@ -48,11 +49,17 @@ class PurgeTest {
         try_(new FileOutputStream(file)) { fos =>
           fos.write("test".getBytes)
         }
+        val job = new File(jobDir, rptToJobId(report.getRptId) + ".entity")
+        try_(new FileOutputStream(job)) { fos =>
+          mapper.writeValue(fos,
+            new JobEntity(rptToJobId(report.getRptId), JobStatus.COMPLETE, DateTime.now, report.getRptId, null))
+        }
+
       } catch { case e: Exception => {} }
     }
     try {
       reportManager = new FileReportManager(rptDefDir.getAbsolutePath, outputDir.getAbsolutePath)
-      coordinator = new Coordinator(reportManager) with TestReportGeneratorFactory
+      coordinator = new Coordinator(jobDir.getAbsolutePath, reportManager) with TestReportGeneratorFactory
       coordinator.start()
     } finally {
 
@@ -76,6 +83,10 @@ class PurgeTest {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-68")))
   @Test(dependsOnMethods = Array("hasReports"))
   def canPurgeExpiredJobs() {
+    val jobMapResp = (coordinator !? JobsListRequest()).asInstanceOf[JobsListResponse]
+    log.info("boy howdy")
+    log.info("boy howdy")
+    jobMapResp.jobsList.foreach(f => log.info(f))
     val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
     Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_2"))
     Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_4"))

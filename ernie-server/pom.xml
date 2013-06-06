@@ -120,7 +120,15 @@
                 <configuration>
                     <contextPath>/</contextPath>
                     <scanIntervalSeconds>5</scanIntervalSeconds>
+                    <jettyConfig>src/main/resources/jetty-jmx.xml</jettyConfig>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>mx4j</groupId>
+                        <artifactId>mx4j-tools</artifactId>
+                        <version>3.0.1</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
