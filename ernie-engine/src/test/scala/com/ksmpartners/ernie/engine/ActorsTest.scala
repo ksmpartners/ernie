@@ -52,7 +52,7 @@ class ActorsTest {
 
   @Test
   def canRequestReportAndRetrieveStatus() {
-    val respOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String]))).asInstanceOf[Option[ReportResponse]]
+    val respOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).asInstanceOf[Option[ReportResponse]]
     Assert.assertTrue(respOpt.isDefined)
     val resp = respOpt.get
     val statusRespOpt = (coordinator !? (timeout, StatusRequest(resp.jobId))).asInstanceOf[Option[StatusResponse]]
@@ -71,7 +71,7 @@ class ActorsTest {
 
   @Test
   def canRequestJobMap() {
-    val respOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String]))).asInstanceOf[Option[ReportResponse]]
+    val respOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).asInstanceOf[Option[ReportResponse]]
     Assert.assertTrue(respOpt.isDefined)
     val resp = respOpt.get
     val jobMapRespOpt = (coordinator !? (timeout, JobsListRequest())).asInstanceOf[Option[JobsListResponse]]
@@ -82,7 +82,7 @@ class ActorsTest {
 
   @Test
   def canGetResult() {
-    val rptRespOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String]))).asInstanceOf[Option[ReportResponse]]
+    val rptRespOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).asInstanceOf[Option[ReportResponse]]
     Assert.assertTrue(rptRespOpt.isDefined)
     val rptResp = rptRespOpt.get
     var statusRespOpt: Option[StatusResponse] = None
@@ -101,7 +101,7 @@ class ActorsTest {
   @Test
   def jobWithoutRetentionDateUsesDefault() {
 
-    val rptRespOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String]))).asInstanceOf[Option[ReportResponse]]
+    val rptRespOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).asInstanceOf[Option[ReportResponse]]
     Assert.assertTrue(rptRespOpt isDefined)
     val rptResp = rptRespOpt.get
     val defaultRetentionDate = DateTime.now().plusDays(reportManager.getDefaultRetentionDays)
@@ -146,15 +146,15 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     List("test_def")
   }
 
-  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int]) = runReport(defId, rptId, rptType, retentionDays, Map.empty[String, String])
-  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int], reportParameters: scala.collection.Map[String, String]) {
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int], userName: String) = runReport(defId, rptId, rptType, retentionDays, Map.empty[String, String], userName)
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int], reportParameters: scala.collection.Map[String, String], userName: String) {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
     var entity = new mutable.HashMap[String, Any]()
     entity += (ReportManager.rptId -> rptId)
     entity += (ReportManager.sourceDefId -> "test_def")
     entity += (ReportManager.reportType -> rptType)
-    entity += (ReportManager.createdUser -> "default")
+    entity += (ReportManager.createdUser -> userName)
     try_(reportManager.putReport(entity)) { os =>
       os.write(rptId.getBytes)
     }

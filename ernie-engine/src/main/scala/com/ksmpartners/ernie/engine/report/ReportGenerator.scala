@@ -28,8 +28,8 @@ trait ReportGenerator {
   /**
    * Run the given defId and store the output in rptId as rptType
    */
-  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int], reportParameters: scala.collection.Map[String, String]): Unit
-  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int]): Unit
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int], reportParameters: scala.collection.Map[String, String], userName: String): Unit
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int], userName: String): Unit
 
   /**
    * Run the given defInputStream and store the output in rptOutputStream as rptType

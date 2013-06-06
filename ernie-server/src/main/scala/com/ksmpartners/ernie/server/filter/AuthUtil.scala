@@ -21,27 +21,29 @@ object AuthUtil {
   /**
    * Determines if requesting user is in the provided role
    */
-  def isUserInRole(req: Req, role: String): Boolean = {
-    val httpRequest: HTTPRequest = req.request
-    if (httpRequest == null)
-      throw new IllegalStateException("Request is null")
-    val hrs = httpRequest.asInstanceOf[HTTPRequestServlet]
-    val hsr: HttpServletRequest = hrs.req
-    hsr.isUserInRole(role)
-  }
+  def isUserInRole(req: Req, role: String): Boolean = reqToHSR(req).isUserInRole(role)
 
   /**
    * Return a list of roles the requesting user has
    */
   def getRoles(req: Req): List[String] = {
-    val httpRequest: HTTPRequest = req.request
-    if (httpRequest == null)
-      throw new IllegalStateException("Request is null")
-    val hrs = httpRequest.asInstanceOf[HTTPRequestServlet]
-    val hsr: HttpServletRequest = hrs.req
+    val hsr = reqToHSR(req)
     var lst: List[String] = Nil
     if (hsr.isUserInRole(writeRole)) lst = writeRole :: lst
     if (hsr.isUserInRole(readRole)) lst = readRole :: lst
     lst
+  }
+
+  /**
+   * Returns a userName for the requesting user
+   */
+  def getUserName(req: Req) = reqToHSR(req).getRemoteUser
+
+  def reqToHSR(req: Req): HttpServletRequest = {
+    val httpRequest: HTTPRequest = req.request
+    if (httpRequest == null)
+      throw new IllegalStateException("Request is null")
+    val hrs = httpRequest.asInstanceOf[HTTPRequestServlet]
+    hrs.req
   }
 }

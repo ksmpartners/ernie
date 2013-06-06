@@ -121,7 +121,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   @Test
   def canPostNewJob() {
     val jobsResource = new JobsResource
-    val respBox = jobsResource.post(Full("""{"defId":"test_def","rptType":"PDF"}""".getBytes))
+    val respBox = jobsResource.post(Full("""{"defId":"test_def","rptType":"PDF"}""".getBytes), "testUser")
 
     Assert.assertTrue(respBox.isDefined)
 
@@ -133,7 +133,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   @Test
   def cantPostNewJobWithBadSyntax() {
     val jobsResource = new JobsResource
-    val respBox = jobsResource.post(Full("""{"THIS_IS":"WRONG"}""".getBytes))
+    val respBox = jobsResource.post(Full("""{"THIS_IS":"WRONG"}""".getBytes), "testUser")
     Assert.assertTrue(respBox.open_!.isInstanceOf[ResponseWithReason])
   }
 
@@ -154,7 +154,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   def canGetJobResults() {
     val jobResultsResource = new JobResultsResource
     val jobsResource = new JobsResource
-    val respBox = jobsResource.post(Full("""{"defId":"test_def","rptType":"PDF"}""".getBytes))
+    val respBox = jobsResource.post(Full("""{"defId":"test_def","rptType":"PDF"}""".getBytes), "testUser")
 
     Assert.assertTrue(respBox.isDefined)
 
@@ -233,15 +233,15 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     List("def_1")
   }
 
-  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int]) = runReport(defId, rptId, rptType, retentionDays, Map.empty[String, String])
-  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int], reportParameters: scala.collection.Map[String, String]) {
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int], userName: String) = runReport(defId, rptId, rptType, retentionDays, Map.empty[String, String], userName)
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int], reportParameters: scala.collection.Map[String, String], userName: String) {
     if (!isStarted)
       throw new IllegalStateException("ReportGenerator is not started")
     var entity = new mutable.HashMap[String, Any]()
     entity += (ReportManager.rptId -> rptId)
     entity += (ReportManager.sourceDefId -> "def")
     entity += (ReportManager.reportType -> rptType)
-    entity += (ReportManager.createdUser -> "default")
+    entity += (ReportManager.createdUser -> userName)
     try_(reportManager.putReport(entity)) { os =>
       os.write(rptId.getBytes)
     }

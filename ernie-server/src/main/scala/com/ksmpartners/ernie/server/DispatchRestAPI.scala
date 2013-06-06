@@ -26,15 +26,15 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
   private val log = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DispatchRestAPI")
 
   serve("jobs" :: Nil prefix {
-    case req@Req(Nil, _, PostRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.post(req))
-    case req@Req(Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply headFilter(() => ServiceRegistry.jobsResource.getMap("/jobs"))
-    case req@Req(jobId :: "status" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobStatusResource.get(jobId))
-    case req@Req(jobId :: "status" :: Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply headFilter(() => ServiceRegistry.jobStatusResource.get(jobId))
-    case req@Req("catalog" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.getCatalog)
+    case req@Req(Nil, _, PostRequest) => (authFilter(req, writeRole, runRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.post(req))
     case req@Req(Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.getMap("/jobs"))
+    case req@Req(Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply headFilter(() => ServiceRegistry.jobsResource.getMap("/jobs"))
+    case req@Req("catalog" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.getCatalog)
     case req@Req("catalog" :: catalog :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.getCatalog(Some(catalog)))
     case req@Req("catalog" :: "expired" :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.purge())
     case req@Req(jobId :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobsResource.get(jobId))
+    case req@Req(jobId :: "status" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobStatusResource.get(jobId))
+    case req@Req(jobId :: "status" :: Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply headFilter(() => ServiceRegistry.jobStatusResource.get(jobId))
     case req@Req(jobId :: "result" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobResultsResource.get(jobId, Full(req)))
     case req@Req(jobId :: "result" :: Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose idIsLongFilter(req)_) apply headFilter(() => ServiceRegistry.jobResultsResource.get(jobId, Full(req)))
     case req@Req(jobId :: "result" :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobResultsResource.del(jobId))
@@ -76,8 +76,8 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
    * @param f - The function to be called if the user is in the role
    * @return the function f, or a ForbiddenResponse if the user is not in the specified role
    */
-  private def authFilter(req: Req, role: String)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = {
-    if (isUserInRole(req, role)) f else () => {
+  private def authFilter(req: Req, role: String*)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = {
+    if (role.foldLeft(false)((b, s) => b || isUserInRole(req, s))) f else () => {
       log.debug("Response: Forbidden Response. Reason: User is not authorized to perform that action")
       Full(ForbiddenResponse("User is not authorized to perform that action"))
     }

@@ -19,6 +19,8 @@ import com.ksmpartners.ernie.server.PropertyNames._
 import com.ksmpartners.ernie.server.filter.SAMLFilter._
 import scala.collection._
 import java.io.InputStream
+import java.security.{ Identity, Principal }
+import com.sun.security.auth.UserPrincipal
 
 /**
  * Servlet filter used for SAML authentication
@@ -100,6 +102,7 @@ class SAMLFilter extends Filter {
       extends HttpServletRequestWrapper(req) {
     override def isUserInRole(role: String): Boolean = roles.contains(role)
     override def getAuthType: String = "SAML"
+    override def getRemoteUser: String = userName
   }
 
 }

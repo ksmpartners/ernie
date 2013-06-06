@@ -415,6 +415,30 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-148")))
+  @Test
+  def canPostJobAsRunUser() {
+    val mockReq = new MockRunAuthReq("/jobs")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    val mockReportReq = new ReportRequest()
+    mockReportReq.setDefId("test_def")
+    mockReportReq.setRptType(ReportType.PDF)
+    mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 201)
+      val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
+      testJobID = reportResponse.getJobId()
+      Assert.assertTrue(testJobID > -1L)
+      Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Location", req.hostAndPath + "/jobs/" + testJobID)))
+    }
+  }
+
   @TestSpecs(Array(new TestSpec(key = "ERNIE-53")))
   @Test
   def canPostJobHTML() {
@@ -1418,6 +1442,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val rptDetailResponse: ReportEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportEntity])
       Assert.assertEquals(rptDetailResponse.getRptId, jobToRptId(testJobID))
+      Assert.assertEquals(rptDetailResponse.getCreatedUser, "mockWriteUser")
     }
   }
 
@@ -1618,6 +1643,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       case SAMLConstants.readRole => true
       case _ => false
     }
+    override def getRemoteUser: String = "mockReadUser"
   }
 
   class MockWriteAuthReq(path: String) extends MockHttpServletRequest(path) {
@@ -1625,10 +1651,23 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       case SAMLConstants.writeRole => true
       case _ => false
     }
+    override def getRemoteUser: String = "mockWriteUser"
+
+  }
+
+  class MockRunAuthReq(path: String) extends MockHttpServletRequest(path) {
+    override def isUserInRole(role: String) = role match {
+      case SAMLConstants.runRole => true
+      case _ => false
+    }
+    override def getRemoteUser: String = "mockRunUser"
+
   }
 
   class MockNoAuthReq(path: String) extends MockHttpServletRequest(path) {
     override def isUserInRole(role: String) = false
+    override def getRemoteUser: String = "mockNoAuthUser"
+
   }
 
   protected val properties: Properties = {

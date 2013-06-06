@@ -44,7 +44,7 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
           jobEnt.setJobStatus(JobStatus.RESTARTING)
           updateJob(jobId, jobEnt)
           import JavaConversions._
-          worker ! JobRequest(jobEnt.getRptEntity.getSourceDefId, jobEnt.getRptEntity.getReportType, jobId, Some(Days.daysBetween(DateTime.now, jobEnt.getRptEntity.getRetentionDate).getDays), immutable.Map(jobEnt.getRptEntity.getParams.toList: _*))
+          worker ! JobRequest(jobEnt.getRptEntity.getSourceDefId, jobEnt.getRptEntity.getReportType, jobId, Some(Days.daysBetween(DateTime.now, jobEnt.getRptEntity.getRetentionDate).getDays), immutable.Map(jobEnt.getRptEntity.getParams.toList: _*), jobEnt.getRptEntity.getCreatedUser)
         }
       } catch {
         case e: Exception => log.error("Caught exception while loading job entities: {}", e.getMessage)
@@ -57,7 +57,7 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
     log.debug("in act()")
     loop {
       react {
-        case req@ReportRequest(defId, rptType, retentionOption, reportParameters) => {
+        case req@ReportRequest(defId, rptType, retentionOption, reportParameters, userName) => {
           val jobId = generateJobId()
           if (reportManager.getDefinition(defId).isDefined) {
             //jobIdToResultMap += (jobId -> new JobEntity(jobId, defId, JobStatus.IN_PROGRESS, rptType))
@@ -67,7 +67,7 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
             rptEntity.setRetentionDate(DateTime.now.plusDays(retentionOption.getOrElse(reportManager.getDefaultRetentionDays)))
             rptEntity.setParams(JavaConversions.asJavaMap(reportParameters))
             rptEntity.setCreatedDate(DateTime.now)
-            rptEntity.setCreatedUser("default")
+            rptEntity.setCreatedUser(userName)
             updateJob(jobId, new JobEntity(jobId, JobStatus.IN_PROGRESS, DateTime.now, null, rptEntity))
             reportManager.getDefinition(defId).map(m => if ((m.getEntity.getUnsupportedReportTypes != null) && m.getEntity.getUnsupportedReportTypes.contains(rptType)) {
               try {
@@ -84,7 +84,7 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
               else if (retentionDate.isAfter(DateTime.now().plusDays(reportManager.getMaximumRetentionDays))) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM, req)
               else {
                 sender ! ReportResponse(jobId, JobStatus.IN_PROGRESS, req)
-                worker ! JobRequest(defId, rptType, jobId, retentionOption, reportParameters)
+                worker ! JobRequest(defId, rptType, jobId, retentionOption, reportParameters, rptEntity.getCreatedUser)
               }
             })
           } else {
@@ -271,12 +271,12 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
     log.debug("in act()")
     loop {
       react {
-        case req@JobRequest(defId, rptType, jobId, retentionOption, reportParameters) => {
+        case req@JobRequest(defId, rptType, jobId, retentionOption, reportParameters, userName) => {
           sender ! JobResponse(JobStatus.IN_PROGRESS, None, req)
           var resultStatus = JobStatus.COMPLETE
           var rptId: Option[String] = None
           try {
-            rptId = Some(runReport(defId, jobId, rptType, retentionOption, reportParameters))
+            rptId = Some(runReport(defId, jobId, rptType, retentionOption, reportParameters, userName))
           } catch {
             case ex: ParameterNullException => {
               log.error("Caught exception while generating report: {}", ex.getMessage)
@@ -332,10 +332,10 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
     this
   }
 
-  private def runReport(defId: String, jobId: Long, rptType: ReportType, retentionOption: Option[Int], reportParameters: immutable.Map[String, String]): String = {
+  private def runReport(defId: String, jobId: Long, rptType: ReportType, retentionOption: Option[Int], reportParameters: immutable.Map[String, String], userName: String): String = {
     log.debug("Running report {} for jobId {}...", defId, jobId)
     val rptId = jobToRptId(jobId)
-    rptGenerator.runReport(defId, rptId, rptType, retentionOption, reportParameters)
+    rptGenerator.runReport(defId, rptId, rptType, retentionOption, reportParameters, userName)
     log.debug("Done running report {} for jobId {}...", defId, jobId)
     rptId
   }

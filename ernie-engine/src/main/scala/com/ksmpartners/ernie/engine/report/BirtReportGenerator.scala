@@ -41,8 +41,8 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
    * Method that runs the design file at the given location defId, and outputs the results to rptId
    * as a rptType
    */
-  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int]): Unit = runReport(defId, rptId, rptType, retentionDate, Map.empty[String, String])
-  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int], reportParameters: Map[String, String]) {
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int], userName: String): Unit = runReport(defId, rptId, rptType, retentionDate, Map.empty[String, String], userName)
+  def runReport(defId: String, rptId: String, rptType: ReportType, retentionDate: Option[Int], reportParameters: Map[String, String], userName: String) {
     if (engine == null) throw new IllegalStateException("ReportGenerator was not started")
     log.debug("Generating report from definition {}", defId)
     try_(reportManager.getDefinitionContent(defId).get) { defInputStream =>
@@ -51,7 +51,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
         entity += (ReportManager.rptId -> rptId)
         entity += (ReportManager.sourceDefId -> defId)
         entity += (ReportManager.reportType -> rptType)
-        entity += (ReportManager.createdUser -> "default")
+        entity += (ReportManager.createdUser -> userName)
         entity += (ReportManager.retentionDate -> DateTime.now().plusDays(retentionDate getOrElse (reportManager.getDefaultRetentionDays)))
 
         var rptParams: Map[String, Any] = reportParameters

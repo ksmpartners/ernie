@@ -33,6 +33,7 @@ import net.liftweb.http.GoneResponse
 import com.ksmpartners.ernie.server.service.ConflictResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
 import com.ksmpartners.ernie.server.service.TimeoutResponse
+import com.ksmpartners.ernie.server.filter.AuthUtil
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
@@ -106,7 +107,7 @@ trait JobDependencies extends RequiresCoordinator
      *
      * @return the jobId returned by the Coordinator associated with the request
      */
-    def post(body: Box[Array[Byte]], hostAndPath: String): Box[LiftResponse] = {
+    def post(body: Box[Array[Byte]], hostAndPath: String, userName: String): Box[LiftResponse] = {
       try {
         if (body.isEmpty) {
           log.debug("Response: Bad Response. Reason: Undefined byte array")
@@ -114,7 +115,7 @@ trait JobDependencies extends RequiresCoordinator
         } else {
           val req = deserialize(body.open_!, classOf[model.ReportRequest])
           val respOpt = (coordinator !? (timeout, engine.ReportRequest(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays),
-            { val params: collection.immutable.Map[String, String] = if (req.getReportParameters != null) req.getReportParameters.toMap else Map.empty[String, String]; params }))).asInstanceOf[Option[engine.ReportResponse]]
+            { val params: collection.immutable.Map[String, String] = if (req.getReportParameters != null) req.getReportParameters.toMap else Map.empty[String, String]; params }, userName))).asInstanceOf[Option[engine.ReportResponse]]
           if (respOpt.isEmpty) {
             log.debug("Response: Timeout Response.")
             Full(TimeoutResponse())
@@ -141,8 +142,8 @@ trait JobDependencies extends RequiresCoordinator
         }
       }
     }
-    def post(body: Box[Array[Byte]]): Box[LiftResponse] = post(body, "")
-    def post(req: Req): Box[LiftResponse] = post(req.body, req.hostAndPath)
+    def post(body: Box[Array[Byte]], userName: String): Box[LiftResponse] = post(body, "", userName)
+    def post(req: Req): Box[LiftResponse] = post(req.body, req.hostAndPath, AuthUtil.getUserName(req))
 
     def purge(): Box[LiftResponse] = {
       val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]

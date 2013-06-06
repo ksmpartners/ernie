@@ -17,4 +17,5 @@ object SAMLConstants {
 
   val readRole = "read"
   val writeRole = "write"
+  val runRole = "run"
 }
