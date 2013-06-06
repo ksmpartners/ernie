@@ -73,6 +73,91 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     jobsDir.mkdir()
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-107")))
+  @Test
+  def canGetJobsSupportsHead() {
+    val mockReq = new MockReadAuthReq("/jobs")
+    mockReq.method = "HEAD"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[InMemoryResponse])
+      val resultResp = resp.open_!.asInstanceOf[InMemoryResponse]
+      Assert.assertEquals(resultResp.size, 0)
+      Assert.assertEquals(resultResp.code, 200)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-108")))
+  @Test(dependsOnMethods = Array("canPostJob"))
+  def canGetJobStatusSupportsHead() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
+    mockReq.method = "HEAD"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[InMemoryResponse])
+      val resultResp = resp.open_!.asInstanceOf[InMemoryResponse]
+      Assert.assertEquals(resultResp.size, 0)
+      Assert.assertEquals(resultResp.code, 200)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-109")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def canGetOutputDownloadSupportsHead() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
+    mockReq.method = "HEAD"
+    mockReq.headers += ("Accept" -> List("application/pdf"))
+
+    MockWeb.testReq(mockReq) { req =>
+      val respBox = DispatchRestAPI(req)()
+      Assert.assertTrue(respBox.isDefined)
+      Assert.assertTrue(respBox.open_!.isInstanceOf[InMemoryResponse])
+
+      val resultResp = respBox.open_!.asInstanceOf[InMemoryResponse]
+      Assert.assertEquals(resultResp.size, 0)
+      Assert.assertEquals(resultResp.code, 200)
+      Assert.assertTrue(resultResp.headers.contains(("Content-Type", "application/pdf")) && resultResp.headers.contains(("Content-Disposition", "attachment; filename=\"REPORT_" + testJobID + ".pdf\"")))
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-110")))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
+  def canGetReportDetailSupportsHead() {
+    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result/detail")
+    mockReq.method = "HEAD"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[InMemoryResponse])
+      val resultResp = resp.open_!.asInstanceOf[InMemoryResponse]
+      Assert.assertEquals(resultResp.size, 0)
+      Assert.assertEquals(resultResp.code, 200)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-111")))
+  @Test
+  def canGetDefDetailsSupportsHead() {
+    val mockReq = new MockReadAuthReq("/defs/test_def")
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    mockReq.method = "HEAD"
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[InMemoryResponse])
+      val resultResp = resp.open_!.asInstanceOf[InMemoryResponse]
+      Assert.assertEquals(resultResp.size, 0)
+      Assert.assertEquals(resultResp.code, 200)
+    }
+  }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-127")))
   @Test

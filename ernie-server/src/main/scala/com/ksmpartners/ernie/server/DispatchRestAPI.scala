@@ -65,18 +65,8 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
     {
       val respBox = f()
       val resp: LiftResponse = respBox.open_!
-      if (resp.isInstanceOf[PlainTextResponse]) {
-        val resp2 = resp.asInstanceOf[PlainTextResponse]
-        val response = PlainTextResponse(null, resp2.toResponse.headers, resp2.toResponse.code)
-        Full(response)
-      } else if (resp.isInstanceOf[StreamingResponse]) {
-        val resp2 = resp.asInstanceOf[StreamingResponse]
-        val data = Array[Byte](0)
-        val response = StreamingResponse(new ByteArrayInputStream(data), () => Unit, 0, resp2.toResponse.headers, Nil, resp2.toResponse.code)
-        Full(response)
-      } else {
-        Full(resp)
-      }
+      val response = InMemoryResponse(Array(), resp.toResponse.headers, resp.toResponse.cookies, resp.toResponse.code)
+      Full(response)
     }
   }
   /**
