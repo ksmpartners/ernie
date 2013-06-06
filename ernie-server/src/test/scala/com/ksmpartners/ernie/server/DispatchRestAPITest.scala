@@ -568,7 +568,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     MockWeb.testReq(mockReq) { req =>
       val respBox = DispatchRestAPI(req)()
       Assert.assertTrue(respBox.isDefined)
-      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse])
+      Assert.assertEquals(respBox.open_!.getClass, classOf[StreamingResponse])
 
       val resultResp = respBox.open_!.asInstanceOf[StreamingResponse]
       Assert.assertEquals(resultResp.code, 200)
@@ -586,7 +586,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     MockWeb.testReq(mockReq) { req =>
       val respBox = DispatchRestAPI(req)()
       Assert.assertTrue(respBox.isDefined, "Response is not defined")
-      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse], "Response is not of type StreamingResponse")
+      Assert.assertEquals(respBox.open_!.getClass, classOf[StreamingResponse], "Response is not of type StreamingResponse")
 
       val resultResp = respBox.open_!.asInstanceOf[StreamingResponse]
       Assert.assertEquals(resultResp.code, 200, "Status code is not 200")
@@ -604,7 +604,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     MockWeb.testReq(mockReq) { req =>
       val respBox = DispatchRestAPI(req)()
       Assert.assertTrue(respBox.isDefined)
-      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse])
+      Assert.assertEquals(respBox.open_!.getClass, classOf[StreamingResponse])
 
       val resultResp = respBox.open_!.asInstanceOf[StreamingResponse]
       Assert.assertEquals(resultResp.code, 200)
