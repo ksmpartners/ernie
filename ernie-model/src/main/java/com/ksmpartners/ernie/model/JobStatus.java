@@ -36,6 +36,8 @@ public enum JobStatus {
     FAILED_NO_SUCH_DEFINITION,
     /** Job was deleted */
     DELETED,
+    /** Job was IN_PROGRESS/PENDING when server shut down and is now restarting */
+    RESTARTING,
     /** Job does not exist */
     NO_SUCH_JOB;
 
