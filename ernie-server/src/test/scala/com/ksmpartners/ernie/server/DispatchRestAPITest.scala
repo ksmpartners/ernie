@@ -74,6 +74,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     jobsDir.mkdir()
   }
 
+
   @TestSpecs(Array(new TestSpec(key = "ERNIE-127")))
   @Test
   def cantPurgeReportResultsWithoutWriteAuth() {
