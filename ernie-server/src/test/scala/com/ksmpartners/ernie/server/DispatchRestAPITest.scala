@@ -34,14 +34,11 @@ import net.liftweb.json.JsonAST.JBool
 import scala.xml.NodeSeq
 import scala.collection.JavaConversions.asJavaCollection
 import com.ksmpartners.ernie.server.service.{ ServiceRegistry, ConflictResponse }
-<<<<<<< HEAD
 import org.joda.time.{ Days, DateTime }
-=======
 
 import com.ksmpartners.ernie.engine.PurgeResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
 import scala.collection.JavaConversions
->>>>>>> 3a707bba9fbd01d9e9014738c3f1f81824dc9412
 
 class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 

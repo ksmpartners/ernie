@@ -81,7 +81,6 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       }
     }
 
-
     def del(defId: String) = {
 
       val respOpt = (coordinator !? (timeout, engine.DeleteDefinitionRequest(defId))).asInstanceOf[Option[engine.DeleteDefinitionResponse]]
