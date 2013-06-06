@@ -32,7 +32,7 @@ trait JobDependencies extends RequiresCoordinator
    */
   class JobsResource extends JsonTranslator {
     /**
-     * Return a Box[ListResponse] containing a map of jobId to URI for that jobId
+     * Return a Box[LiftResponse] containing a map of jobId to URI for that jobId
      */
     def getMap(uriPrefix: String) = {
       val respOpt = (coordinator !? (timeout, engine.JobsListRequest())).asInstanceOf[Option[engine.JobsListResponse]]
@@ -238,7 +238,6 @@ trait JobDependencies extends RequiresCoordinator
       val respOpt = (coordinator !? (timeout, engine.ReportDetailRequest(jobId.toLong))).asInstanceOf[Option[engine.ReportDetailResponse]]
       if (respOpt.isDefined) {
         if (respOpt.get.rptEntity.isDefined) {
-          log.debug("Response: Report Entity")
           getJsonResponse(respOpt.get.rptEntity.get)
         } else {
           log.debug("Response: Not Found Response")

@@ -31,6 +31,10 @@ object ServiceRegistry extends JobDependencies
 
   def getTimeout: Long = timeout
 
+  def getDefaultRetentionDays: Int = {
+    reportManager.getDefaultRetentionDays
+  }
+
   protected val properties: Properties = {
 
     val propsPath = System.getProperty(propertiesFileNameProp)
@@ -75,7 +79,6 @@ object ServiceRegistry extends JobDependencies
     fileReportManager.putMaximumRetentionDays(maximumRetentionDays)
 
     fileReportManager
-
   }
 
   protected val coordinator: Coordinator = {

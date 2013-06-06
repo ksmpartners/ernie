@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory
 import rest.RestHelper
 import com.ksmpartners.ernie.model.ModelObject
 import service.ServiceRegistry
+import java.io.ByteArrayInputStream
 
 /**
  * Object containing the stateless dispatch definition for an ernie server
@@ -26,20 +27,29 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
 
   serve("jobs" :: Nil prefix {
     case req@Req(Nil, _, PostRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.post(req))
-    case req@Req(Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.getMap("/jobs"))
-    case req@Req("catalog" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.getCatalog)
+    // case req@Req(Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.get("/jobs"))
+    case req@Req(Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply headFilter(() => ServiceRegistry.jobsResource.get("/jobs"))
     case req@Req(jobId :: "status" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobStatusResource.get(jobId))
+    case req@Req(jobId :: "status" :: Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply headFilter(() => ServiceRegistry.jobStatusResource.get(jobId))
+    case req@Req("catalog" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.getCatalog)
+    // case req@Req(jobId :: "status" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobStatusResource.get(jobId))
     case req@Req(jobId :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobsResource.get(jobId))
     case req@Req(jobId :: "result" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobResultsResource.get(jobId, Full(req)))
+    case req@Req(jobId :: "result" :: Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose idIsLongFilter(req)_) apply headFilter(() => ServiceRegistry.jobResultsResource.get(jobId, Full(req)))
     case req@Req(jobId :: "result" :: "detail" :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobResultsResource.getDetail(jobId, Full(req)))
-    case req@Req(jobId :: "result" :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply (() => ServiceRegistry.jobResultsResource.del(jobId))
+    case req@Req(jobId :: "result" :: "detail" :: Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply headFilter(() => ServiceRegistry.jobResultsResource.getDetail(jobId, Full(req)))
+    case req@Req(jobId :: "result" :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_ compose idIsLongFilter(req)_) apply headFilter(() => ServiceRegistry.jobResultsResource.del(jobId))
     case req@Req("expired" :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.purge())
+    case req@Req(Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.jobsResource.getMap("/jobs"))
+
   })
 
   serve("defs" :: Nil prefix {
     case req@Req(Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.defsResource.get("/defs"))
+    case req@Req(Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply headFilter(() => ServiceRegistry.defsResource.get("/defs"))
     case req@Req(Nil, _, PostRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.defsResource.post(req))
     case req@Req(defId :: Nil, _, GetRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.defDetailResource.get(defId))
+    case req@Req(defId :: Nil, _, HeadRequest) => (authFilter(req, readRole)_ compose ctypeFilter(req)_) apply headFilter(() => ServiceRegistry.defDetailResource.get(defId))
     case req@Req(defId :: "rptdesign" :: Nil, _, PutRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.defDetailResource.put(defId, req))
     case req@Req(defId :: Nil, _, DeleteRequest) => (authFilter(req, writeRole)_ compose ctypeFilter(req)_) apply (() => ServiceRegistry.defDetailResource.del(defId))
   })
@@ -52,6 +62,24 @@ object DispatchRestAPI extends RestHelper with JsonTranslator {
     }
   }
 
+  private def headFilter(f: () => Box[LiftResponse]): () => Box[LiftResponse] = { () =>
+    {
+      val respBox = f()
+      val resp: LiftResponse = respBox.open_!
+      if (resp.isInstanceOf[PlainTextResponse]) {
+        val resp2 = resp.asInstanceOf[PlainTextResponse]
+        val response = PlainTextResponse("", resp2.toResponse.headers, resp2.toResponse.code)
+        Full(response)
+      } else if (resp.isInstanceOf[StreamingResponse]) {
+        val resp2 = resp.asInstanceOf[StreamingResponse]
+        val data = Array[Byte](0)
+        val response = StreamingResponse(new ByteArrayInputStream(data), () => Unit, 0, resp2.toResponse.headers, Nil, resp2.toResponse.code)
+        Full(response)
+      } else {
+        Full(resp)
+      }
+    }
+  }
   /**
    * Method that verifies that the requesting user is in the given role
    * @param req - The request being handled

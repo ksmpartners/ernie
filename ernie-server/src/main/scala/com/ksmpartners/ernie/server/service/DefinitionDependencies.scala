@@ -38,6 +38,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       })
       getJsonResponse(new model.ReportDefinitionMapResponse(defMap))
     }
+
     def post(req: net.liftweb.http.Req) = {
 
       if (req.body.isEmpty) {
@@ -115,7 +116,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       } else if (req.body.isEmpty) {
         log.debug("Response: Bad Response. Reason: No report design in request body")
         Full(ResponseWithReason(BadResponse(), "No report design in request body"))
-      }; else {
+      } else {
         val defOpt: Option[Definition] = reportManager.getDefinition(defId)
         if (defOpt.isEmpty) {
           log.debug("Response: Not Found Response.")
