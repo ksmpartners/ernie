@@ -55,6 +55,6 @@ case class JobDetailRequest(jobId: Long)
 /**The response associated with the given ReportDetailRequest*/
 case class JobDetailResponse(jobEntity: Option[JobEntity], req: JobDetailRequest)
 /**Request a catalog for some subset of jobs */
-case class JobsCatalogRequest(jobStatus: Option[JobStatus])
+case class JobsCatalogRequest(jobCatalog: Option[JobCatalog])
 /**The response associated with the given ReportDetailRequest*/
 case class JobsCatalogResponse(catalog: List[JobEntity], req: JobsCatalogRequest)

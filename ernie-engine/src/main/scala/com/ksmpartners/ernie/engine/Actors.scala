@@ -12,7 +12,7 @@ import collection._
 import com.ksmpartners.ernie.model._
 import com.ksmpartners.ernie.engine.report._
 import org.slf4j.LoggerFactory
-import org.joda.time.DateTime
+import org.joda.time.{ Days, DateTime }
 import com.ksmpartners.ernie.util.Utility._
 import org.eclipse.birt.report.engine.api.UnsupportedFormatException
 import com.ksmpartners.ernie.util.MapperUtility._
@@ -37,7 +37,15 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
     worker.start()
     (new java.io.File(pathToJobEntities)).listFiles().filter({ _.isFile }).filter({ _.getName.endsWith("entity") }).foreach({ file =>
       try {
-        jobIdToResultMap += (file.getName.replaceFirst("[.][^.]+$", "").toLong -> mapper.readValue(file, classOf[JobEntity]))
+        val jobEnt = mapper.readValue(file, classOf[JobEntity])
+        val jobId = file.getName.replaceFirst("[.][^.]+$", "").toLong
+        jobIdToResultMap += (jobId -> jobEnt)
+        if (((jobEnt.getJobStatus == JobStatus.IN_PROGRESS) || (jobEnt.getJobStatus == JobStatus.PENDING)) && (jobEnt.getRptEntity != null)) {
+          jobEnt.setJobStatus(JobStatus.RESTARTING)
+          updateJob(jobId, jobEnt)
+          import JavaConversions._
+          worker ! JobRequest(jobEnt.getRptEntity.getSourceDefId, jobEnt.getRptEntity.getReportType, jobId, Some(Days.daysBetween(DateTime.now, jobEnt.getRptEntity.getRetentionDate).getDays), immutable.Map(jobEnt.getRptEntity.getParams.toList: _*))
+        }
       } catch {
         case e: Exception => log.error("Caught exception while loading job entities: {}", e.getMessage)
       }
@@ -175,19 +183,28 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
           val jobsList: Array[String] = jobIdToResultMap.keySet.map({ _.toString }).toArray
           sender ! JobsListResponse(jobsList, req)
         }
-        case req@JobsCatalogRequest(jobStatus) => {
-          val jobsList: List[JobEntity] = if ((jobStatus.isDefined) && (jobStatus.get == JobStatus.FAILED)) jobIdToResultMap.filter(f => f._2.getJobStatus match {
-            case JobStatus.FAILED => true
-            case JobStatus.FAILED_INVALID_PARAMETER_VALUES => true
-            case JobStatus.FAILED_NO_SUCH_DEFINITION => true
-            case JobStatus.FAILED_PARAMETER_NULL => true
-            case JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM => true
-            case JobStatus.FAILED_RETENTION_DATE_PAST => true
-            case JobStatus.FAILED_UNSUPPORTED_FORMAT => true
-            case JobStatus.FAILED_UNSUPPORTED_PARAMETER_TYPE => true
-            case _ => false
-          }).map(f => f._2) toList
-          else if ((jobStatus.isDefined) && (jobStatus.get != JobStatus.FAILED)) jobIdToResultMap.filter(f => f._2.getJobStatus == jobStatus.get).map(f => f._2) toList
+        case req@JobsCatalogRequest(jobCatalog) => {
+          val jobsList: List[JobEntity] = if (jobCatalog.isDefined) jobCatalog.getOrElse(null) match {
+            case JobCatalog.FAILED => jobIdToResultMap.filter(f => f._2.getJobStatus match {
+              case JobStatus.FAILED => true
+              case JobStatus.FAILED_INVALID_PARAMETER_VALUES => true
+              case JobStatus.FAILED_NO_SUCH_DEFINITION => true
+              case JobStatus.FAILED_PARAMETER_NULL => true
+              case JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM => true
+              case JobStatus.FAILED_RETENTION_DATE_PAST => true
+              case JobStatus.FAILED_UNSUPPORTED_FORMAT => true
+              case JobStatus.FAILED_UNSUPPORTED_PARAMETER_TYPE => true
+              case _ => false
+            }).map(f => f._2) toList
+            case JobCatalog.COMPLETE => jobIdToResultMap.filter(f => f._2.getJobStatus == JobStatus.COMPLETE).map(f => f._2) toList
+            case JobCatalog.DELETED => jobIdToResultMap.filter(f => f._2.getJobStatus == JobStatus.DELETED).map(f => f._2) toList
+            case JobCatalog.IN_PROGRESS => jobIdToResultMap.filter(f => f._2.getJobStatus == JobStatus.IN_PROGRESS).map(f => f._2) toList
+            case JobCatalog.EXPIRED => jobIdToResultMap.filter(f => {
+              val rptOpt = reportManager.getReport(f._2.getRptId)
+              rptOpt.map(rpt => DateTime.now.isAfter(rpt.getRetentionDate)).getOrElse(false)
+            }).map(f => f._2) toList
+            case _ => jobIdToResultMap.map(f => f._2).toList
+          }
           else jobIdToResultMap.map(f => f._2).toList
           sender ! JobsCatalogResponse(jobsList, req)
         }

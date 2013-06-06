@@ -34,7 +34,6 @@ import net.liftweb.json.JsonAST.JBool
 import scala.xml.NodeSeq
 import scala.collection.JavaConversions.asJavaCollection
 import com.ksmpartners.ernie.server.service.{ ServiceRegistry, ConflictResponse }
-import org.joda.time.{ Days, DateTime }
 
 import com.ksmpartners.ernie.engine.PurgeResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
@@ -78,7 +77,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-127")))
   @Test
   def cantPurgeReportResultsWithoutWriteAuth() {
-    val mockReq = new MockNoAuthReq("/jobs/expired")
+    val mockReq = new MockNoAuthReq("/jobs/catalog/expired")
     mockReq.method = "DELETE"
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
@@ -93,7 +92,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-129")))
   @Test
   def canPurgeReportResults() {
-    val mockReq = new MockWriteAuthReq("/jobs/expired")
+    val mockReq = new MockWriteAuthReq("/jobs/catalog/expired")
     mockReq.method = "DELETE"
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
@@ -109,7 +108,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-131")))
   @Test
   def cantPurgeReportResultsWithoutJSONRequest() {
-    val mockReq = new MockWriteAuthReq("/jobs/expired")
+    val mockReq = new MockWriteAuthReq("/jobs/catalog/expired")
     mockReq.method = "DELETE"
     mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
 
@@ -726,6 +725,9 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      log.info(resp.open_!.asInstanceOf[PlainTextResponse].text)
+      log.info(resp.open_!.asInstanceOf[PlainTextResponse].text)
+      log.info(resp.open_!.asInstanceOf[PlainTextResponse].text)
       val deleteResponse: DeleteResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DeleteResponse])
       Assert.assertTrue(deleteResponse.getDeleteStatus == DeleteStatus.SUCCESS)
     }
@@ -1327,22 +1329,6 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-124")))
-  @Test(dependsOnMethods = Array("canCompleteJob"))
-  def undefinedRetentionDateSetsAsDefault() {
-    val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result/detail")
-    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
-
-    MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI(req)()
-      Assert.assertTrue(resp.isDefined)
-      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
-      Assert.assertEquals(resp.open_!.toResponse.code, 200)
-      val rptDetailResponse: ReportEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportEntity])
-      Assert.assertEquals(Days.daysBetween(rptDetailResponse.getCreatedDate.toDateMidnight(), rptDetailResponse.getRetentionDate.toDateMidnight()).getDays(), ServiceRegistry.getDefaultRetentionDays)
-    }
-  }
-
   @TestSpecs(Array(new TestSpec(key = "ERNIE-147")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def cantGetReportDetailWithoutJSONRequest() {
@@ -1434,6 +1420,74 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
       Assert.assertTrue(jobCatalogResp.getJobsCatalog.size > 0)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-152"), new TestSpec(key = "ERNIE-153")))
+  @Test(dependsOnMethods = Array("canCompleteJobCSV"))
+  def canGetCompleteJobsCatalog() {
+    val mockReq = new MockReadAuthReq("/jobs/catalog/complete")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
+      Assert.assertTrue(jobCatalogResp.getJobsCatalog.size > 0)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-152"), new TestSpec(key = "ERNIE-153")))
+  @Test(dependsOnMethods = Array("canCompleteJobCSV"))
+  def canGetExpiredJobsCatalog() {
+    val mockReq = new MockReadAuthReq("/jobs/catalog/expired")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
+      Assert.assertTrue(jobCatalogResp.getJobsCatalog.size == 0)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-152"), new TestSpec(key = "ERNIE-153")))
+  @Test(dependsOnMethods = Array("canCompleteJobCSV"))
+  def canGetFailedJobsCatalog() {
+    val mockReq = new MockReadAuthReq("/jobs/catalog/deleted")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
+      Assert.assertTrue(jobCatalogResp.getJobsCatalog.size == 0)
+    }
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-152"), new TestSpec(key = "ERNIE-153")))
+  @Test(dependsOnMethods = Array("canCompleteJobCSV"))
+  def canGetDeletedJobsCatalog() {
+    val mockReq = new MockReadAuthReq("/jobs/catalog/failed")
+
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+
+    MockWeb.testReq(mockReq) { req =>
+      val resp = DispatchRestAPI(req)()
+      Assert.assertTrue(resp.isDefined)
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
+      Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
+      Assert.assertTrue(jobCatalogResp.getJobsCatalog.size == 0)
     }
   }
 

@@ -16,10 +16,23 @@ import java.util
 import collection.JavaConversions._
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.JsonTranslator
-import com.ksmpartners.ernie.model.{ JobsCatalogResponse, JobEntity, DeleteStatus, JobStatus }
+import com.ksmpartners.ernie.model._
 import com.ksmpartners.ernie.server.service.JobDependencies._
 import com.ksmpartners.ernie.engine.{ PurgeResponse, PurgeRequest }
 import scala.collection.JavaConversions
+import net.liftweb.http.StreamingResponse
+import net.liftweb.http.InternalServerErrorResponse
+import net.liftweb.http.ResponseWithReason
+import net.liftweb.http.OkResponse
+import net.liftweb.http.InMemoryResponse
+import net.liftweb.common.Full
+import scala.Some
+import com.ksmpartners.ernie.engine.PurgeResponse
+import net.liftweb.http.BadResponse
+import net.liftweb.http.GoneResponse
+import com.ksmpartners.ernie.server.service.ConflictResponse
+import com.ksmpartners.ernie.engine.PurgeRequest
+import com.ksmpartners.ernie.server.service.TimeoutResponse
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
@@ -32,7 +45,7 @@ trait JobDependencies extends RequiresCoordinator
    */
   class JobsResource extends JsonTranslator {
     /**
-     * Return a Box[LiftResponse] containing a map of jobId to URI for that jobId
+     * Return a Box[ListResponse] containing a map of jobId to URI for that jobId
      */
     def getMap(uriPrefix: String) = {
       val respOpt = (coordinator !? (timeout, engine.JobsListRequest())).asInstanceOf[Option[engine.JobsListResponse]]
@@ -54,12 +67,14 @@ trait JobDependencies extends RequiresCoordinator
      */
     def getCatalog(): Box[LiftResponse] = getCatalog(None)
     def getCatalog(catalog: Option[String]): Box[LiftResponse] = {
-      val respOpt = (coordinator !? (timeout, engine.JobsCatalogRequest(catalog match {
-        case Some("failed") => Some(JobStatus.FAILED)
-        case Some("successful") => Some(JobStatus.COMPLETE)
-        case Some("") => None
-        case None => None
-      }))).asInstanceOf[Option[engine.JobsCatalogResponse]]
+      val respOpt: Option[engine.JobsCatalogResponse] = catalog.getOrElse("").toLowerCase match {
+        case "failed" => (coordinator !? (timeout, engine.JobsCatalogRequest(Some(JobCatalog.FAILED)))).asInstanceOf[Option[engine.JobsCatalogResponse]]
+        case "complete" => (coordinator !? (timeout, engine.JobsCatalogRequest(Some(JobCatalog.COMPLETE)))).asInstanceOf[Option[engine.JobsCatalogResponse]]
+        case "expired" => (coordinator !? (timeout, engine.JobsCatalogRequest(Some(JobCatalog.EXPIRED)))).asInstanceOf[Option[engine.JobsCatalogResponse]]
+        case "deleted" => (coordinator !? (timeout, engine.JobsCatalogRequest(Some(JobCatalog.DELETED)))).asInstanceOf[Option[engine.JobsCatalogResponse]]
+        case "" => (coordinator !? (timeout, engine.JobsCatalogRequest(None))).asInstanceOf[Option[engine.JobsCatalogResponse]]
+        case _ => None
+      }
       if (respOpt.isEmpty) {
         log.debug("Response: Timeout Response.")
         Full(TimeoutResponse())
@@ -238,6 +253,7 @@ trait JobDependencies extends RequiresCoordinator
       val respOpt = (coordinator !? (timeout, engine.ReportDetailRequest(jobId.toLong))).asInstanceOf[Option[engine.ReportDetailResponse]]
       if (respOpt.isDefined) {
         if (respOpt.get.rptEntity.isDefined) {
+          log.debug("Response: Report Entity")
           getJsonResponse(respOpt.get.rptEntity.get)
         } else {
           log.debug("Response: Not Found Response")
