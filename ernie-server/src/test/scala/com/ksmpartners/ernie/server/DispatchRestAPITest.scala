@@ -76,7 +76,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-127")))
   @Test
   def cantPurgeReportResultsWithoutWriteAuth() {
-    val mockReq = new MockNoAuthReq("/jobs/expired")
+    val mockReq = new MockNoAuthReq("/jobs/catalog/expired")
     mockReq.method = "DELETE"
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
@@ -91,7 +91,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-129")))
   @Test
   def canPurgeReportResults() {
-    val mockReq = new MockWriteAuthReq("/jobs/expired")
+    val mockReq = new MockWriteAuthReq("/jobs/catalog/expired")
     mockReq.method = "DELETE"
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
@@ -107,7 +107,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
   @TestSpecs(Array(new TestSpec(key = "ERNIE-131")))
   @Test
   def cantPurgeReportResultsWithoutJSONRequest() {
-    val mockReq = new MockWriteAuthReq("/jobs/expired")
+    val mockReq = new MockWriteAuthReq("/jobs/catalog/expired")
     mockReq.method = "DELETE"
     mockReq.headers += ("Accept" -> List("application/vnd.ksmpartners.ernie+xml"))
 
@@ -724,6 +724,9 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
       Assert.assertTrue(resp.isDefined)
       Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
+      log.info(resp.open_!.asInstanceOf[PlainTextResponse].text)
+      log.info(resp.open_!.asInstanceOf[PlainTextResponse].text)
+      log.info(resp.open_!.asInstanceOf[PlainTextResponse].text)
       val deleteResponse: DeleteResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DeleteResponse])
       Assert.assertTrue(deleteResponse.getDeleteStatus == DeleteStatus.SUCCESS)
     }
