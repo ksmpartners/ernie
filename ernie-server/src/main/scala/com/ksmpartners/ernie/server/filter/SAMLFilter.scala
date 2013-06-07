@@ -98,15 +98,15 @@ class SAMLFilter extends Filter {
 
   def destroy() {}
 
-  final class SAMLHttpServletRequestWrapper(req: HttpServletRequest, userName: String, roles: Set[String])
+}
+
+object SAMLFilter {
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.filter.SAMLFilter")
+
+  class SAMLHttpServletRequestWrapper(req: HttpServletRequest, userName: String, roles: Set[String])
       extends HttpServletRequestWrapper(req) {
     override def isUserInRole(role: String): Boolean = roles.contains(role)
     override def getAuthType: String = "SAML"
     override def getRemoteUser: String = userName
   }
-
-}
-
-object SAMLFilter {
-  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.filter.SAMLFilter")
 }

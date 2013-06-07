@@ -30,7 +30,6 @@ class JsonTranslatorTest extends JsonTranslator {
   def canDeserializeModelObjectBytes() {
     val statusResponse = deserialize("""{"jobStatus":"COMPLETE"}""".getBytes, new StatusResponse().getClass)
     Assert.assertEquals(statusResponse.getJobStatus, JobStatus.COMPLETE)
-    statusResponse
   }
 
 }

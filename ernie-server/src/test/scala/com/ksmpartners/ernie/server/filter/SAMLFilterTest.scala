@@ -20,6 +20,7 @@ import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import org.testng.Assert
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.server.filter.SAMLFilter.SAMLHttpServletRequestWrapper
 
 class SAMLFilterTest {
 
@@ -34,7 +35,7 @@ class SAMLFilterTest {
     System.setProperty(keystoreLocProp, ks.getPath)
   }
 
-  //@Test
+  @Test
   def goodAuthReturns200() {
     val filter = new SAMLFilter
     val req = new MockHttpServletRequest
@@ -63,7 +64,7 @@ class SAMLFilterTest {
     Assert.assertEquals(resp.getStatusCode, 401)
   }
 
-  // @Test
+  @Test
   def canGetUserName() {
     val filter = new SAMLFilter
     val req = new MockHttpServletRequest
@@ -108,7 +109,8 @@ class SAMLFilterTest {
   class Chain extends FilterChain {
     var userName: String = ""
     def doFilter(request: ServletRequest, response: ServletResponse) {
-      userName = request.asInstanceOf[MockHttpServletRequest].getRemoteUser
+      if (request.isInstanceOf[SAMLHttpServletRequestWrapper])
+        userName = request.asInstanceOf[SAMLHttpServletRequestWrapper].getRemoteUser
     }
   }
 
