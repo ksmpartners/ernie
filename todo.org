@@ -28,7 +28,7 @@
 [x]** TestNG for unit tests
 [x]** Find framework for REST API testing
 [x]** JaCoCo for code coverage reports
-[ ]** Finalize test process/standards
+[x]** Finalize test process/standards
 [x]*** Unit tests
 [x]**** Minimum code coverage
 [x]*** System tests
