@@ -5,7 +5,7 @@
 *.swp
 .settings
 *.log
-ignore.*
+ign.*
 
 target
 .project
