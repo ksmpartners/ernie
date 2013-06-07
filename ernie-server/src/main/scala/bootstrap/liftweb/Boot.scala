@@ -8,11 +8,15 @@
 package bootstrap.liftweb
 
 import _root_.net.liftweb.http
-import http.LiftRules
+import net.liftweb.http.{ Req, LiftRules }
 import http.provider.HTTPRequest
 import com.ksmpartners.ernie.server.DispatchRestAPI
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.service.ServiceRegistry
+import com.ksmpartners.ernie.server.filter.SAMLConstants
+import com.ksmpartners.commons.mock.servlet.MockHttpServletRequest
+import com.ksmpartners.ernie.model.ModelObject
+import net.liftweb.mockweb.MockWeb
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -26,7 +30,7 @@ class Boot {
 
     DispatchRestAPI.init()
 
-    LiftRules.statelessDispatchTable.prepend(DispatchRestAPI)
+    LiftRules.statelessDispatch.prepend(DispatchRestAPI)
 
     LiftRules.unloadHooks.prepend(() => DispatchRestAPI.shutdown())
   }

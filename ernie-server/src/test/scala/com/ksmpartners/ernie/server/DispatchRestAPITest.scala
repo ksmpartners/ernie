@@ -169,6 +169,76 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     log.debug("BEGIN test:" + result.getName)
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-112")))
+  @Test
+  def unsupportedJobsServiceRequestsReturn405() {
+    var mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    check405(mockReq)
+    mockReq = new MockWriteAuthReq("/jobs")
+    mockReq.method = "PUT"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    check405(mockReq)
+  }
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-113")))
+  @Test
+  def unsupportedJobsStatusServiceRequestsReturn405() {
+    var mockReq = new MockWriteAuthReq("/jobs/1/status")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    check405(mockReq)
+    mockReq = new MockWriteAuthReq("/jobs/1/status")
+    mockReq.method = "PUT"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    check405(mockReq)
+    mockReq = new MockWriteAuthReq("/jobs/1/status")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    check405(mockReq)
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-114")))
+  @Test
+  def unsupportedJobsResultsServiceRequestsReturn405() {
+    var mockReq = new MockWriteAuthReq("/jobs/1/result")
+    mockReq.method = "PUT"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    check405(mockReq)
+    mockReq = new MockWriteAuthReq("/jobs/1/result")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    check405(mockReq)
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-115")))
+  @Test
+  def unsupportedDefsServiceRequestsReturn405() {
+    var mockReq = new MockWriteAuthReq("/defs")
+    mockReq.method = "PUT"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    check405(mockReq)
+    mockReq = new MockWriteAuthReq("/defs")
+    mockReq.method = "DELETE"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    check405(mockReq)
+    mockReq = new MockWriteAuthReq("/defs/test")
+    mockReq.method = "POST"
+    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    check405(mockReq)
+  }
+
+  def check405(m: MockHttpServletRequest) {
+    MockWeb.testReq(m) { req =>
+      {
+        val resp = DispatchRestAPI(req)()
+        Assert.assertTrue(resp.isDefined)
+        Assert.assertTrue(resp.open_!.isInstanceOf[MethodNotAllowedResponse])
+        Assert.assertEquals(resp.open_!.toResponse.code, 405)
+      }
+    }
+  }
+
   @TestSpecs(Array(new TestSpec(key = "ERNIE-127")))
   @Test
   def cantPurgeReportResultsWithoutWriteAuth() {
@@ -1428,7 +1498,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-145"), new TestSpec(key = "ERNIE-146")))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-145"), new TestSpec(key = "ERNIE-146"), new TestSpec(key = "ERNIE-159")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def canGetReportDetail() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result/detail")
