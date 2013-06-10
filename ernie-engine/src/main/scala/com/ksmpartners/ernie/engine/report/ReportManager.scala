@@ -10,11 +10,8 @@ package com.ksmpartners.ernie.engine.report
 import java.io.{ OutputStream, InputStream }
 import scala.collection._
 import com.ksmpartners.ernie.model.{ ParameterEntity, ReportType, ReportEntity, DefinitionEntity }
-import com.ksmpartners.ernie.engine.report.ReportManager._
 import java.util
 import org.joda.time.DateTime
-import scala.Left
-import scala.Right
 
 /**
  * Trait that contains methods for managing reports and definitions

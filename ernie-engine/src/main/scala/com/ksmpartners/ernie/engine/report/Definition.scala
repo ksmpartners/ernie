@@ -9,7 +9,6 @@ package com.ksmpartners.ernie.engine.report
 
 import com.ksmpartners.ernie.model.{ ReportType, DefinitionEntity }
 import org.joda.time.DateTime
-import collection.JavaConversions._
 
 /**
  * Immutable wrapper class for sharing DefinitionEntity data
