@@ -68,26 +68,31 @@ class MemoryReportManager extends ReportManager {
     getReportContent(report.getRptId)
   }
 
-  override def putDefinition(entity: Map[String, Any]): OutputStream = putDefinition(Left(entity))
+  override def putDefinition(entity: Map[String, Any]): (DefinitionEntity, OutputStream) = putDefinition(Left(entity))
 
-  override def putDefinition(entity: DefinitionEntity): OutputStream = {
-    if ((entity.getDefId == null) || (entity.getDefId.length <= 0))
-      throw new IllegalArgumentException("Entity must contain defId")
+  override def putDefinition(entity: DefinitionEntity): (DefinitionEntity, OutputStream) = {
+    //  if ((entity.getDefId == null) || (entity.getDefId.length <= 0))
+    //    throw new IllegalArgumentException("Entity must contain defId")
     if ((entity.getCreatedUser == null) || (entity.getCreatedUser.length <= 0))
       throw new IllegalArgumentException("Entity must contain createdUser")
     putDefinition(Right(entity))
+    (entity, null)
 
   }
 
-  override def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): OutputStream = {
+  override def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): (DefinitionEntity, OutputStream) = {
     val entity = if (entityEither.isLeft) createDefinitionEntity(entityEither.left.get) else entityEither.right.get
-    new LocalBOS(entity.getDefId, { (id, content) =>
+    if (entity.getDefDescription != null) entity.setDefDescription(entity.getDefDescription.trim())
+    val defId = generateDefId.toString
+    entity.setDefId(defId)
+    (entity, new LocalBOS(defId, { (id, content) =>
       putDefinition(id, content, entity)
-    })
+    }))
   }
 
   override def updateDefinition(defId: String, entity: Either[Map[String, Any], DefinitionEntity], entityOnly: Boolean): OutputStream = {
     val definitionEntity = if (entity.isLeft) createDefinitionEntity(entity.left.get) else entity.right.get
+    if (definitionEntity.getDefDescription != null) definitionEntity.setDefDescription(definitionEntity.getDefDescription.trim())
     if (entityOnly) {
       definitionEntities += (defId -> definitionEntity)
       null

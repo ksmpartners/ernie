@@ -28,27 +28,29 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
   private val log = LoggerFactory.getLogger(classOf[Coordinator])
 
   private lazy val worker: Worker = new Worker(getReportGenerator(reportManager))
-  private val jobIdToResultMap = new mutable.HashMap[Long, JobEntity]() /* rptId */ //    public JobEntity(Long jobId, String rptId, JobStatus jobStatus, String defId) {
+  private val jobIdToResultMap = new mutable.HashMap[Long, JobEntity]() /* rptId */
   private var timeout: Long = 1000L
   private var noRestartingJobs = true
   override def start(): Actor = {
     log.debug("in start()")
     super.start()
     worker.start()
-    (new java.io.File(pathToJobEntities)).listFiles().filter({ _.isFile }).filter({ _.getName.endsWith("entity") }).foreach({ file =>
-      try {
-        val jobEnt = mapper.readValue(file, classOf[JobEntity])
-        val jobId = file.getName.replaceFirst("[.][^.]+$", "").toLong
-        jobIdToResultMap += (jobId -> jobEnt)
-        if (((jobEnt.getJobStatus == JobStatus.IN_PROGRESS) || (jobEnt.getJobStatus == JobStatus.PENDING)) && (jobEnt.getRptEntity != null)) {
-          jobEnt.setJobStatus(JobStatus.RESTARTING)
-          noRestartingJobs = false
-          updateJob(jobId, jobEnt)
+    val files = (new java.io.File(pathToJobEntities)).listFiles()
+    if (files != null)
+      files.filter({ _.isFile }).filter({ _.getName.endsWith("entity") }).foreach({ file =>
+        try {
+          val jobEnt = mapper.readValue(file, classOf[JobEntity])
+          val jobId = file.getName.replaceFirst("[.][^.]+$", "").toLong
+          jobIdToResultMap += (jobId -> jobEnt)
+          if (((jobEnt.getJobStatus == JobStatus.IN_PROGRESS) || (jobEnt.getJobStatus == JobStatus.PENDING)) && (jobEnt.getRptEntity != null)) {
+            jobEnt.setJobStatus(JobStatus.RESTARTING)
+            noRestartingJobs = false
+            updateJob(jobId, jobEnt)
+          }
+        } catch {
+          case e: Exception => log.error("Caught exception while loading job entities: {}", e.getMessage)
         }
-      } catch {
-        case e: Exception => log.error("Caught exception while loading job entities: {}", e.getMessage)
-      }
-    })
+      })
     this
   }
   private def handleRestartingJobs() = if (!noRestartingJobs) {
@@ -82,7 +84,6 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
         case req@ReportRequest(defId, rptType, retentionOption, reportParameters, userName) => {
           val jobId = generateJobId()
           if (reportManager.getDefinition(defId).isDefined) {
-            //jobIdToResultMap += (jobId -> new JobEntity(jobId, defId, JobStatus.IN_PROGRESS, rptType))
             val rptEntity = new ReportEntity()
             rptEntity.setSourceDefId(defId)
             rptEntity.setReportType(rptType)
@@ -120,7 +121,6 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
               (jobIdToResultMap.get(jobId).map(je => je.getRptId).map(f => f != "").getOrElse(false))) {
               try {
                 reportManager.deleteReport(jobIdToResultMap.get(jobId).map(je => je.getRptId).get)
-                //jobIdToResultMap.update(jobId, jobIdToResultMap.get(jobId).map(je => { je.setJobStatus(JobStatus.DELETED); je }).get) //(JobStatus.DELETED, Some(jobIdToResultMap.get(jobId).get._2.get)))
                 updateJob(jobId, jobIdToResultMap.get(jobId).map(je => { je.setJobStatus(JobStatus.DELETED); je }).get)
                 sender ! DeleteResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus match {
                   case JobStatus.DELETED => DeleteStatus.SUCCESS
@@ -163,7 +163,6 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
                   purgedReports ::= rptId
                   try {
                     reportManager.deleteReport(rptId)
-                    //jobIdToResultMap.update(f._1, jobIdToResultMap.get(f._1).map(je => { je.setJobStatus(JobStatus.DELETED); je }).get)
                     updateJob(f._1, jobIdToResultMap.get(f._1).map(je => { je.setJobStatus(JobStatus.DELETED); je }).get)
                   } catch {
                     case e: NoSuchElementException => {
@@ -234,7 +233,6 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
         case JobResponse(jobStatus, rptId, req) => {
           log.info("Got notify for jobId {} with status {}", req.jobId, jobStatus)
           try {
-            //jobIdToResultMap += (req.jobId -> jobIdToResultMap.get(req.jobId).map(je => { je.setJobStatus(jobStatus); je.setRptId(rptId.get); je }).get)
             updateJob(req.jobId, jobIdToResultMap.get(req.jobId).map(je => { je.setJobStatus(jobStatus); je.setRptId(rptId.get); je.setRptEntity(null); je }).get)
           } catch {
             case e: NoSuchElementException => {

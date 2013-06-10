@@ -67,9 +67,9 @@ trait ReportManager {
    * and DESCRIPTION.
    * If DEF_ID already exists, the definition content will be replaced with the new content
    */
-  def putDefinition(entity: Map[String, Any]): OutputStream
-  def putDefinition(entity: DefinitionEntity): OutputStream
-  def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): OutputStream
+  def putDefinition(entity: Map[String, Any]): (DefinitionEntity, OutputStream)
+  def putDefinition(entity: DefinitionEntity): (DefinitionEntity, OutputStream)
+  def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): (DefinitionEntity, OutputStream)
   /**
    * Return an OutputStream into which content can be put. The entity must contain information about the
    * definition being added. Required fields are: RPT_ID, SOURCE_DEF_ID, REPORT_TYPE, and CREATED_USER. Optional fields
@@ -107,6 +107,12 @@ trait ReportManager {
   /* Set the maximum number of days for report output retention */
   def putMaximumRetentionDays(in: Int)
 
+  private var currDefId = System.currentTimeMillis
+
+  protected def generateDefId(): Long = {
+    currDefId += 1
+    currDefId
+  }
 }
 
 /**

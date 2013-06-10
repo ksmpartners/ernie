@@ -37,6 +37,8 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   val tempInputDir = createTempDirectory
   val tempOutputDir = createTempDirectory
   val tempJobDir = createTempDirectory
+  var testDef = ""
+
   val reportManager = {
     for (i <- 1 to 4) {
       var report = new ReportEntity(DateTime.now, if (i % 2 == 0) DateTime.now.minusDays(10) else DateTime.now.plusDays(10), "REPORT_" + i, "test_def", "default", null, ReportType.PDF, null, null)
@@ -66,7 +68,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
     }
 
     val rptMgr = new FileReportManager(tempInputDir.getAbsolutePath, tempOutputDir.getAbsolutePath)
-    rptMgr.putDefinition(new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null, null))
+    testDef = rptMgr.putDefinition(new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null, null))._1.getDefId
     rptMgr
   }
   val coordinator: Coordinator = {
@@ -119,7 +121,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   @Test
   def canPostNewJob() {
     val jobsResource = new JobsResource
-    val respBox = jobsResource.post(Full("""{"defId":"test_def","rptType":"PDF"}""".getBytes), "testUser")
+    val respBox = jobsResource.post(Full(("""{"defId":"""" + testDef + """","rptType":"PDF"}""").getBytes), "testUser")
 
     Assert.assertTrue(respBox.isDefined)
 
@@ -181,7 +183,9 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   def canGetJobResults() {
     val jobResultsResource = new JobResultsResource
     val jobsResource = new JobsResource
-    val respBox = jobsResource.post(Full("""{"defId":"test_def","rptType":"PDF"}""".getBytes), "testUser")
+    val req = """{"defId":"""" + testDef + """","rptType":"PDF"}"""
+
+    val respBox = jobsResource.post(Full(req.getBytes), "testUser")
 
     Assert.assertTrue(respBox.isDefined)
 

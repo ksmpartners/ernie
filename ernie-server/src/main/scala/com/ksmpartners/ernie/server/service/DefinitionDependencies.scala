@@ -39,21 +39,24 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
     def post(req: net.liftweb.http.Req) = {
 
       if (req.body.isEmpty) {
-        log.debug("Response: Bad Response. Reason: No DefinitionEntity in request body")
+        log.info("Response: Bad Response. Reason: No DefinitionEntity in request body")
         Full(ResponseWithReason(BadResponse(), "No DefinitionEntity in request body"))
       } else try {
-        val defEnt: DefinitionEntity = deserialize(req.body.open_!, classOf[DefinitionEntity]).asInstanceOf[DefinitionEntity]
-        if (reportManager.getAllDefinitionIds.contains(defEnt.getDefId)) {
+        var defEnt: DefinitionEntity = deserialize(req.body.open_!, classOf[DefinitionEntity]).asInstanceOf[DefinitionEntity]
+        /*if (reportManager.getAllDefinitionIds.contains(defEnt.getDefId)) {
           log.debug("Response: Conflict Response.")
           Full(ConflictResponse())
-        } else {
-          reportManager.putDefinition(defEnt).write(req.body.open_!)
-          getJsonResponse(defEnt, 201, List(("Location", req.hostAndPath + "/defs/" + defEnt.getDefId)))
-        }
+        } else {*/
+        val put = reportManager.putDefinition(defEnt)
+        defEnt = put._1
+        //put._2.write(req.body.open_!)
+        getJsonResponse(defEnt, 201, List(("Location", req.hostAndPath + "/defs/" + defEnt.getDefId)))
+        //    }
       } catch {
 
         case e: Exception => {
-          log.debug("Response: Bad Response. Reason: Malformed DefinitionEntity")
+          log.info("Caught exception while posting definition: {}", e.getMessage + "\n" + e.getStackTraceString)
+          log.info("Response: Bad Response. Reason: Malformed DefinitionEntity")
           Full(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity"))
         }
 

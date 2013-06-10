@@ -103,20 +103,22 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     getReportContent(report.getRptId)
   }
 
-  override def putDefinition(entity: Map[String, Any]): OutputStream = putDefinition(Left(entity))
-  override def putDefinition(entity: DefinitionEntity): OutputStream = {
-    if ((entity.getDefId == null) || (entity.getDefId.length <= 0))
-      throw new IllegalArgumentException("Entity must contain defId")
+  override def putDefinition(entity: Map[String, Any]): (DefinitionEntity, OutputStream) = putDefinition(Left(entity))
+  override def putDefinition(entity: DefinitionEntity): (DefinitionEntity, OutputStream) = {
+    // if ((entity.getDefId == null) || (entity.getDefId.length <= 0))
+    //  throw new IllegalArgumentException("Entity must contain defId")
     if ((entity.getCreatedUser == null) || (entity.getCreatedUser.length <= 0))
       throw new IllegalArgumentException("Entity must contain createdUser")
     putDefinition(Right(entity))
   }
 
-  override def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): OutputStream = {
+  override def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): (DefinitionEntity, OutputStream) = {
     val entity = if (entityEither.isLeft) createDefinitionEntity(entityEither.left.get) else entityEither.right.get
     log.info("Putting definition from entity: {}", entity)
     val defEnt = entity
-    val defId = defEnt.getDefId
+    val defId = generateDefId.toString
+    defEnt.setDefId(defId)
+    if (defEnt.getDefDescription != null) defEnt.setDefDescription(defEnt.getDefDescription.trim())
     val defEntFile = new File(rptDefDir, defId + ".entity")
     try_(new FileOutputStream(defEntFile)) { fos =>
       mapper.writeValue(fos, defEnt)
@@ -125,13 +127,14 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     log.info("Putting new definition: {}", file)
     definitions += (defId -> file)
     definitionEntities += (defId -> defEnt)
-    new FileOutputStream(file)
+    (defEnt, new FileOutputStream(file))
   }
 
   override def updateDefinition(defId: String, entity: Either[Map[String, Any], DefinitionEntity], entityOnly: Boolean): OutputStream = {
     log.info("Updating definition from entity: {}", entity)
     val defEnt = if (entity.isLeft) createDefinitionEntity(entity.left.get) else entity.right.get
     val defId = defEnt.getDefId
+    if (defEnt.getDefDescription != null) defEnt.setDefDescription(defEnt.getDefDescription.trim())
     val defEntFile = new File(rptDefDir, defId + ".entity")
     defEntFile.delete
     defEntFile.createNewFile

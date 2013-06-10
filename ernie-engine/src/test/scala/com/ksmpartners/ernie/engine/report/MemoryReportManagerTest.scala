@@ -66,12 +66,14 @@ class MemoryReportManagerTest {
     entity += (ReportManager.createdUser -> "default")
     val paramList = List("PARAM_1", "PARAM_2", "PARAM_3")
     entity += (ReportManager.paramNames -> paramList)
-    val bosD = reportManager.putDefinition(entity)
-    Assert.assertFalse(reportManager.hasDefinition("def_6"))
-    bosD.close()
-    Assert.assertTrue(reportManager.hasDefinition("def_6"))
+    val put = reportManager.putDefinition(entity)
 
-    val definition = reportManager.getDefinition("def_6").get
+    val bosD = put._2
+    Assert.assertFalse(reportManager.hasDefinition(put._1.getDefId))
+    bosD.close()
+    Assert.assertTrue(reportManager.hasDefinition(put._1.getDefId))
+
+    val definition = reportManager.getDefinition(put._1.getDefId).get
     Assert.assertNotNull(definition.getParamNames)
     Assert.assertNotNull(definition.getCreatedDate)
   }
