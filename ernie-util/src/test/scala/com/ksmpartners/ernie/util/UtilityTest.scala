@@ -77,8 +77,26 @@ class UtilityTest {
   }
 
   @Test
+  def canConvertReportAndJobIds() {
+    Assert.assertEquals(jobToRptId(1234L), "REPORT_1234")
+    Assert.assertEquals(rptToJobId("REPORT_1234"), 1234L)
+  }
+
+  @Test(expectedExceptions = Array(classOf[NumberFormatException]))
+  def badReportIdThrowsException() {
+    rptToJobId("REPORT_NOT_A_NUMBER")
+  }
+
+  var tempDir: File = null
+
+  @Test
+  def canCreateTempDir() {
+    tempDir = createTempDirectory()
+    Assert.assertTrue(tempDir.exists())
+  }
+
+  @Test(dependsOnMethods = Array("canCreateTempDir"))
   def canRecursivelyDeleteDirectory() {
-    val tempDir = createTempDirectory()
     val tempSubDir = new File(tempDir, "subDir")
     tempSubDir.mkdir()
     val tempFile = new File(tempSubDir, "subFile")
@@ -89,23 +107,6 @@ class UtilityTest {
     Assert.assertFalse(tempFile.exists())
     Assert.assertFalse(tempSubDir.exists())
     Assert.assertFalse(tempDir.exists())
-  }
-
-  private def createTempDirectory(): File = {
-
-    var temp: File = null
-
-    temp = File.createTempFile("temp", System.nanoTime.toString)
-
-    if (!(temp.delete())) {
-      throw new IOException("Could not delete temp file: " + temp.getAbsolutePath)
-    }
-
-    if (!(temp.mkdir())) {
-      throw new IOException("Could not create temp directory: " + temp.getAbsolutePath)
-    }
-
-    temp
   }
 
 }
