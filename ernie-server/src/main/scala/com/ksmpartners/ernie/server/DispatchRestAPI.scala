@@ -16,8 +16,6 @@ import org.slf4j.LoggerFactory
 import rest.RestHelper
 import com.ksmpartners.ernie.model.ModelObject
 import service.ServiceRegistry
-import java.io.ByteArrayInputStream
-import scala.PartialFunction
 
 /**
  * Object containing the stateless dispatch definition for an ernie server

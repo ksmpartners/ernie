@@ -8,15 +8,9 @@
 package bootstrap.liftweb
 
 import _root_.net.liftweb.http
-import net.liftweb.http.{ Req, LiftRules }
+import net.liftweb.http.LiftRules
 import http.provider.HTTPRequest
 import com.ksmpartners.ernie.server.DispatchRestAPI
-import org.slf4j.{ LoggerFactory, Logger }
-import com.ksmpartners.ernie.server.service.ServiceRegistry
-import com.ksmpartners.ernie.server.filter.SAMLConstants
-import com.ksmpartners.commons.mock.servlet.MockHttpServletRequest
-import com.ksmpartners.ernie.model.ModelObject
-import net.liftweb.mockweb.MockWeb
 
 /**
  * A class that's instantiated early and run.  It allows the application

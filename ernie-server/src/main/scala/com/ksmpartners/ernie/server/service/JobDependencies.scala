@@ -18,8 +18,6 @@ import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.JsonTranslator
 import com.ksmpartners.ernie.model._
 import com.ksmpartners.ernie.server.service.JobDependencies._
-import com.ksmpartners.ernie.engine.{ PurgeResponse, PurgeRequest }
-import scala.collection.JavaConversions
 import net.liftweb.http.StreamingResponse
 import net.liftweb.http.InternalServerErrorResponse
 import net.liftweb.http.ResponseWithReason
@@ -30,9 +28,7 @@ import scala.Some
 import com.ksmpartners.ernie.engine.PurgeResponse
 import net.liftweb.http.BadResponse
 import net.liftweb.http.GoneResponse
-import com.ksmpartners.ernie.server.service.ConflictResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
-import com.ksmpartners.ernie.server.service.TimeoutResponse
 import com.ksmpartners.ernie.server.filter.AuthUtil
 
 /**

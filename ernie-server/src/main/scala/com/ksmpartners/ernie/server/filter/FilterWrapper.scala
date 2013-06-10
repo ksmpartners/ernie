@@ -9,7 +9,6 @@ package com.ksmpartners.ernie.server.filter
 
 import javax.servlet._
 import http.{ HttpServletRequest, HttpServletRequestWrapper }
-import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.PropertyNames._
 
 /**

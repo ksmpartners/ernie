@@ -19,8 +19,6 @@ import com.ksmpartners.ernie.server.PropertyNames._
 import com.ksmpartners.ernie.server.filter.SAMLFilter._
 import scala.collection._
 import java.io.InputStream
-import java.security.{ Identity, Principal }
-import com.sun.security.auth.UserPrincipal
 
 /**
  * Servlet filter used for SAML authentication

@@ -9,15 +9,12 @@ package com.ksmpartners.ernie.server.service
 
 import com.ksmpartners.ernie.{ engine, model }
 import java.util
-import net.liftweb.common.{ Box, Full }
 import net.liftweb.http._
 import com.ksmpartners.ernie.server.JsonTranslator
-import com.ksmpartners.ernie.model.{ ParameterEntity, DeleteStatus, DefinitionEntity, JobStatus }
-import java.io.{ ByteArrayInputStream, IOException }
-import scala.collection.{ JavaConversions, mutable }
-import com.ksmpartners.ernie.engine.report.{ Definition, BirtReportGenerator, ReportManager }
+import com.ksmpartners.ernie.model.{ ParameterEntity, DeleteStatus, DefinitionEntity }
+import java.io.ByteArrayInputStream
+import com.ksmpartners.ernie.engine.report.{ Definition, BirtReportGenerator }
 import net.liftweb.http.BadResponse
-import scala.collection.JavaConversions._
 import net.liftweb.common.Full
 import org.slf4j.{ LoggerFactory, Logger }
 

@@ -7,7 +7,6 @@
 
 package com.ksmpartners.ernie.engine.report
 
-import java.io._
 import com.ksmpartners.ernie.model.ReportType
 
 /**
