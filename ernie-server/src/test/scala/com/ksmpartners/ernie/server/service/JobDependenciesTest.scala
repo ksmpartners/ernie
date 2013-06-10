@@ -9,36 +9,24 @@ package com.ksmpartners.ernie.server.service
 
 import com.ksmpartners.ernie.engine._
 import com.ksmpartners.ernie.engine.report._
-import com.ksmpartners.ernie.model
+import com.ksmpartners.ernie.{ engine, model }
 import com.ksmpartners.ernie.util.MapperUtility._
 import com.ksmpartners.ernie.model._
 import com.ksmpartners.ernie.util.Utility._
 import java.io._
-import org.testng.annotations.{ BeforeClass, AfterTest, BeforeTest, Test }
-import net.liftweb.common.Full
+import org.testng.annotations._
+import net.liftweb.common.{ Full, Box }
 import net.liftweb.http._
 import org.testng.Assert
 import collection.mutable
 import org.joda.time.DateTime
-import com.ksmpartners.ernie.server.JsonTranslator
+import com.ksmpartners.ernie.server.{ DispatchRestAPI, JsonTranslator }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import scala.Array
-import com.ksmpartners.ernie.engine.ShutDownRequest
-import com.ksmpartners.ernie.engine.PurgeRequest
-import com.ksmpartners.ernie.engine.ShutDownRequest
-import com.ksmpartners.ernie.engine.PurgeResponse
-import com.ksmpartners.ernie.engine.PurgeRequest
-import org.specs2.time.TimeConversions._
-import com.ksmpartners.ernie.engine.ShutDownRequest
-import net.liftweb.common.Full
-import com.ksmpartners.ernie.engine.PurgeResponse
-import com.ksmpartners.ernie.engine.PurgeRequest
-import com.ksmpartners.ernie.engine.ShutDownRequest
-import net.liftweb.common.Full
-import com.ksmpartners.ernie.engine.PurgeResponse
-import com.ksmpartners.ernie.engine.PurgeRequest
+
 import net.liftweb.http.StreamingResponse
+import net.liftweb.http.ResponseWithReason
 import com.ksmpartners.ernie.engine.ShutDownRequest
 import net.liftweb.common.Full
 import com.ksmpartners.ernie.engine.PurgeResponse
@@ -70,7 +58,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
         val job = new File(tempJobDir, rptToJobId(report.getRptId) + ".entity")
         try_(new FileOutputStream(job)) { fos =>
           mapper.writeValue(fos,
-            new JobEntity(rptToJobId(report.getRptId), JobStatus.COMPLETE, DateTime.now, report.getRptId, null))
+            new JobEntity(rptToJobId(report.getRptId), if (i % 2 == 0) JobStatus.COMPLETE else JobStatus.IN_PROGRESS, DateTime.now, report.getRptId, if (i % 2 == 0) null else report))
         }
       } catch {
         case e: Exception => {}
@@ -87,7 +75,7 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
     coord
   }
 
-  val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.JobDependenciesTest.purgeTest")
+  val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.JobDependenciesTest")
 
   @AfterTest
   def shutdown() {
@@ -97,8 +85,18 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
   }
 
   @Test
-  def purgeTest() {
+  def downloadServiceReturn410ForExpiredReports() {
+    val jobResultsResource = new JobResultsResource
+    val resp: Box[LiftResponse] = jobResultsResource.get(2L.toString)
+    Assert.assertTrue(resp.isDefined)
+    val re = resp.open_!
+    Assert.assertEquals(re.getClass, classOf[ResponseWithReason])
+    Assert.assertEquals(resp.open_!.asInstanceOf[ResponseWithReason].reason, "Report expired")
+    Assert.assertEquals(resp.open_!.toResponse.code, 410)
+  }
 
+  @Test(dependsOnMethods = Array("downloadServiceReturn410ForExpiredReports"))
+  def purgeTest() {
     val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
     Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_2"))
     Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_4"))
@@ -148,6 +146,35 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
     Assert.assertEquals(resp.code, 200)
     Assert.assertEquals(resp.headers, List(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
     Assert.assertEquals(resp.text, """{"jobStatus":"NO_SUCH_JOB"}""")
+  }
+
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-160")))
+  @Test
+  def jobsInProgressOnShutDownAreRestarted() {
+    var jobRunning = true
+    var end = System.currentTimeMillis + (1000 * 30)
+    var job1Complete = false
+    var job2Complete = false
+    while (jobRunning && (System.currentTimeMillis < end)) {
+      val respOpt = (coordinator !? (timeout, engine.StatusRequest(1L))).asInstanceOf[Option[engine.StatusResponse]]
+      respOpt.map(r =>
+        if (r.jobStatus == JobStatus.COMPLETE) {
+          job1Complete = true
+          jobRunning = false
+        })
+    }
+    jobRunning = true
+    end = System.currentTimeMillis + (1000 * 30)
+    while (jobRunning && (System.currentTimeMillis < end)) {
+      val respOpt = (coordinator !? (timeout, engine.StatusRequest(3L))).asInstanceOf[Option[engine.StatusResponse]]
+      respOpt.map(r =>
+        if (r.jobStatus == JobStatus.COMPLETE) {
+          job2Complete = true
+          jobRunning = false
+        })
+    }
+    Assert.assertTrue(job1Complete)
+    Assert.assertTrue(job2Complete)
   }
 
   @Test

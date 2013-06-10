@@ -11,15 +11,17 @@ import com.ksmpartners.ernie.engine.report.MemoryReportManager
 import org.testng.annotations.{ Test, BeforeClass }
 import org.testng.Assert
 import net.liftweb.http.PlainTextResponse
-import com.ksmpartners.ernie.model.DefinitionEntity
+import com.ksmpartners.ernie.model.{ ReportType, DefinitionEntity }
 import org.joda.time.DateTime
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.MapperUtility._
 import com.ksmpartners.ernie.engine.Coordinator
+import org.slf4j.{ LoggerFactory, Logger }
 
 class DefinitionDependenciesTest extends DefinitionDependencies {
 
   val reportManager = new MemoryReportManager
+  val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefDependenciesTest")
 
   val coordinator: Coordinator = {
     val coord = new Coordinator(createTempDirectory.getAbsolutePath, reportManager) with TestReportGeneratorFactory

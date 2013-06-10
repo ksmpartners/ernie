@@ -84,9 +84,6 @@ class PurgeTest {
   @Test(dependsOnMethods = Array("hasReports"))
   def canPurgeExpiredJobs() {
     val jobMapResp = (coordinator !? JobsListRequest()).asInstanceOf[JobsListResponse]
-    log.info("boy howdy")
-    log.info("boy howdy")
-    jobMapResp.jobsList.foreach(f => log.info(f))
     val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
     Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_2"))
     Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_4"))

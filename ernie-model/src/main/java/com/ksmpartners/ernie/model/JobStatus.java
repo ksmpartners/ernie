@@ -39,6 +39,8 @@ public enum JobStatus {
     /** Job was IN_PROGRESS/PENDING when server shut down and is now restarting */
     RESTARTING,
     /** Job does not exist */
-    NO_SUCH_JOB;
+    NO_SUCH_JOB,
+    /** Job is expired */
+    EXPIRED;
 
 }

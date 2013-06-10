@@ -51,7 +51,7 @@ class SAMLFilterTest {
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-40"), new TestSpec(key = "ERNIE-86"), new TestSpec(key = "ERNIE-73"),
     new TestSpec(key = "ERNIE-79"), new TestSpec(key = "ERNIE-64"), new TestSpec(key = "ERNIE-59"),
-    new TestSpec(key = "ERNIE-52"), new TestSpec(key = "ERNIE-46"), new TestSpec(key = "ERNIE-99")))
+    new TestSpec(key = "ERNIE-52"), new TestSpec(key = "ERNIE-46"), new TestSpec(key = "ERNIE-99"), new TestSpec(key = "ERNIE-93"), new TestSpec(key = "ERNIE-138"), new TestSpec(key = "ERNIE-144"), new TestSpec(key = "ERNIE-151")))
   @Test
   def noAuthReturns401() {
     val filter = new SAMLFilter

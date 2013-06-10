@@ -205,9 +205,13 @@ trait JobDependencies extends RequiresCoordinator
         } else if (statusResponse.jobStatus == JobStatus.NO_SUCH_JOB) {
           log.debug("Response: Not Found Response:")
           Full(NotFoundResponse())
+        } else if (statusResponse.jobStatus == JobStatus.EXPIRED) {
+          log.debug("Response: Report is expired -- Gone Response.")
+          Full(ResponseWithReason(GoneResponse(), "Report expired"))
         } else if (statusResponse.jobStatus != JobStatus.COMPLETE) {
           log.debug("Response: Bad Response. Reason: Get request on incomplete job.")
           Full(ResponseWithReason(BadResponse(), "Get request on incomplete job"))
+
         } else {
           val respOpt = (coordinator !? (timeout, engine.ResultRequest(jobId.toLong))).asInstanceOf[Option[engine.ResultResponse]]
           if (respOpt.isEmpty) {

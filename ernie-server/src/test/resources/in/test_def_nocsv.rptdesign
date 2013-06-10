@@ -1,0 +1,41 @@
+<report version="1" xmlns=" http://www.eclipse.org/birt/2005/design">
+    <property name="createdBy">Eclipse BIRT Designer Version 1.0.0 Build &lt;20050405-1230&gt;</property>
+    <property name="units">in</property>
+    <styles>
+        <style name="report"></style>
+        <style name="label"></style>
+        <style name="text"></style>
+        <style name="data"></style>
+        <style name="table"></style>
+        <style name="grid"></style>
+        <style name="list"></style>
+        <style name="image"></style>
+    </styles>
+    <page-setup>
+        <simple-master-page name="Simple MasterPage">
+            <page-header>
+                <grid>
+                    <property name="width">100%</property>
+                    <column></column>
+                    <row>
+                        <cell>
+                            <property name="fontSize">xx-large</property>
+                            <property name="fontWeight">bold</property>
+                            <property name="textAlign">center</property>
+                            <text>
+                                <text-property name="content">Title</text-property>
+                            </text>
+                        </cell>
+                    </row>
+                </grid>
+            </page-header>
+            <page-footer>
+            </page-footer>
+        </simple-master-page>
+    </page-setup>
+    <body>
+        <label>
+            <text-property name="text">This is a test page.</text-property>
+        </label>
+    </body>
+</report>

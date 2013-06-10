@@ -30,7 +30,7 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
   private lazy val worker: Worker = new Worker(getReportGenerator(reportManager))
   private val jobIdToResultMap = new mutable.HashMap[Long, JobEntity]() /* rptId */ //    public JobEntity(Long jobId, String rptId, JobStatus jobStatus, String defId) {
   private var timeout: Long = 1000L
-
+  private var noRestartingJobs = true
   override def start(): Actor = {
     log.debug("in start()")
     super.start()
@@ -42,9 +42,8 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
         jobIdToResultMap += (jobId -> jobEnt)
         if (((jobEnt.getJobStatus == JobStatus.IN_PROGRESS) || (jobEnt.getJobStatus == JobStatus.PENDING)) && (jobEnt.getRptEntity != null)) {
           jobEnt.setJobStatus(JobStatus.RESTARTING)
+          noRestartingJobs = false
           updateJob(jobId, jobEnt)
-          import JavaConversions._
-          worker ! JobRequest(jobEnt.getRptEntity.getSourceDefId, jobEnt.getRptEntity.getReportType, jobId, Some(Days.daysBetween(DateTime.now, jobEnt.getRptEntity.getRetentionDate).getDays), immutable.Map(jobEnt.getRptEntity.getParams.toList: _*), jobEnt.getRptEntity.getCreatedUser)
         }
       } catch {
         case e: Exception => log.error("Caught exception while loading job entities: {}", e.getMessage)
@@ -52,10 +51,33 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
     })
     this
   }
-
+  private def handleRestartingJobs() = if (!noRestartingJobs) {
+    log.info("Checking for restarting jobs...")
+    val restJobs = jobIdToResultMap.filter(p => p._2.getJobStatus == JobStatus.RESTARTING)
+    if (restJobs.isEmpty) noRestartingJobs = true
+    else restJobs.foreach(f => {
+      val jobEnt = f._2
+      val jobId = f._1
+      import JavaConversions._
+      worker ! JobRequest(jobEnt.getRptEntity.getSourceDefId, jobEnt.getRptEntity.getReportType, jobId, Some(Days.daysBetween(DateTime.now, jobEnt.getRptEntity.getRetentionDate).getDays),
+        if (jobEnt.getRptEntity.getParams != null) immutable.Map(jobEnt.getRptEntity.getParams.toList: _*) else immutable.Map.empty[String, String], jobEnt.getRptEntity.getCreatedUser)
+    })
+  }
+  private def checkExpired(jobId: Long) {
+    reportManager.getReport(jobToRptId(jobId)).map(f => {
+      val jobEnt = jobIdToResultMap.get(jobId).get
+      if (f.getRetentionDate.isBeforeNow && (jobEnt.getJobStatus == JobStatus.COMPLETE)) {
+        updateJob(jobId, {
+          jobEnt.setJobStatus(JobStatus.EXPIRED)
+          jobEnt
+        })
+      }
+    })
+  }
   def act() {
     log.debug("in act()")
     loop {
+      handleRestartingJobs()
       react {
         case req@ReportRequest(defId, rptType, retentionOption, reportParameters, userName) => {
           val jobId = generateJobId()
@@ -133,7 +155,7 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
           var deleteStatus = DeleteStatus.SUCCESS
           jobIdToResultMap.foreach(f => if ((f._2 != null)) {
             val rptOpt = reportManager.getReport(jobToRptId(f._1))
-            if ((f._2.getJobStatus == JobStatus.COMPLETE) && (rptOpt isDefined)) {
+            if (((f._2.getJobStatus == JobStatus.COMPLETE) || (f._2.getJobStatus == JobStatus.EXPIRED)) && (rptOpt isDefined)) {
               val rptId = rptOpt.get.getRptId
 
               if (reportManager.getReport(rptId).isDefined) {
@@ -161,6 +183,7 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
           sender ! PurgeResponse(deleteStatus, purgedReports, req)
         }
         case req@StatusRequest(jobId) => {
+          checkExpired(jobId)
           sender ! StatusResponse(jobIdToResultMap.get(jobId).map(je => je.getJobStatus) getOrElse (JobStatus.NO_SUCH_JOB), req)
         }
         case req@ReportDetailRequest(jobId) => {
@@ -234,6 +257,7 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
         }
         case msg => log.info("Received unexpected message: {}", msg)
       }
+
     }
   }
 
@@ -312,7 +336,6 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
               resultStatus = JobStatus.FAILED
             }
           }
-
           sender ! JobResponse(resultStatus, rptId, req)
         }
         case ShutDownRequest() => {
