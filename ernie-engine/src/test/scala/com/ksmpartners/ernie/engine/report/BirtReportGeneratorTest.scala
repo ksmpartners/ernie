@@ -77,12 +77,14 @@ class BirtReportGeneratorTest {
     reportGenerator.shutdown()
   }
 
-  /*@Test
-  def canRunDefFromStream() {
-    val bos = new ByteArrayOutputStream()
-    reportGenerator.runReport(reportManager.getDefinitionContent("test_def").get, bos, ReportType.PDF, Map.empty[String, Any])
-    Assert.assertTrue(bos.toByteArray.length > 0)
-  } */
+  @Test
+  def startEngineIsIdempotent() {
+    reportGenerator.startup()
+    reportGenerator.startup()
+    reportGenerator.startup()
+    reportGenerator.startup()
+    reportGenerator.startup()
+  }
 
   @Test
   def canGetAvailableDefs() {
@@ -122,7 +124,37 @@ class BirtReportGeneratorTest {
     Assert.assertEquals(rptIs.readLine(), "12:10:00 PM")
     Assert.assertEquals(rptIs.readLine(), "Aug 4  2013 10:04 AM")
     Assert.assertEquals(rptIs.readLine(), "Aug 4  2013")
+  }
 
+  @Test
+  def canRunExistingDefWithDefaultParam() {
+    val paramMap = new scala.collection.immutable.HashMap[String, String]()
+    reportGenerator.runReport("test_def_var", "test_rpt_var_csv", ReportType.CSV, None, paramMap, "testUser")
+    Assert.assertTrue(reportManager.hasReport("test_rpt_var_csv"))
+    val rptIs: BufferedReader = new BufferedReader(new InputStreamReader(reportManager.getReportContent("test_rpt_var_csv").get))
+    Assert.assertEquals(rptIs.readLine(), "This is a test page.")
+    Assert.assertEquals(rptIs.readLine(), "10")
+    Assert.assertEquals(rptIs.readLine(), "true")
+    Assert.assertEquals(rptIs.readLine(), "10.1")
+    Assert.assertEquals(rptIs.readLine(), "test")
+    Assert.assertEquals(rptIs.readLine(), "10.100000381469727")
+    Assert.assertEquals(rptIs.readLine(), "10:04:00 AM")
+    Assert.assertEquals(rptIs.readLine(), "Oct 4  2013 10:04 AM")
+    Assert.assertEquals(rptIs.readLine(), "Oct 4  2013")
+  }
+
+  @Test(expectedExceptions = Array(classOf[ParameterNullException]))
+  def nullParamsThrowsException() {
+    var paramMap = new scala.collection.immutable.HashMap[String, String]()
+    paramMap += ("var_integer" -> "30")
+    paramMap += ("var_boolean" -> "false")
+    paramMap += ("var_decimal" -> "30.1")
+    paramMap += ("var_string" -> "toast")
+    paramMap += ("var_float" -> "30.1")
+    paramMap += ("var_time" -> "12:10:00")
+    paramMap += ("var_datetime" -> "2013-08-04T10:04:00")
+    paramMap += ("var_date" -> "")
+    reportGenerator.runReport("test_def_var", "test_rpt_var_csv", ReportType.CSV, None, paramMap, "testUser")
   }
 
   @Test
@@ -140,18 +172,11 @@ class BirtReportGeneratorTest {
     Assert.assertFalse(result)
   }
 
-  @Test(expectedExceptions = Array(classOf[IllegalStateException]), dependsOnMethods = Array("canGetAvailableDefs", "canRunExistingDef", "canValidateReportDefinition", "canRunExistingDefWithParam"))
+  @Test(expectedExceptions = Array(classOf[IllegalStateException]), dependsOnMethods = Array("canGetAvailableDefs", "canRunExistingDef", "canValidateReportDefinition", "canRunExistingDefWithParam", "nullParamsThrowsException", "canRunExistingDefWithDefaultParam", "startEngineIsIdempotent"))
   def cantRunExistingReportWithStoppedGenerator() {
     val rptGen = new BirtReportGenerator(new MemoryReportManager)
     rptGen.shutdown()
     rptGen.runReport("test1", "test2", ReportType.PDF, None, "testUser")
   }
-
-  /* @Test(expectedExceptions = Array(classOf[IllegalStateException]), dependsOnMethods = Array("canRunDefFromStream", "canGetAvailableDefs", "canRunExistingDef", "canValidateReportDefinition"))
-  def cantRunStreamReportWithStoppedGenerator() {
-    val rptGen = new BirtReportGenerator(new MemoryReportManager)
-    rptGen.shutdown()
-    rptGen.runReport(new ByteArrayInputStream(Array[Byte](1)), new ByteArrayOutputStream(), ReportType.PDF, Map.empty[String, Any])
-  } */
 
 }
