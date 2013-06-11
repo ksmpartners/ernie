@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report xmlns="http://www.eclipse.org/birt/2005/design" version="3.2.23" id="1">
+    <property name="createdBy">Eclipse BIRT Designer Version 4.2.1.v201209101448 Build &lt;4.2.1.v20120912-1721></property>
+    <property name="units">in</property>
+    <property name="layoutPreference">auto layout</property>
+    <parameters>
+        <scalar-parameter name="var_integer" id="19">
+            <property name="valueType">static</property>
+            <property name="dataType">integer</property>
+            <property name="distinct">true</property>
+            <list-property name="selectionList"/>
+            <property name="paramType">simple</property>
+            <property name="controlType">text-box</property>
+            <structure name="format">
+                <property name="category">Unformatted</property>
+            </structure>
+        </scalar-parameter>
+        <scalar-parameter name="var_string" id="28">
+            <property name="valueType">static</property>
+            <property name="dataType">string</property>
+            <property name="distinct">true</property>
+            <list-property name="selectionList"/>
+            <property name="paramType">simple</property>
+            <property name="controlType">text-box</property>
+            <structure name="format">
+                <property name="category">Unformatted</property>
+            </structure>
+        </scalar-parameter>
+        <scalar-parameter name="var_boolean" id="29">
+            <property name="valueType">static</property>
+            <property name="dataType">boolean</property>
+            <property name="distinct">true</property>
+            <simple-property-list name="defaultValue">
+                <value type="constant">False</value>
+            </simple-property-list>
+            <list-property name="selectionList"/>
+            <property name="paramType">simple</property>
+            <property name="controlType">check-box</property>
+            <structure name="format"/>
+        </scalar-parameter>
+        <scalar-parameter name="var_date" id="30">
+            <property name="valueType">static</property>
+            <property name="dataType">date</property>
+            <property name="distinct">true</property>
+            <list-property name="selectionList"/>
+            <property name="paramType">simple</property>
+            <property name="controlType">text-box</property>
+            <structure name="format">
+                <property name="category">Unformatted</property>
+            </structure>
+        </scalar-parameter>
+        <scalar-parameter name="var_datetime" id="31">
+            <property name="valueType">static</property>
+            <property name="dataType">dateTime</property>
+            <property name="distinct">true</property>
+            <list-property name="selectionList"/>
+            <property name="paramType">simple</property>
+            <property name="controlType">text-box</property>
+            <structure name="format">
+                <property name="category">Unformatted</property>
+            </structure>
+        </scalar-parameter>
+        <scalar-parameter name="var_decimal" id="32">
+            <property name="valueType">static</property>
+            <property name="dataType">decimal</property>
+            <property name="distinct">true</property>
+            <list-property name="selectionList"/>
+            <property name="paramType">simple</property>
+            <property name="controlType">text-box</property>
+            <structure name="format">
+                <property name="category">Unformatted</property>
+            </structure>
+        </scalar-parameter>
+        <scalar-parameter name="var_float" id="33">
+            <property name="valueType">static</property>
+            <property name="dataType">float</property>
+            <property name="distinct">true</property>
+            <list-property name="selectionList"/>
+            <property name="paramType">simple</property>
+            <property name="controlType">text-box</property>
+            <structure name="format">
+                <property name="category">Unformatted</property>
+            </structure>
+        </scalar-parameter>
+        <scalar-parameter name="var_time" id="34">
+            <property name="valueType">static</property>
+            <property name="dataType">time</property>
+            <property name="distinct">true</property>
+            <list-property name="selectionList"/>
+            <property name="paramType">simple</property>
+            <property name="controlType">text-box</property>
+            <structure name="format">
+                <property name="category">Unformatted</property>
+            </structure>
+        </scalar-parameter>
+    </parameters>
+    <styles>
+        <style name="report" id="2"/>
+        <style name="label" id="3"/>
+        <style name="text" id="4"/>
+        <style name="data" id="5"/>
+        <style name="table" id="6"/>
+        <style name="grid" id="7"/>
+        <style name="list" id="8"/>
+        <style name="image" id="9"/>
+    </styles>
+    <page-setup>
+        <simple-master-page name="Simple MasterPage" id="10">
+            <property name="topMargin">1in</property>
+            <property name="leftMargin">1.25in</property>
+            <property name="bottomMargin">1in</property>
+            <property name="rightMargin">1.25in</property>
+            <page-header>
+                <grid id="11">
+                    <property name="width">100%</property>
+                    <column id="12"/>
+                    <row id="13">
+                        <cell id="14">
+                            <property name="fontSize">xx-large</property>
+                            <property name="fontWeight">bold</property>
+                            <property name="textAlign">center</property>
+                            <text id="15">
+                                <text-property name="content"><![CDATA[Title]]></text-property>
+                            </text>
+                        </cell>
+                    </row>
+                </grid>
+            </page-header>
+        </simple-master-page>
+    </page-setup>
+    <body>
+        <grid id="67">
+            <column id="68"/>
+            <row id="69">
+                <cell id="70">
+                    <label id="16">
+                        <text-property name="text">This is a test page.</text-property>
+                    </label>
+                </cell>
+            </row>
+            <row id="71">
+                <cell id="72">
+                    <data id="27">
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">var_integer</property>
+                                <expression name="expression" type="javascript">params["var_integer"]</expression>
+                                <property name="dataType">integer</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">var_integer</property>
+                    </data>
+                </cell>
+            </row>
+            <row id="73">
+                <cell id="74">
+                    <data id="61">
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">var_boolean</property>
+                                <expression name="expression" type="javascript">params["var_boolean"]</expression>
+                                <property name="dataType">boolean</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">var_boolean</property>
+                    </data>
+                </cell>
+            </row>
+            <row id="75">
+                <cell id="76">
+                    <data id="64">
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">var_decimal</property>
+                                <expression name="expression" type="javascript">params["var_decimal"]</expression>
+                                <property name="dataType">decimal</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">var_decimal</property>
+                    </data>
+                </cell>
+            </row>
+            <row id="77">
+                <cell id="78">
+                    <data id="60">
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">var_string</property>
+                                <expression name="expression" type="javascript">params["var_string"]</expression>
+                                <property name="dataType">string</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">var_string</property>
+                    </data>
+                </cell>
+            </row>
+            <row id="79">
+                <cell id="80">
+                    <data id="65">
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">var_float</property>
+                                <expression name="expression" type="javascript">params["var_float"]</expression>
+                                <property name="dataType">float</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">var_float</property>
+                    </data>
+                </cell>
+            </row>
+            <row id="81">
+                <cell id="82">
+                    <data id="66">
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">var_time</property>
+                                <expression name="expression" type="javascript">params["var_time"]</expression>
+                                <property name="dataType">time</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">var_time</property>
+                    </data>
+                </cell>
+            </row>
+            <row id="83">
+                <cell id="84">
+                    <data id="63">
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">var_datetime</property>
+                                <expression name="expression" type="javascript">params["var_datetime"]</expression>
+                                <property name="dataType">date-time</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">var_datetime</property>
+                    </data>
+                </cell>
+            </row>
+            <row id="85">
+                <cell id="86">
+                    <data id="62">
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">var_date</property>
+                                <expression name="expression" type="javascript">params["var_date"]</expression>
+                                <property name="dataType">date</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">var_date</property>
+                    </data>
+                </cell>
+            </row>
+        </grid>
+    </body>
+</report>

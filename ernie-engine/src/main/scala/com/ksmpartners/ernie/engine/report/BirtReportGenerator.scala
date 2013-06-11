@@ -22,6 +22,7 @@ import org.joda.time.DateTime
 import java.util.Date
 import java.text.DecimalFormat
 import java.sql.Time
+import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
 
 /**
  * Class used to generate BIRT reports
@@ -85,8 +86,8 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     } else try {
       param.getDataType match { //TODO: do not hardcode data type names. http://www.eclipse.org/birt/ref/rom/elements/ScalarParameter.html#Property-dataType
         case "boolean" => data.toBoolean
-        case "date" => Date.parse(data)
-        case "dateTime" => DateTime.parse(data)
+        case "date" => new java.sql.Date((DateTimeFormat.forPattern("yyyy-MM-dd").parseDateTime(data)).getMillis)
+        case "dateTime" => new java.sql.Date(DateTime.parse(data).getMillis)
         case "decimal" => data.toDouble
         case "float" => data.toFloat
         case "integer" => data.toInt.asInstanceOf[Integer]
