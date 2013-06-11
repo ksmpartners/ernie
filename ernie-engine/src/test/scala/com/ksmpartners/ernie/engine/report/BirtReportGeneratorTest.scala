@@ -115,6 +115,13 @@ class BirtReportGeneratorTest {
     val rptIs: BufferedReader = new BufferedReader(new InputStreamReader(reportManager.getReportContent("test_rpt_var_csv").get))
     Assert.assertEquals(rptIs.readLine(), "This is a test page.")
     Assert.assertEquals(rptIs.readLine(), "30")
+    Assert.assertEquals(rptIs.readLine(), "false")
+    Assert.assertEquals(rptIs.readLine(), "30.1")
+    Assert.assertEquals(rptIs.readLine(), "toast")
+    Assert.assertEquals(rptIs.readLine(), "30.100000381469727")
+    Assert.assertEquals(rptIs.readLine(), "12:10:00 PM")
+    Assert.assertEquals(rptIs.readLine(), "Aug 4  2013 10:04 AM")
+    Assert.assertEquals(rptIs.readLine(), "Aug 4  2013")
 
   }
 
