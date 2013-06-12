@@ -98,14 +98,13 @@ object ApiInvoker {
         builder.get(classOf[ClientResponse]).asInstanceOf[ClientResponse]
       }
       case "POST" => {
-        if(body != null && body.isInstanceOf[File]) {
+        if (body != null && body.isInstanceOf[File]) {
           val file = body.asInstanceOf[File]
           val form = new FormDataMultiPart()
           form.field("filename", file.getName())
           form.bodyPart(new FileDataBodyPart("file", file, MediaType.MULTIPART_FORM_DATA_TYPE))
           builder.post(classOf[ClientResponse], form)
-        }
-        else {
+        } else {
           builder.post(classOf[ClientResponse], serialize(body))
         }
       }
@@ -147,5 +146,4 @@ class ApiException extends Exception {
     this()
   }
 }
-
 

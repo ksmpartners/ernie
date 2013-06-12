@@ -81,7 +81,7 @@ public class JobsApi {
       }
     }
   }
-  public void postJob (String Authorization, String Accept) throws ApiException {
+  public void postJob (String Authorization, String Accept, String body) throws ApiException {
     // create path and map variables
     String path = "/jobs".replaceAll("\\{format\\}","json");
 
@@ -92,7 +92,7 @@ public class JobsApi {
     headerParams.put("Authorization", Authorization);
     headerParams.put("Accept", Accept);
     try {
-      String response = apiInvoker.invokeAPI(basePath, path, "POST", queryParams, null, headerParams);
+      String response = apiInvoker.invokeAPI(basePath, path, "POST", queryParams, body, headerParams);
       if(response != null){
         return ;
       }

@@ -83,6 +83,13 @@
         "dataType":"string",
         "required":false,
         "allowMultiple":false
+      },{
+        "paramType":"body",
+        "name":"DefinitionEntity",
+        "description":"DefinitionEntity",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
       }],
       "summary":"Post a DefinitionEntity",
       "notes":"",
@@ -256,6 +263,13 @@
         "paramType":"header",
         "name":"Accept",
         "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"body",
+        "name":"Rptdesign",
+        "description":"Rptdesign",
         "dataType":"string",
         "required":false,
         "allowMultiple":false

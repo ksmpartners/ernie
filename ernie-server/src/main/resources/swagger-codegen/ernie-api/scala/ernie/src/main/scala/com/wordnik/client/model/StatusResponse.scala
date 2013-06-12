@@ -1,5 +1,4 @@
 package com.wordnik.client.model
 
-case class StatusResponse (
-  )
+case class StatusResponse()
 

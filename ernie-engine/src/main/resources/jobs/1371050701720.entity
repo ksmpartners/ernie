@@ -1,1 +1,1 @@
-{"jobId":1371050701720,"jobStatus":"RESTARTING","submitDate":"2013-06-12T11:25:15.546-04:00","rptId":null,"rptEntity":{"createdDate":"2013-06-12T11:25:15.545-04:00","startDate":null,"finishDate":null,"retentionDate":"2013-06-20T11:25:15.543-04:00","rptId":null,"sourceDefId":"StrataSL_Test","createdUser":"jscott","params":{},"reportType":"CSV"}}
+{"jobId":1371050701720,"jobStatus":"COMPLETE","submitDate":"2013-06-12T11:25:15.546-04:00","rptId":"REPORT_1371050701720","rptEntity":null}

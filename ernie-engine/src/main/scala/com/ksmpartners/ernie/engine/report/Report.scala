@@ -43,6 +43,10 @@ class Report protected[report] (rptEntity: ReportEntity) {
 
   def getParams: Map[String, String] = params
 
+  def getStartDate: DateTime = rptEntity.getStartDate
+
+  def getFinishDate: DateTime = rptEntity.getFinishDate
+
   def getReportName: String = fileName
 
   def getEntity: ReportEntity = {
@@ -54,6 +58,8 @@ class Report protected[report] (rptEntity: ReportEntity) {
     rptEnt.setRetentionDate(rptEntity.getRetentionDate)
     rptEnt.setRptId(rptEntity.getRptId)
     rptEnt.setSourceDefId(rptEntity.getSourceDefId)
+    rptEnt.setStartDate(rptEntity.getStartDate)
+    rptEnt.setFinishDate(rptEntity.getFinishDate)
     rptEnt
   }
 

@@ -1,5 +1,4 @@
 package com.wordnik.client.model
 
-case class DeleteResponse (
-  )
+case class DeleteResponse()
 

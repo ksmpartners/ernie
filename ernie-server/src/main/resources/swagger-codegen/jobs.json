@@ -89,6 +89,13 @@
         "dataType":"string",
         "required":false,
         "allowMultiple":false
+      },{
+        "paramType":"body",
+        "name":"ReportRequest",
+        "description":"ReportRequest",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
       }],
       "summary":"Schedules the submitted job",
       "notes":"",

@@ -75,6 +75,8 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
         try_(reportManager.putReport(entity)) { rptOutputStream =>
           runReport(defInputStream, rptOutputStream, rptType, rptParams)
         }
+        entity += (ReportManager.finishDate -> DateTime.now)
+        if (reportManager.getReport(rptId).isDefined) try { reportManager.putReport(entity) }
       }
     }
   }

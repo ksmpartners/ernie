@@ -1,6 +1,6 @@
 package com.wordnik.client.model
 
-case class JobStatusMap (
+case class JobStatusMap(
   /* Jobs map */
   jobStatusMap: List[String])
 

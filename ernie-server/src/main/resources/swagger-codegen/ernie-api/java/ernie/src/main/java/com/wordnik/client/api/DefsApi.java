@@ -78,7 +78,7 @@ public class DefsApi {
       }
     }
   }
-  public byte postDefinition (String Authorization, String Accept) throws ApiException {
+  public byte postDefinition (String Authorization, String Accept, String body) throws ApiException {
     // create path and map variables
     String path = "/defs".replaceAll("\\{format\\}","json");
 
@@ -89,7 +89,7 @@ public class DefsApi {
     headerParams.put("Authorization", Authorization);
     headerParams.put("Accept", Accept);
     try {
-      String response = apiInvoker.invokeAPI(basePath, path, "POST", queryParams, null, headerParams);
+      String response = apiInvoker.invokeAPI(basePath, path, "POST", queryParams, body, headerParams);
       if(response != null){
         return (byte) ApiInvoker.deserialize(response, "", byte.class);
       }
@@ -198,7 +198,7 @@ public class DefsApi {
       }
     }
   }
-  public DefinitionEntity putDefinition (String def_id, String Authorization, String Accept) throws ApiException {
+  public DefinitionEntity putDefinition (String def_id, String Authorization, String Accept, String body) throws ApiException {
     // create path and map variables
     String path = "/defs/{def_id}/rptdesign".replaceAll("\\{format\\}","json").replaceAll("\\{" + "def_id" + "\\}", apiInvoker.escapeString(def_id.toString()));
 
@@ -213,7 +213,7 @@ public class DefsApi {
     headerParams.put("Authorization", Authorization);
     headerParams.put("Accept", Accept);
     try {
-      String response = apiInvoker.invokeAPI(basePath, path, "PUT", queryParams, null, headerParams);
+      String response = apiInvoker.invokeAPI(basePath, path, "PUT", queryParams, body, headerParams);
       if(response != null){
         return (DefinitionEntity) ApiInvoker.deserialize(response, "", DefinitionEntity.class);
       }

@@ -40,9 +40,9 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
       Full(ForbiddenResponse("User is not authorized to perform that action"))
     }
   }
-  val readAuthFilter = Filter("Read Authorization Filter", authFilter(_: Req, readRole)_, Some(SwaggerParameter("Authorization", "header")), (ForbiddenResponse().toResponse.code, "User is not authorized to perform that action"))
-  val writeAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, writeRole)_, Some(SwaggerParameter("Authorization", "header")), (ForbiddenResponse().toResponse.code, "User is not authorized to perform that action"))
-  val writeRunAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, runRole, writeRole)_, Some(SwaggerParameter("Authorization", "header")), (ForbiddenResponse().toResponse.code, "User is not authorized to perform that action"))
+  val readAuthFilter = Filter("Read Authorization Filter", authFilter(_: Req, readRole)_, Some(Parameter("Authorization", "header", "string")), (ForbiddenResponse().toResponse.code, "User is not authorized to perform that action"))
+  val writeAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, writeRole)_, Some(Parameter("Authorization", "header", "string")), (ForbiddenResponse().toResponse.code, "User is not authorized to perform that action"))
+  val writeRunAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, runRole, writeRole)_, Some(Parameter("Authorization", "header", "string")), (ForbiddenResponse().toResponse.code, "User is not authorized to perform that action"))
 
   /**
    * Method that verifies that the requesting user accepts the correct ctype
@@ -56,7 +56,7 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
       Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_FULL))
     }
   }
-  val jsonFilter = Filter("JSON Content Type Filter", ctypeFilter(_: Req)_, Some(SwaggerParameter("Accept", "header")), (NotAcceptableResponse().toResponse.code, "Resource only serves " + ModelObject.TYPE_FULL))
+  val jsonFilter = Filter("JSON Content Type Filter", ctypeFilter(_: Req)_, Some(Parameter("Accept", "header", "string")), (NotAcceptableResponse().toResponse.code, "Resource only serves " + ModelObject.TYPE_FULL))
 
   val idFilter = Filter("ID is long filter", idIsLongFilter(_: Req)_, None, (BadResponse().toResponse.code, "Job ID provided is not a number"))
   private def idIsLongFilter(req: Req)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = try {
@@ -184,7 +184,7 @@ object ErnieRequestTemplates {
 
   val getJobsList = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter), ServiceRegistry.jobsResource.getJobsListAction)
   val headJobsList = getToHead(getJobsList)
-  val postJob = RequestTemplate(PostRequest, justJSON, List(writeRunAuthFilter, jsonFilter), ServiceRegistry.jobsResource.postJobAction)
+  val postJob = RequestTemplate(PostRequest, justJSON, List(writeRunAuthFilter, jsonFilter), ServiceRegistry.jobsResource.postJobAction, Parameter("ReportRequest", "body", "ReportRequest"))
   val getCatalog = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter), ServiceRegistry.jobsResource.getJobsCatalogAction)
   val headCatalog = getToHead(getCatalog)
   val getCompleteCatalog = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter), ServiceRegistry.jobsResource.getCompleteCatalogAction)
@@ -200,7 +200,7 @@ object ErnieRequestTemplates {
   val headJob = getToHead(getJob)
   val getJobStatus = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobStatusResource.getJobStatusAction)
   val headJobStatus = getToHead(getJobStatus)
-  val getJobResult = RequestTemplate(GetRequest, anything, List(readAuthFilter, idFilter), ServiceRegistry.jobResultsResource.getJobResultAction)
+  val getJobResult = RequestTemplate(GetRequest, anything, List(readAuthFilter, idFilter), ServiceRegistry.jobResultsResource.getJobResultAction, Parameter("Accept", "header", "string"))
   val headJobResult = getToHead(getJobResult)
   val deleteJobResult = RequestTemplate(DeleteRequest, justJSON, List(writeAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobResultsResource.deleteReportAction)
   val getReportDetail = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobResultsResource.getDetailAction)
@@ -208,10 +208,10 @@ object ErnieRequestTemplates {
 
   val getDefs = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter), ServiceRegistry.defsResource.getDefsAction)
   val headDefs = getToHead(getDefs)
-  val postDef = RequestTemplate(PostRequest, justJSON, List(writeAuthFilter, jsonFilter), ServiceRegistry.defsResource.postDefAction)
+  val postDef = RequestTemplate(PostRequest, justJSON, List(writeAuthFilter, jsonFilter), ServiceRegistry.defsResource.postDefAction, Parameter("DefinitionEntity", "body", "DefinitionEntity"))
   val getDef = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter), ServiceRegistry.defDetailResource.getDefDetailAction)
   val headDef = getToHead(getDef)
-  val putDesign = RequestTemplate(PutRequest, justJSON, List(writeAuthFilter, jsonFilter), ServiceRegistry.defDetailResource.putDefAction)
+  val putDesign = RequestTemplate(PutRequest, justJSON, List(writeAuthFilter, jsonFilter), ServiceRegistry.defDetailResource.putDefAction, Parameter("Rptdesign", "body", "byte"))
   val deleteDef = RequestTemplate(DeleteRequest, justJSON, List(writeAuthFilter, jsonFilter), ServiceRegistry.defDetailResource.deleteDefAction)
 }
 
@@ -219,17 +219,17 @@ object RestGenerator {
   type restFunc = (() => Box[LiftResponse])
   type restFilter = (restFunc => () => Box[LiftResponse])
   //  trait Filter(name: String, filter: (Req => restFunc => restFunc), error: (Int, String))
-  case class SwaggerParameter(param: String, paramType: String)
-  case class Filter(name: String, filter: (Req => restFunc => restFunc), param: Option[SwaggerParameter], error: (Int, String))
+  case class Parameter(param: String, paramType: String, dataType: String)
+  case class Filter(name: String, filter: (Req => restFunc => restFunc), param: Option[Parameter], error: (Int, String))
   case class Variable(data: Any)
   case class Package(req: Req, params: Variable*)
   case class Action(name: String, func: (Package) => Box[LiftResponse], summary: String, notes: String, responseClass: String, errors: (Int, String)*)
-  case class RequestTemplate(requestType: RequestType, produces: List[String], filters: List[Filter], action: Action) {
+  case class RequestTemplate(requestType: RequestType, produces: List[String], filters: List[Filter], action: Action, params: Parameter*) {
     def toSwaggerOperation: JObject = ("httpMethod" -> requestTypeToSwagger(requestType)) ~ ("nickname" -> action.name) ~ ("produces" -> produces) ~
       ("responseClass" -> action.responseClass) ~ ("parameters" -> {
         filters.filter(p => p.param.isDefined).map(f => {
           DispatchRestAPI.buildSwaggerParam(f.param.get)
-        })
+        }) ++ params.map(f => DispatchRestAPI.buildSwaggerParam(f))
       }) ~ ("summary" -> action.summary) ~
       ("notes" -> action.notes) ~ ("errorResponses" -> (action.errors ++ filters.map(f => f.error)).map(e => ("code" -> e._1) ~ ("reason" -> e._2)).toList)
   }
@@ -295,10 +295,11 @@ trait RestGenerator extends RestHelper {
       tree = tree.::((path.::(r)).reverse)
     }
   }
-  def buildSwaggerParam(p: SwaggerParameter): JObject = buildSwaggerParam(p.param, p.paramType)
-  def buildSwaggerParam(v: Variable): JObject = buildSwaggerParam(v.data.toString)
-  def buildSwaggerParam(name: String, pT: String = "path"): JObject =
-    (("paramType" -> pT) ~ ("name" -> name) ~ ("description" -> name) ~ ("dataType" -> "string") ~ ("required" -> false) ~ ("allowMultiple" -> false))
+  def buildSwaggerParam(p: Parameter): JObject = buildSwaggerParam(p.param, p.paramType)
+  def buildSwaggerParam(v: Variable): JObject = buildSwaggerParam(v.data.toString, "path")
+  def buildSwaggerParam(name: String, pT: String = "path"): JObject = buildSwaggerParam(name, pT, "string")
+  def buildSwaggerParam(name: String, pT: String, dataType: String): JObject =
+    (("paramType" -> pT) ~ ("name" -> name) ~ ("description" -> name) ~ ("dataType" -> dataType) ~ ("required" -> false) ~ ("allowMultiple" -> false))
   def buildSwaggerParam(s: String): JObject = buildSwaggerParam(s, "path")
   def buildSwaggerApi(version: String, swaggerVersion: String, basePath: String, r: Resource) = {
     tree = Nil
