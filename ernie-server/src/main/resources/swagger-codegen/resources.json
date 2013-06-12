@@ -1,0 +1,12 @@
+{
+  "apiVersion":".1",
+  "swaggerVersion":"1.1",
+  "basePath":"http://localhost:8080",
+  "apis":[{
+    "path":"/jobs.json",
+    "description":"Jobs api"
+  },{
+    "path":"/defs.json",
+    "description":"Definitions api"
+  }]
+}

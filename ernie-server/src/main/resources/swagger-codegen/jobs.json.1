@@ -1,0 +1,1064 @@
+{
+  "apiVersion":".1",
+  "swaggerVersion":"1.1",
+  "basePath":"http://localhost:8080",
+  "resourcePath":"/jobs",
+  "apis":[{
+    "path":"/jobs",
+    "description":"Jobs api",
+    "operations":[{
+      "httpMethod":"GET",
+      "nickname":"getJobsMap",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsMapResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a map of jobId to URI",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    },{
+      "httpMethod":"HEAD",
+      "nickname":"getJobsMapHead",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsMapResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a map of jobId to URI",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    },{
+      "httpMethod":"POST",
+      "nickname":"postJob",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"void",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Schedules the submitted job",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":400,
+        "reason":"No request body"
+      },{
+        "code":400,
+        "reason":"Retention date exceeds maximum"
+      },{
+        "code":400,
+        "reason":"Retention date before request time"
+      },{
+        "code":400,
+        "reason":"No such definition ID"
+      },{
+        "code":400,
+        "reason":"Server error"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    }]
+  },{
+    "path":"/jobs/deleted",
+    "description":"Deleted catalog",
+    "operations":[{
+      "httpMethod":"GET",
+      "nickname":"getDeletedJobsCatalog",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsCatalogResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a catalog of deleted jobs' JobEntities",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    },{
+      "httpMethod":"HEAD",
+      "nickname":"getDeletedJobsCatalogHead",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsCatalogResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a catalog of deleted jobs' JobEntities",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    }]
+  },{
+    "path":"/jobs/failed",
+    "description":"Failed catalog",
+    "operations":[{
+      "httpMethod":"GET",
+      "nickname":"getFailedJobsCatalog",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsCatalogResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a catalog of failed jobs' JobEntities",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    },{
+      "httpMethod":"HEAD",
+      "nickname":"getFailedJobsCatalogHead",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsCatalogResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a catalog of failed jobs' JobEntities",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    }]
+  },{
+    "path":"/jobs/expired",
+    "description":"Expired catalog",
+    "operations":[{
+      "httpMethod":"DELETE",
+      "nickname":"purgeExpired",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"void",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Purges expired jobs",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":500,
+        "reason":"Purge failed"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    },{
+      "httpMethod":"GET",
+      "nickname":"getExpiredJobsCatalog",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsCatalogResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a catalog of expired jobs' JobEntities",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    },{
+      "httpMethod":"HEAD",
+      "nickname":"getExpiredJobsCatalogHead",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsCatalogResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a catalog of expired jobs' JobEntities",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    }]
+  },{
+    "path":"/jobs/complete",
+    "description":"Complete catalog",
+    "operations":[{
+      "httpMethod":"GET",
+      "nickname":"getCompleteJobsCatalog",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsCatalogResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a catalog of complete jobs' JobEntities",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    },{
+      "httpMethod":"HEAD",
+      "nickname":"getCompleteJobsCatalogHead",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsCatalogResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a catalog of complete jobs' JobEntities",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    }]
+  },{
+    "path":"/jobs/catalog",
+    "description":"Full catalog",
+    "operations":[{
+      "httpMethod":"GET",
+      "nickname":"getJobsCatalog",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsCatalogResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a catalog of all JobEntities",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    },{
+      "httpMethod":"HEAD",
+      "nickname":"getJobsCatalogHead",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobsCatalogResponse",
+      "parameters":[{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a catalog of all JobEntities",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      }]
+    }]
+  },{
+    "path":"/jobs/{job_id}",
+    "description":"Job resource",
+    "operations":[{
+      "httpMethod":"GET",
+      "nickname":"getJobEntity",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobEntity",
+      "parameters":[{
+        "paramType":"path",
+        "name":"job_id",
+        "description":"job_id",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a JobEntity",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":404,
+        "reason":"Job ID not found"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":400,
+        "reason":"Job ID provided is not a number"
+      }]
+    },{
+      "httpMethod":"HEAD",
+      "nickname":"getJobEntityHead",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"JobEntity",
+      "parameters":[{
+        "paramType":"path",
+        "name":"job_id",
+        "description":"job_id",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return a JobEntity",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Request timed out"
+      },{
+        "code":404,
+        "reason":"Job ID not found"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":400,
+        "reason":"Job ID provided is not a number"
+      }]
+    }]
+  },{
+    "path":"/jobs/{job_id}/result",
+    "description":"Job results",
+    "operations":[{
+      "httpMethod":"GET",
+      "nickname":"getJobResult",
+      "produces":["*"],
+      "responseClass":"byte",
+      "parameters":[{
+        "paramType":"path",
+        "name":"job_id",
+        "description":"job_id",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Returns a stream containing the result content for the given Job ID",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Job Results request timed out"
+      },{
+        "code":410,
+        "reason":"Job deleted"
+      },{
+        "code":404,
+        "reason":"Job ID not found"
+      },{
+        "code":410,
+        "reason":"Report expired"
+      },{
+        "code":400,
+        "reason":"Job incomplete"
+      },{
+        "code":406,
+        "reason":"Resource does not serve specified Accept type"
+      },{
+        "code":400,
+        "reason":"Job ID undefined"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":400,
+        "reason":"Job ID provided is not a number"
+      }]
+    },{
+      "httpMethod":"HEAD",
+      "nickname":"getJobResultHead",
+      "produces":["*"],
+      "responseClass":"byte",
+      "parameters":[{
+        "paramType":"path",
+        "name":"job_id",
+        "description":"job_id",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Returns a stream containing the result content for the given Job ID",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Job Results request timed out"
+      },{
+        "code":410,
+        "reason":"Job deleted"
+      },{
+        "code":404,
+        "reason":"Job ID not found"
+      },{
+        "code":410,
+        "reason":"Report expired"
+      },{
+        "code":400,
+        "reason":"Job incomplete"
+      },{
+        "code":406,
+        "reason":"Resource does not serve specified Accept type"
+      },{
+        "code":400,
+        "reason":"Job ID undefined"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":400,
+        "reason":"Job ID provided is not a number"
+      }]
+    },{
+      "httpMethod":"DELETE",
+      "nickname":"deleteReport",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"DeleteResponse",
+      "parameters":[{
+        "paramType":"path",
+        "name":"job_id",
+        "description":"job_id",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Purges report output for a given Job ID",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Job Results request timed out"
+      },{
+        "code":404,
+        "reason":"Job ID not found"
+      },{
+        "code":409,
+        "reason":"Job result in use"
+      },{
+        "code":400,
+        "reason":"Job deletion failed"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":400,
+        "reason":"Job ID provided is not a number"
+      }]
+    }]
+  },{
+    "path":"/jobs/{job_id}/result/detail",
+    "description":"Report details",
+    "operations":[{
+      "httpMethod":"GET",
+      "nickname":"getResultDetail",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"ReportEntity",
+      "parameters":[{
+        "paramType":"path",
+        "name":"job_id",
+        "description":"job_id",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Retrieves details for output from a given jobId",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Job Results request timed out"
+      },{
+        "code":404,
+        "reason":""
+      },{
+        "code":500,
+        "reason":""
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":400,
+        "reason":"Job ID provided is not a number"
+      }]
+    },{
+      "httpMethod":"HEAD",
+      "nickname":"getResultDetailHead",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"ReportEntity",
+      "parameters":[{
+        "paramType":"path",
+        "name":"job_id",
+        "description":"job_id",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Retrieves details for output from a given jobId",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Job Results request timed out"
+      },{
+        "code":404,
+        "reason":""
+      },{
+        "code":500,
+        "reason":""
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":400,
+        "reason":"Job ID provided is not a number"
+      }]
+    }]
+  },{
+    "path":"/jobs/{job_id}/status",
+    "description":"Job status",
+    "operations":[{
+      "httpMethod":"GET",
+      "nickname":"getJobStatus",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"StatusResponse",
+      "parameters":[{
+        "paramType":"path",
+        "name":"job_id",
+        "description":"job_id",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return StatusResponse for given jobId",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Job Status Request timed out"
+      },{
+        "code":410,
+        "reason":"Job deleted"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":400,
+        "reason":"Job ID provided is not a number"
+      }]
+    },{
+      "httpMethod":"HEAD",
+      "nickname":"getJobStatusHead",
+      "produces":["application/vnd.ksmpartners.ernie+json"],
+      "responseClass":"StatusResponse",
+      "parameters":[{
+        "paramType":"path",
+        "name":"job_id",
+        "description":"job_id",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Authorization",
+        "description":"Authorization",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
+      }],
+      "summary":"Return StatusResponse for given jobId",
+      "notes":"",
+      "errorResponses":[{
+        "code":504,
+        "reason":"Job Status Request timed out"
+      },{
+        "code":410,
+        "reason":"Job deleted"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":400,
+        "reason":"Job ID provided is not a number"
+      }]
+    }]
+  }],
+  "models":{
+    "DefinitionEntity":{
+      "id":"DefinitionEntity"
+    },
+    "DefinitionResponse":{
+      "id":"DefinitionResponse"
+    },
+    "DeleteResponse":{
+      "id":"DeleteResponse"
+    },
+    "JobEntity":{
+      "properties":{
+        "jobId":{
+          "type":"long"
+        },
+        "jobStatus":{
+          "type":"string"
+        },
+        "submitDate":{
+          "type":"Date"
+        },
+        "rptId":{
+          "type":"string"
+        },
+        "rptEntity":{
+          "properties":{
+            "createdDate":{
+              "type":"Date"
+            },
+            "startDate":{
+              "type":"Date"
+            },
+            "finishDate":{
+              "type":"Date"
+            },
+            "retentionDate":{
+              "type":"Date"
+            },
+            "rptId":{
+              "type":"string"
+            },
+            "sourceDefId":{
+              "type":"string"
+            },
+            "createdUser":{
+              "type":"string"
+            },
+            "params":{
+              "type":"List",
+              "description":"Report parameters",
+              "items":{
+                "param":{
+                  "type":"string"
+                }
+              }
+            },
+            "reportType":{
+              "type":"string"
+            }
+          },
+          "id":"ReportEntity"
+        }
+      },
+      "id":"JobEntity"
+    },
+    "JobsCatalogResponse":{
+      "type":"List",
+      "description":"Jobs Catalog",
+      "items":{
+        "$ref":"JobEntity"
+      },
+      "id":"JobsCatalogResponse"
+    },
+    "JobsMapResponse":{
+      "id":"JobsMapResponse"
+    },
+    "ReportDefinitionMapResponse":{
+      "id":"ReportDefinitionMapResponse"
+    },
+    "ReportEntity":{
+      "properties":{
+        "createdDate":{
+          "type":"Date"
+        },
+        "startDate":{
+          "type":"Date"
+        },
+        "finishDate":{
+          "type":"Date"
+        },
+        "retentionDate":{
+          "type":"Date"
+        },
+        "rptId":{
+          "type":"string"
+        },
+        "sourceDefId":{
+          "type":"string"
+        },
+        "createdUser":{
+          "type":"string"
+        },
+        "params":{
+          "type":"List",
+          "description":"Report parameters",
+          "items":{
+            "param":{
+              "type":"string"
+            }
+          }
+        },
+        "reportType":{
+          "type":"string"
+        }
+      },
+      "id":"ReportEntity"
+    },
+    "ReportResponse":{
+      "id":"ReportResponse"
+    },
+    "StatusResponse":{
+      "id":"StatusResponse"
+    }
+  }
+}

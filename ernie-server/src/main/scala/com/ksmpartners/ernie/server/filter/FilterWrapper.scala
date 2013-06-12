@@ -8,7 +8,7 @@
 package com.ksmpartners.ernie.server.filter
 
 import javax.servlet._
-import http.{ HttpServletRequest, HttpServletRequestWrapper }
+import javax.servlet.http.{ HttpServletResponse, HttpServletRequest, HttpServletRequestWrapper }
 import com.ksmpartners.ernie.server.PropertyNames._
 
 /**
@@ -30,6 +30,11 @@ class FilterWrapper extends Filter {
   }
 
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain) {
+    res.asInstanceOf[HttpServletResponse].addHeader("Access-Control-Allow-Origin", "*")
+    res.asInstanceOf[HttpServletResponse].addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+    res.asInstanceOf[HttpServletResponse].addHeader("Access-Control-Request-Headers", "Authorization,WWW-Authenticate,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type")
+    res.asInstanceOf[HttpServletResponse].addHeader("Access-Control-Allow-Headers", "Authorization,WWW-Authenticate,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type")
+
     wrappedFilter.doFilter(req, res, chain)
   }
 

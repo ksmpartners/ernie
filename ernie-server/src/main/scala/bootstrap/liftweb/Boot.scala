@@ -8,8 +8,8 @@
 package bootstrap.liftweb
 
 import _root_.net.liftweb.http
-import net.liftweb.http.LiftRules
-import http.provider.HTTPRequest
+import net.liftweb.http.{ Req, LiftRules }
+import net.liftweb.http.provider.{ HTTPParam, HTTPRequest }
 import com.ksmpartners.ernie.server.DispatchRestAPI
 
 /**
@@ -26,7 +26,21 @@ class Boot {
 
     LiftRules.statelessDispatch.prepend(DispatchRestAPI)
 
+    LiftRules.supplimentalHeaders = s => s.addHeaders(
+      List(HTTPParam("X-Lift-Version", LiftRules.liftVersion),
+        HTTPParam("Access-Control-Allow-Origin", "*"),
+        HTTPParam("Access-Control-Allow-Credentials", "true"),
+        HTTPParam("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS"),
+        HTTPParam("Access-Control-Allow-Headers", "Authorization,WWW-Authenticate,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type"),
+        HTTPParam("Access-Control-Request-Headers", "Authorization,WWW-Authenticate,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type")))
+
     LiftRules.unloadHooks.prepend(() => DispatchRestAPI.shutdown())
+
+    LiftRules.liftRequest.append {
+
+      case Req("static" :: _, _, _) => false
+
+    }
   }
 
   /**

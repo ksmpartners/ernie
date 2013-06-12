@@ -39,8 +39,12 @@ class SAMLFilter extends Filter {
     (req, res) match {
       case (request: HttpServletRequest, response: HttpServletResponse) => {
         try {
-          val samlRequestWrapper = handleRequest(request, response)
-          chain.doFilter(samlRequestWrapper, response)
+          if (!req.asInstanceOf[HttpServletRequest].getRequestURI.contains("static")) {
+            val samlRequestWrapper = handleRequest(request, response)
+            chain.doFilter(samlRequestWrapper, response)
+          } else {
+            chain.doFilter(request, response)
+          }
         } catch {
           case e: Exception => {
             log.debug("Caught exception while handling request. Return 401. Exception: {}", e.getMessage)
@@ -57,7 +61,6 @@ class SAMLFilter extends Filter {
   private def handleRequest(req: HttpServletRequest, res: HttpServletResponse): HttpServletRequest = {
     // Get Authorization header value
     val samlTokenHeader = req.getHeader(authHeaderProp)
-
     // Null check
     if (samlTokenHeader == null || !samlTokenHeader.startsWith("SAML"))
       throw new SAMLParseException("No SAML token in HTTP Request.")
