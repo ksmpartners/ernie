@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.util
 
 import com.ksmpartners.ernie.util.Utility._
 import org.testng.annotations.Test
-import java.io.{ FileOutputStream, IOException, File, Closeable }
+import java.io._
 import org.testng.Assert
 
 class UtilityTest {
@@ -107,6 +107,23 @@ class UtilityTest {
     Assert.assertFalse(tempFile.exists())
     Assert.assertFalse(tempSubDir.exists())
     Assert.assertFalse(tempDir.exists())
+  }
+
+  @Test(expectedExceptions = Array(classOf[FileNotFoundException]))
+  def nonExistantDirThrowsException() {
+    val tempTestDir = createTempDirectory()
+    recDel(tempTestDir)
+    recDel(tempTestDir)
+  }
+
+  @Test(expectedExceptions = Array(classOf[FileNotFoundException]))
+  def nonExistantFileThrowsException() {
+    val tempFile = new File(tempDir, "subFile")
+    try_(new FileOutputStream(tempFile)) { fos =>
+      fos.write(100)
+    }
+    recDel(tempFile)
+    recDel(tempFile)
   }
 
 }

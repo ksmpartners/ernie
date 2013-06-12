@@ -216,14 +216,14 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
               case JobStatus.FAILED_UNSUPPORTED_FORMAT => true
               case JobStatus.FAILED_UNSUPPORTED_PARAMETER_TYPE => true
               case _ => false
-            }).map(f => f._2) toList
-            case JobCatalog.COMPLETE => jobIdToResultMap.filter(f => f._2.getJobStatus == JobStatus.COMPLETE).map(f => f._2) toList
-            case JobCatalog.DELETED => jobIdToResultMap.filter(f => f._2.getJobStatus == JobStatus.DELETED).map(f => f._2) toList
-            case JobCatalog.IN_PROGRESS => jobIdToResultMap.filter(f => f._2.getJobStatus == JobStatus.IN_PROGRESS).map(f => f._2) toList
+            }).map(f => f._2).toList
+            case JobCatalog.COMPLETE => jobIdToResultMap.filter(f => f._2.getJobStatus == JobStatus.COMPLETE).map(f => f._2).toList
+            case JobCatalog.DELETED => jobIdToResultMap.filter(f => f._2.getJobStatus == JobStatus.DELETED).map(f => f._2).toList
+            case JobCatalog.IN_PROGRESS => jobIdToResultMap.filter(f => f._2.getJobStatus == JobStatus.IN_PROGRESS).map(f => f._2).toList
             case JobCatalog.EXPIRED => jobIdToResultMap.filter(f => {
               val rptOpt = reportManager.getReport(f._2.getRptId)
               rptOpt.map(rpt => DateTime.now.isAfter(rpt.getRetentionDate)).getOrElse(false)
-            }).map(f => f._2) toList
+            }).map(f => f._2).toList
             case _ => jobIdToResultMap.map(f => f._2).toList
           }
           else jobIdToResultMap.map(f => f._2).toList
