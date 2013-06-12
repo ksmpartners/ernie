@@ -10,8 +10,9 @@ package com.ksmpartners.ernie.server
 import org.testng.annotations.Test
 import org.testng.Assert
 import com.ksmpartners.ernie.model.{ JobStatus, StatusResponse }
+import com.ksmpartners.ernie.util.TestLogger
 
-class JsonTranslatorTest extends JsonTranslator {
+class JsonTranslatorTest extends JsonTranslator with TestLogger {
 
   @Test
   def canSerializeModelObjects() {

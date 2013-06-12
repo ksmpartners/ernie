@@ -15,7 +15,7 @@ import com.ksmpartners.ernie.engine.report.ReportManager
  */
 trait RequiresCoordinator {
   protected val coordinator: Coordinator
-  protected var timeout: Long = 30 * 1000L
+  protected val timeout: Long
 }
 
 /**

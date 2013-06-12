@@ -17,14 +17,17 @@ import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.MapperUtility._
 import com.ksmpartners.ernie.engine.Coordinator
 import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.util.TestLogger
 
-class DefinitionDependenciesTest extends DefinitionDependencies {
+class DefinitionDependenciesTest extends DefinitionDependencies with TestLogger {
 
   val reportManager = new MemoryReportManager
   val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefDependenciesTest")
 
+  val timeout = 300 * 1000L
   val coordinator: Coordinator = {
     val coord = new Coordinator(createTempDirectory.getAbsolutePath, reportManager) with TestReportGeneratorFactory
+    coord.setTimeout(timeout)
     coord.start()
     coord
   }

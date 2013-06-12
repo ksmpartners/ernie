@@ -142,7 +142,12 @@ trait JobDependencies extends RequiresCoordinator
     def post(req: Req): Box[LiftResponse] = post(req.body, req.hostAndPath, AuthUtil.getUserName(req))
 
     def purge(): Box[LiftResponse] = {
-      val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
+      val respOpt = coordinator !? (timeout, PurgeRequest())
+      if (respOpt.isEmpty) {
+        log.debug("Response: Timeout Response.")
+        Full(TimeoutResponse())
+      }
+      val purgeResp = respOpt.get.asInstanceOf[PurgeResponse]
       if (purgeResp.deleteStatus == DeleteStatus.SUCCESS) {
         log.debug("Response: Ok Response.")
         Full(OkResponse())

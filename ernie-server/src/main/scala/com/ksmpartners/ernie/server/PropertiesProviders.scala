@@ -19,6 +19,7 @@ object PropertyNames {
   val jobDirProp = "jobs.dir"
   val defaultRetentionPeriod = "retention.period.default"
   val maximumRetentionPeriod = "retention.period.maximum"
+  val requestTimeoutSeconds = "request.timeout.seconds"
 }
 
 /** Dependency injection trait to advertise dependence on a java.util.Properties instance */

@@ -81,6 +81,13 @@ object ServiceRegistry extends JobDependencies
     fileReportManager
   }
 
+  protected val timeout = {
+    var to = 30 * 1000L
+    if (properties.contains(requestTimeoutSeconds))
+      to = properties.get(requestTimeoutSeconds).asInstanceOf[Long]
+    to
+  }
+
   protected val coordinator: Coordinator = {
 
     if (!properties.stringPropertyNames.contains(jobDirProp)) {
@@ -108,12 +115,6 @@ object ServiceRegistry extends JobDependencies
   def init() {
     log.info("BEGIN Initializing ServiceRegistry...")
     log.info("Loaded properties: {}", properties.toString)
-    timeout = if (properties.contains("timeout")) try {
-      properties.get("timeout").asInstanceOf[Long]
-    } catch {
-      case _ => 1000L
-    }
-    else 1000L
     log.info("END Initializing ServiceRegistry...")
   }
 

@@ -12,8 +12,9 @@ import java.io.{ FileOutputStream, FileInputStream, File }
 import com.ksmpartners.commons.util.Base64Util
 import org.apache.cxf.rs.security.saml.DeflateEncoderDecoder
 import com.ksmpartners.ernie.util.Utility._
+import com.ksmpartners.ernie.util.TestLogger
 
-class TokenEncoderTest {
+class TokenEncoderTest extends TestLogger {
 
   //@Test
   def encodeToken() {

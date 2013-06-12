@@ -178,7 +178,6 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
               }
             }
           })
-
           sender ! PurgeResponse(deleteStatus, purgedReports, req)
         }
         case req@StatusRequest(jobId) => {

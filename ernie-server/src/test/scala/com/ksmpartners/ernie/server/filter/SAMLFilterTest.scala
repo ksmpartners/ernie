@@ -21,8 +21,9 @@ import org.testng.Assert
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.filter.SAMLFilter.SAMLHttpServletRequestWrapper
+import com.ksmpartners.ernie.util.TestLogger
 
-class SAMLFilterTest {
+class SAMLFilterTest extends TestLogger {
 
   private val readMode = "read"
   private val writeMode = "write"

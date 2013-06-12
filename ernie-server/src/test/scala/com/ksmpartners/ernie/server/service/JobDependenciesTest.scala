@@ -31,8 +31,9 @@ import com.ksmpartners.ernie.engine.ShutDownRequest
 import net.liftweb.common.Full
 import com.ksmpartners.ernie.engine.PurgeResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
+import com.ksmpartners.ernie.util.TestLogger
 
-class JobDependenciesTest extends JobDependencies with JsonTranslator {
+class JobDependenciesTest extends TestLogger with JobDependencies with JsonTranslator {
 
   val tempInputDir = createTempDirectory
   val tempOutputDir = createTempDirectory
@@ -71,8 +72,10 @@ class JobDependenciesTest extends JobDependencies with JsonTranslator {
     testDef = rptMgr.putDefinition(new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null, null))._1.getDefId
     rptMgr
   }
+  val timeout = 300 * 1000L
   val coordinator: Coordinator = {
     val coord = new Coordinator(tempJobDir.getAbsolutePath, reportManager) with TestReportGeneratorFactory
+    coord.setTimeout(timeout)
     coord.start()
     coord
   }
