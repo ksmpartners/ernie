@@ -14,8 +14,9 @@ import scala.collection._
 import org.joda.time.DateTime
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.util.Utility._
+import com.ksmpartners.ernie.util.TestLogger
 
-class MemoryReportManagerTest {
+class MemoryReportManagerTest extends TestLogger {
 
   private var reportManager: MemoryReportManager = new MemoryReportManager
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.report.MemoryReportManagerTest")

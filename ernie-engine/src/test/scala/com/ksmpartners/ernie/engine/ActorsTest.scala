@@ -18,8 +18,9 @@ import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import org.slf4j.{ LoggerFactory, Logger }
 import collection.mutable
 import com.ksmpartners.ernie.util.Utility._
+import com.ksmpartners.ernie.util.TestLogger
 
-class ActorsTest {
+class ActorsTest extends TestLogger {
 
   private var reportManager: MemoryReportManager = null
   private var coordinator: Coordinator = null

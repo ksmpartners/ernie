@@ -19,8 +19,9 @@ import org.slf4j.{ LoggerFactory, Logger }
 import collection.mutable
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.MapperUtility._
+import com.ksmpartners.ernie.util.TestLogger
 
-class PurgeTest {
+class PurgeTest extends TestLogger {
 
   private var reportManager: FileReportManager = null
   private var coordinator: Coordinator = null

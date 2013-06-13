@@ -17,8 +17,9 @@ import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import java.util
 import java.sql.Date
+import com.ksmpartners.ernie.util.TestLogger
 
-class BirtReportGeneratorTest {
+class BirtReportGeneratorTest extends BirtReportGeneratorFactory with TestLogger {
 
   private var reportGenerator: BirtReportGenerator = null
   private var reportManager: MemoryReportManager = null
@@ -69,7 +70,7 @@ class BirtReportGeneratorTest {
     paramList.add(param8)
     reportManager.putDefinition("test_def_var", byteArr, new DefinitionEntity(DateTime.now(), "test_def_var", "default", paramNameList, "", null, paramList))
 
-    reportGenerator = new BirtReportGenerator(reportManager)
+    reportGenerator = getReportGenerator(reportManager).asInstanceOf[BirtReportGenerator]
     reportGenerator.startup()
   }
 

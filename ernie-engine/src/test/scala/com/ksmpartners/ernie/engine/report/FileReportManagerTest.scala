@@ -13,8 +13,9 @@ import com.ksmpartners.ernie.model.ReportType
 import com.ksmpartners.ernie.util.Utility._
 import java.io._
 import collection.mutable
+import com.ksmpartners.ernie.util.TestLogger
 
-class FileReportManagerTest {
+class FileReportManagerTest extends TestLogger {
 
   private var reportManager: FileReportManager = null
   private var tempInputDir: File = null
