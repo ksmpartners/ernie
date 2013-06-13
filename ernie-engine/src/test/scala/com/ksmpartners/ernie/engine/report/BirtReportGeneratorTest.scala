@@ -12,14 +12,15 @@ import java.io._
 import java.net.URL
 import org.testng.Assert
 import com.ksmpartners.ernie.model.{ ParameterEntity, DefinitionEntity, ReportType }
-import com.ksmpartners.ernie.util.Utility.try_
+import com.ksmpartners.ernie.engine.report.BirtReportGenerator._
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import java.util
+import java.sql.Date
 
 class BirtReportGeneratorTest {
 
-  private var reportGenerator: ReportGenerator = null
+  private var reportGenerator: BirtReportGenerator = null
   private var reportManager: MemoryReportManager = null
 
   private val log = LoggerFactory.getLogger("c.k.e.e.report.BirtReportGeneratorTest")
@@ -177,6 +178,47 @@ class BirtReportGeneratorTest {
     val rptGen = new BirtReportGenerator(new MemoryReportManager)
     rptGen.shutdown()
     rptGen.runReport("test1", "test2", ReportType.PDF, None, "testUser")
+  }
+
+  @Test
+  def canGetBirtParamData() {
+    val bool = stringToBirtParamData("false", new ParameterEntity("var", "boolean", false, "true"))
+    Assert.assertEquals(bool.getClass, classOf[java.lang.Boolean])
+    Assert.assertEquals(bool, false)
+    val int = stringToBirtParamData("21", new ParameterEntity("var", "integer", false, "1"))
+    Assert.assertEquals(int.getClass, classOf[java.lang.Integer])
+    Assert.assertEquals(int, 21)
+    val date = stringToBirtParamData("2013-08-04", new ParameterEntity("var", "date", false, "2013-08-04"))
+    Assert.assertEquals(date.getClass, classOf[java.sql.Date])
+    Assert.assertEquals(date, new Date(113, 7, 4))
+    val datetime = stringToBirtParamData("2013-08-04T10:15:00", new ParameterEntity("var", "dateTime", false, "2013-08-04T10:15:00"))
+    Assert.assertEquals(datetime.getClass, classOf[java.sql.Date])
+    Assert.assertEquals(datetime, new java.sql.Date(DateTime.parse("2013-08-04T10:15:00").getMillis))
+    val decimal = stringToBirtParamData("21.1", new ParameterEntity("var", "decimal", false, "1.1"))
+    Assert.assertEquals(decimal.getClass, classOf[java.lang.Double])
+    Assert.assertEquals(decimal, 21.1d)
+    val float = stringToBirtParamData("21.1", new ParameterEntity("var", "float", false, "1.1"))
+    Assert.assertEquals(float.getClass, classOf[java.lang.Float])
+    Assert.assertEquals(float, 21.1f)
+    val string = stringToBirtParamData("toast", new ParameterEntity("var", "string", false, "test"))
+    Assert.assertEquals(string.getClass, classOf[java.lang.String])
+    Assert.assertEquals(string, "toast")
+    val time = stringToBirtParamData("10:15:00", new ParameterEntity("var", "time", false, "08:15:00"))
+    Assert.assertEquals(time.getClass, classOf[java.sql.Time])
+    Assert.assertEquals(time, java.sql.Time.valueOf("10:15:00"))
+    val any = stringToBirtParamData("Anything", new ParameterEntity("var", "any", false, "Nothing"))
+    Assert.assertEquals(any.getClass, classOf[java.lang.String])
+    Assert.assertEquals(any, "Anything")
+  }
+
+  @Test(expectedExceptions = Array(classOf[UnsupportedDataTypeException]))
+  def unsupportedDataTypeThrowsException() {
+    stringToBirtParamData("false", new ParameterEntity("var", "bad_type", false, "true"))
+  }
+
+  @Test(expectedExceptions = Array(classOf[ClassCastException]))
+  def badDataThrowsClassCastException() {
+    stringToBirtParamData("false", new ParameterEntity("var", "decimal", false, "21.1"))
   }
 
 }
