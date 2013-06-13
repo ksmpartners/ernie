@@ -1160,7 +1160,6 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     val defEnt = new DefinitionEntity()
-    defEnt.setCreatedUser("default")
     defEnt.setDefId("test_def2")
     mockReq.body = DispatchRestAPI.serialize(defEnt).getBytes
 
@@ -1173,7 +1172,6 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
       Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
 
       val defEntRsp: DefinitionEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DefinitionEntity])
-      Assert.assertEquals(defEntRsp.getCreatedUser, "default")
       testDef = defEntRsp.getDefId
       Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Location", req.hostAndPath + "/defs/" + defEntRsp.getDefId)))
 

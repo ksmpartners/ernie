@@ -39,6 +39,7 @@ class JobDependenciesTest extends TestLogger with JobDependencies with JsonTrans
   val tempOutputDir = createTempDirectory
   val tempJobDir = createTempDirectory
   var testDef = ""
+  val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.JobDependenciesTest")
 
   val reportManager = {
     for (i <- 1 to 4) {
@@ -59,12 +60,12 @@ class JobDependenciesTest extends TestLogger with JobDependencies with JsonTrans
         }
 
         val job = new File(tempJobDir, rptToJobId(report.getRptId) + ".entity")
+        val jobEnt: JobEntity = new JobEntity(rptToJobId(report.getRptId), if (i % 2 == 0) JobStatus.COMPLETE else JobStatus.IN_PROGRESS, DateTime.now, report.getRptId, if (i % 2 == 0) null else report)
         try_(new FileOutputStream(job)) { fos =>
-          mapper.writeValue(fos,
-            new JobEntity(rptToJobId(report.getRptId), if (i % 2 == 0) JobStatus.COMPLETE else JobStatus.IN_PROGRESS, DateTime.now, report.getRptId, if (i % 2 == 0) null else report))
+          mapper.writeValue(fos, jobEnt)
         }
       } catch {
-        case e: Exception => {}
+        case e: Exception => log.info("Caught exception while generating test entities: {}", e.getMessage + "\n" + e.getStackTraceString)
       }
     }
 
@@ -79,8 +80,6 @@ class JobDependenciesTest extends TestLogger with JobDependencies with JsonTrans
     coord.start()
     coord
   }
-
-  val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.JobDependenciesTest")
 
   @AfterTest
   def shutdown() {

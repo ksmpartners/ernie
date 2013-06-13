@@ -17,6 +17,7 @@ import com.ksmpartners.ernie.engine.report.{ Definition, BirtReportGenerator }
 import net.liftweb.http.BadResponse
 import net.liftweb.common.Full
 import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.server.filter.AuthUtil
 
 /**
  * Dependencies for interacting with report definitions
@@ -47,6 +48,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
           log.debug("Response: Conflict Response.")
           Full(ConflictResponse())
         } else {*/
+        defEnt.setCreatedUser(AuthUtil.getUserName(req))
         val put = reportManager.putDefinition(defEnt)
         defEnt = put._1
         //put._2.write(req.body.open_!)

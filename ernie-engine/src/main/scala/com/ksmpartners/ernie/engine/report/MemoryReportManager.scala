@@ -121,6 +121,12 @@ class MemoryReportManager extends ReportManager {
     })
   }
 
+  override def updateReportEntity(entity: Map[String, Any]): ReportEntity = {
+    val rptEntity = createReportEntity(entity)
+    reportEntities += (rptId -> rptEntity)
+    rptEntity
+  }
+
   override def deleteDefinition(defId: String) {
     definitions -= defId
     definitionEntities -= defId

@@ -69,7 +69,7 @@ public class ReportEntity extends ModelObject {
         return startDate;
     }
 
-    @JsonSerialize(using = ISODateSerializer.class)
+    @JsonDeserialize(using = ISODateDeserializer.class)
     public void setStartDate(DateTime startDate) {
         this.startDate = startDate;
     }
@@ -79,7 +79,7 @@ public class ReportEntity extends ModelObject {
         return finishDate;
     }
 
-    @JsonSerialize(using = ISODateSerializer.class)
+    @JsonDeserialize(using = ISODateDeserializer.class)
     public void setFinishDate(DateTime finishDate) {
         this.finishDate = finishDate;
     }

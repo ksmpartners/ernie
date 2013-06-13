@@ -66,6 +66,11 @@ class SAMLFilterTest extends TestLogger {
   }
 
   @Test
+  def encodeRunToken() {
+    log.debug(new String(encodeToken("run")))
+  }
+
+  @Test
   def canGetUserName() {
     val filter = new SAMLFilter
     val req = new MockHttpServletRequest

@@ -171,6 +171,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     val rptType = rptEnt.getReportType
     val rptId = rptEnt.getRptId
     val rptEntFile = new File(outputDir, rptId + ".entity")
+
     try_(new FileOutputStream(rptEntFile)) { fos =>
       mapper.writeValue(fos, rptEnt)
     }
@@ -184,6 +185,19 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     reports += (rptId -> file)
     reportEntities += (rptId -> rptEnt)
     new FileOutputStream(file)
+  }
+
+  override def updateReportEntity(entity: Map[String, Any]): ReportEntity = {
+    log.info("Putting report from entity: {}", entity)
+    val rptEnt = createReportEntity(entity)
+    val rptType = rptEnt.getReportType
+    val rptId = rptEnt.getRptId
+    val rptEntFile = new File(outputDir, rptId + ".entity")
+
+    try_(new FileOutputStream(rptEntFile)) { fos =>
+      mapper.writeValue(fos, rptEnt)
+    }
+    rptEnt
   }
 
   override def deleteDefinition(defId: String) {

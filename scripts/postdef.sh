@@ -1,15 +1,5 @@
 #!/bin/sh
-echo "#########################	ERNIE-2 Upload report definitions	######################### "
-echo "As a Report Administrator, I want to be able to upload the report definition with a list of report "
-echo "formats it supports (if they cannot be discovered), such as PDF, HTML, or CSV."
-echo ""
-echo "The user must be able to upload metadata about a report definition, including (but not necessarily "
-echo "limited to) a user-defined report ID and a description, independent of (and always prior to) the "
-echo "BIRT report design."
-echo ""
-echo ""
-curl -v -X POST -T $1 -H "Content-type: application/rptdesign+xml"\
- -H 'DefinitionEntity:{"createdDate":null,"defId":"'$2'","createdUser":"default","paramNames":null,"params":null,"defDescription":"test description","unsupportedReportTypes":null}' --header "Accept: application/vnd.ksmpartners.ernie+json" --header "Authorization: SAML tVdbc7JMEr73V1i+lynDQVGxolXDyYCCQRGjN1scRkA5yQxC/PWLmFgxm7yb3arviuqe7qef7p5D\
+curl -v -X POST -d '{"createdDate":null,"defId":"","createdUser":"default","paramNames":null,"params":null,"defDescription":"Report design that takes parameters        ","unsupportedReportTypes":null}' -H "Content-type: application/json" --header "Accept: application/vnd.ksmpartners.ernie+json" --header "Authorization: SAML tVdbc7JMEr73V1i+lynDQVGxolXDyYCCQRGjN1scRkA5yQxC/PWLmFgxm7yb3arviuqe7qef7p5D\
 84SsKKSHACGY4SCJm2UUxmhYa0etPIuHiYUCNIytCKIhdoZLoM6G9CM5tD5cWu8+JRq1fIzTIUEU\
 RfFYdB6TzCNokqSIV3W2dHwYWa2mLIxagfsv1iUHDNPvtPuW2213O123zbIU2+6xvV5nZ7GVQFbG\
 COVQjhG2Yjxq0STVaZPdNt0zqMGQYodk95Fm2W2racIMVUwqk0eyNX665lQ7Z+Pr54m4Uz65aLgM\

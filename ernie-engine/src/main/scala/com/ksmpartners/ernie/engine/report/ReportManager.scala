@@ -77,6 +77,7 @@ trait ReportManager {
    * If RPT_ID already exists, the definition content will be replaced with the new content
    */
   def putReport(entity: Map[String, Any]): OutputStream
+  def updateReportEntity(entity: Map[String, Any]): ReportEntity
   /**
    * Return an OutputStream into which content can be put. The entity must contain information about the
    * definition being added. Required fields are: DEF_ID and CREATED_USER. Optional fields are: PARAM_NAMES
@@ -226,6 +227,16 @@ object ReportManager {
     rptEnt.setSourceDefId(entity.get(sourceDefId).get.asInstanceOf[String])
     rptEnt.setReportType(entity.get(reportType).get.asInstanceOf[ReportType])
     rptEnt.setCreatedUser(entity.get(createdUser).get.asInstanceOf[String])
+
+    try {
+      rptEnt.setFinishDate(DateTime.parse(entity.get(finishDate).get.toString))
+      rptEnt.setStartDate(DateTime.parse(entity.get(startDate).get.toString))
+    } catch {
+      case _ => {
+        rptEnt.setFinishDate(null)
+        rptEnt.setStartDate(null)
+      }
+    }
 
     // Set up default retention date.
     val retentionDateOption = entity.get(retentionDate)
