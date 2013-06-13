@@ -90,7 +90,7 @@ class FileReportManagerTest extends TestLogger {
     Assert.assertNull(rptEnt.getParams)
   }
 
-  @Test
+  @Test(dependsOnMethods = Array("testGetAll"))
   def testPut() {
     var entity = new mutable.HashMap[String, Any]()
     entity += (ReportManager.rptId -> "rpt_6")
