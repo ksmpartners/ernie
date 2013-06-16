@@ -10,14 +10,19 @@ package com.ksmpartners.ernie.server.service
 import com.ksmpartners.ernie.engine.report.MemoryReportManager
 import org.testng.annotations.{ Test, BeforeClass }
 import org.testng.Assert
-import net.liftweb.http.PlainTextResponse
-import com.ksmpartners.ernie.model.{ ReportType, DefinitionEntity }
+import net.liftweb.http.{ ResponseWithReason, PlainTextResponse }
+import com.ksmpartners.ernie.model._
 import org.joda.time.DateTime
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.MapperUtility._
 import com.ksmpartners.ernie.engine.Coordinator
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.util.TestLogger
+import net.liftweb.mockweb.MockWeb
+import com.ksmpartners.ernie.server.DispatchRestAPI
+import net.liftweb.mocks.MockHttpServletRequest
+import com.ksmpartners.ernie.server.filter.SAMLConstants
+import java.io.File
 
 class DefinitionDependenciesTest extends DefinitionDependencies with TestLogger {
 
@@ -67,5 +72,4 @@ class DefinitionDependenciesTest extends DefinitionDependencies with TestLogger 
     Assert.assertEquals(defEnt.getDefId, "test_def")
     Assert.assertNull(defEnt.getParamNames)
   }
-
 }

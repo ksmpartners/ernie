@@ -94,9 +94,10 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
             updateJob(jobId, new JobEntity(jobId, JobStatus.IN_PROGRESS, DateTime.now, null, rptEntity))
             reportManager.getDefinition(defId).map(m => if ((m.getEntity.getUnsupportedReportTypes != null) && m.getEntity.getUnsupportedReportTypes.contains(rptType)) {
               try {
-                updateJob(jobId, jobIdToResultMap.get(jobId).map(je => { je.setJobStatus(JobStatus.FAILED_UNSUPPORTED_FORMAT); je }).get)
+                val jobEnt = jobIdToResultMap.get(jobId).map(je => { je.setJobStatus(JobStatus.FAILED_UNSUPPORTED_FORMAT); je }).get
+                updateJob(jobId, jobEnt)
               } catch {
-                case e: NoSuchElementException => {
+                case e: Exception => {
                   log.error("Caught exception while running report: {}", e.getMessage)
                 }
               }
@@ -170,7 +171,7 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
                       deleteStatus = DeleteStatus.FAILED
                     }
                     case e: Exception => {
-                      log.error("Caught exception while purging reports: {}", e.getMessage)
+                      log.error("Caught exception while purging reports: {}", e.getMessage + "\n" + e.getStackTraceString)
                       deleteStatus = DeleteStatus.FAILED
                     }
                   }
@@ -232,13 +233,13 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
         case JobResponse(jobStatus, rptId, req) => {
           log.info("Got notify for jobId {} with status {}", req.jobId, jobStatus)
           try {
-            updateJob(req.jobId, jobIdToResultMap.get(req.jobId).map(je => { je.setJobStatus(jobStatus); je.setRptId(rptId.get); je.setRptEntity(null); je }).get)
+            updateJob(req.jobId, jobIdToResultMap.get(req.jobId).map(je => { je.setJobStatus(jobStatus); je.setRptId(rptId.getOrElse(null)); je.setRptEntity(null); je }).get)
           } catch {
-            case e: NoSuchElementException => {
+            case e: Exception => {
               log.error("Caught exception while running report: {}", e.getMessage)
             }
           }
-          if (jobStatus == JobStatus.FAILED_UNSUPPORTED_FORMAT) reportManager.getDefinition(rptId getOrElse "").map(defn =>
+          if (jobStatus == JobStatus.FAILED_UNSUPPORTED_FORMAT) reportManager.getDefinition(req.defId).map(defn =>
             {
               val entity = defn.getEntity
               val unsupportedRptTypes = entity.getUnsupportedReportTypes

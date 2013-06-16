@@ -7,7 +7,7 @@
 
 package com.ksmpartners.ernie.server
 
-import filter.SAMLConstants
+import com.ksmpartners.ernie.server.filter.{ AuthUtil, SAMLConstants }
 import org.testng.annotations._
 import net.liftweb.mockweb.{ MockWeb, WebSpec }
 import bootstrap.liftweb.Boot
@@ -695,8 +695,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-120")))
-  @Test(dependsOnMethods = Array("canPostJob"))
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-120"))) //@Test(dependsOnMethods = Array("canPostJob"))
   def cantDeleteInUseDef() {
     val mockReq = new MockWriteAuthReq("/defs/test_def")
     mockReq.method = "DELETE"
@@ -709,7 +708,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     }
   }
 
-  @Test(dependsOnMethods = Array("cantDeleteInUseDef"))
+  @Test(dependsOnMethods = Array("canPostJob"))
   def canCompleteJob() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
 
@@ -1286,6 +1285,17 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
       Assert.assertTrue(resp.isDefined)
       Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
+    }
+  }
+
+  @Test
+  def authUtil() {
+    val mockReq = new MockWriteAuthReq("/defs/test_def2")
+    MockWeb.testReq(mockReq) { req =>
+      {
+        Assert.assertEquals(AuthUtil.getRoles(req).length, 1)
+        Assert.assertEquals(AuthUtil.getUserName(req), "mockWriteUser")
+      }
     }
   }
 

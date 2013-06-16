@@ -228,15 +228,8 @@ object ReportManager {
     rptEnt.setReportType(entity.get(reportType).get.asInstanceOf[ReportType])
     rptEnt.setCreatedUser(entity.get(createdUser).get.asInstanceOf[String])
 
-    try {
-      rptEnt.setFinishDate(DateTime.parse(entity.get(finishDate).get.toString))
-      rptEnt.setStartDate(DateTime.parse(entity.get(startDate).get.toString))
-    } catch {
-      case _ => {
-        rptEnt.setFinishDate(null)
-        rptEnt.setStartDate(null)
-      }
-    }
+    entity.get(finishDate).map(f => rptEnt.setFinishDate(DateTime.parse(f.toString)))
+    entity.get(startDate).map(f => rptEnt.setStartDate(DateTime.parse(f.toString)))
 
     // Set up default retention date.
     val retentionDateOption = entity.get(retentionDate)
