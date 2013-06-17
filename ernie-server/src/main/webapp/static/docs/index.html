@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Swagger UI</title>
+    <link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'/>
+    <link href='css/hightlight.default.css' media='screen' rel='stylesheet' type='text/css'/>
+    <link href='css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
+    <script src='lib/jquery-1.8.0.min.js' type='text/javascript'></script>
+    <script src='lib/jquery.slideto.min.js' type='text/javascript'></script>
+    <script src='lib/jquery.wiggle.min.js' type='text/javascript'></script>
+    <script src='lib/jquery.ba-bbq.min.js' type='text/javascript'></script>
+    <script src='lib/handlebars-1.0.rc.1.js' type='text/javascript'></script>
+    <script src='lib/underscore-min.js' type='text/javascript'></script>
+    <script src='lib/backbone-min.js' type='text/javascript'></script>
+    <script src='lib/swagger.js' type='text/javascript'></script>
+    <script src='swagger-ui.js' type='text/javascript'></script>
+    <script src='lib/highlight.7.3.pack.js' type='text/javascript'></script>
+
+   <!-- <script type="text/javascript">
+	$(function () {
+	    window.swaggerUi = new SwaggerUi({
+                discoveryUrl:"http://petstore.swagger.wordnik.com/api/api-docs.json",
+                apiKey:"special-key",
+                dom_id:"swagger-ui-container",
+                supportHeaderParams: false,
+                supportedSubmitMethods: ['get', 'post', 'put'],
+                onComplete: function(swaggerApi, swaggerUi){
+                	if(console) {
+                        console.log("Loaded SwaggerUI")
+                        console.log(swaggerApi);
+                        console.log(swaggerUi);
+                    }
+                  $('pre code').each(function(i, e) {hljs.highlightBlock(e)});
+                },
+                onFailure: function(data) {
+                	if(console) {
+                        console.log("Unable to Load SwaggerUI");
+                        console.log(data);
+                    }
+                },
+                docExpansion: "none"
+            });
+
+            window.swaggerUi.load();
+        });
+
+    </script>     !-->
+    <script type="text/javascript">
+        var saml = "SAML tVdbc7JMEr73V1i+lynDQVGxolXDyYCCQRGjN1scRkA5yQxC/PWLmFgxm7yb3arviuqe7qef7p5D\84SsKKSHACGY4SCJm2UUxmhYa0etPIuHiYUCNIytCKIhdoZLoM6G9CM5tD5cWu8+JRq1fIzTIUEURfFYdB6TzCNokqSIV3W2dHwYWa2mLIxagfsv1iUHDNPvtPuW2213O123zbIU2+6xvV5nZ7GVQFbGCOVQjhG2Yjxq0STVaZPdNt0zqMGQYodk95Fm2W2racIMVUwqk0eyNX665lQ7Z+Pr54m4Uz65aLgMvNjCeQbf+bs/8ScJkiUqGxcF3p/WzRe6crxLapG34iQOHCsMztalJCrEfuI2QeglWYD96MfCUOQFuA1Lp+1Q3fhPi7in9kugO4YZstrIt6h3rAXcwQzGDmyuFvKo9ee3xa+djcyK0S7JInQv/m+MYHyCYZJCt40+Ensn93vAb2o1foLOUI6dMEfBCWqXHZpaDkTv/YTO76GaLxncBeUsQNU+K9GFHfGZ3hfxWg0h8CDC/0+LPrXnCmJaYQ7HeqQQK01k+sflXp5I8lo9rWeRQ6R7dVQT+GxcK27NvYpftuVtG109DFd+zumHVX8e03Y/xmj5JgkDb1s+M16Eg408BTR18LczmzsyplJYS2nrbRwpWnjeeffSpXkTzeNOus9WUtmXHHWTc5MH0+zbqbVUzOXk0MuVc3rOOFch85iWlxTT8zbUCkMiLfRtsDquJ8V8txPcE1mkglVMgzXDePNgKiuhe5R6hZsO6Ohs6qNbOp/4X1Kawrdbeq8MyQoWtm4Cf7mQdtU5xHCsyjKvCzwPrAPPiVDjSFQI+kaZJlvZPzka0EWR00GxPYszFRwmgFqJnK/ypqmW4hksOE8zOeAZ/EHzG/YkjOyOkltrsZQEsLwuOgZPab4dL3xZ1NDmVfFVvSh4byOYuj4VC81w191SFMD8ao8MjmSLxnbNGCtyUAoGmF0XVIN7XoRORy+efUdTBa9QDZFSjUM5N1RmfdEZte7tpttzsaqjosHrdbSJWCjm6iwaKifWqfCcOtVpCVnr7cmJmHRjiCuVk69plupsRUu5OxE9nS59JxJLQQDTxpVNYgBKo+y9qKugewUr1Wejw4V2qBnGWdRUgGo9KFXRnZhnV+C5+Aw0zjsc/UMwYQuSa1QFlkCV+r4qsrc5VGURQbbUHWLVZyYcDfDUtydLJg2C2SFSzkcRpb1uJpS2qjyUQvYGSVEjjtSKme8eGouDgCyNCLwDOJmUk7+KnjHrLUJrJ704q9e+Xgr+lvPRRmJTu8DqOeiCLspZPy5lf7WA9kSMyumaPSrapqEg0kyYB9nbl7m4jvdxbHrPBqIeoiOjbwzQF3vbt9mAB4UIgHGfFtD1OitP5zovBbFq6OeXqfFibAI2T23pNczAVC2wtKPn6+7babJen0KncLTlVokMZQAWJ3MzV0VTs5HRnUvOLqeJF7hJgBsIoOFM3giJ3ub7wauipLm+WIq9F6wfuVwQn/f7aK4rZGYS2SCaU1sePy/8dMucN4u9v+BZyNv7kjUzySpJReAbhLQr1oEXZWtyQ+qj65H6ekxuyutBIj4fsbsj+PGqLnN7Dx38IV5uXVloStWlaOGfBwbqkao1gdve1aZ1zHesC0Zr/C58PNRX4PGH+CUsn8RucHlpUVNLMAcrUPi3AaEymsfzDOwwzGq77rd2xAc+yLEfL3FVoQjGuFmLf51DGIrctu68K4oYlvg7HR9Ww1N1dY//Ol85Q+diB6/9+SjEtzjfLd4rb7nc+GCcBXaO4c8rzUsPRi2YxQFcJCFs/YdFfS/fxr/gv89/7aAuogOroREFQ/yWwst7O0QVYOy1xhm03Bvvuyj/fOyier7hT8G/qn8qVl4Nxdf9/I/z3SMnwfj3hImfG098+QsY/xs="
+        $(function () {
+        var swaggerSettings = {
+        supportHeaderParams: true,
+        headers: {"Authorization": saml},
+        discoveryUrl:"http://localhost:8080/api.json",
+        dom_id:"swagger-ui-container",
+        supportedSubmitMethods: ['get', 'head', 'post', 'put', 'delete'],
+        onComplete: function(swaggerApi, swaggerUi){
+        if(console) {
+        console.log("Loaded SwaggerUI")
+        console.log(swaggerApi);
+        console.log(swaggerUi);
+        }
+        $('pre code').each(function(i, e) {hljs.highlightBlock(e)});
+        },
+        onFailure: function(data) {
+        if(console) {
+        console.log("Unable to Load SwaggerUI");
+        console.log(data);
+        }
+        },
+        docExpansion: "none"
+        }
+        console.log(swaggerSettings)
+        window.swaggerUi = new SwaggerUi(swaggerSettings);
+        window.swaggerUi.load();
+        });
+
+    </script>
+</head>
+
+<body>
+<!--
+<div id='header'>
+    <div class="swagger-ui-wrap">
+        <a id="logo" href="http://swagger.wordnik.com">swagger</a>
+
+        <form id='api_selector'>
+            <div class='input icon-btn'>
+                <img id="show-pet-store-icon" src="images/pet_store_api.png" title="Show Swagger Petstore Example Apis">
+            </div>
+            <div class='input icon-btn'>
+                <img id="show-wordnik-dev-icon" src="images/wordnik_api.png" title="Show Wordnik Developer Apis">
+            </div>
+            <div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl"
+                                      type="text"/></div>
+            <div class='input'><input placeholder="api_key" id="input_apiKey" name="apiKey" type="text"/></div>
+            <div class='input'><a id="explore" href="#">Explore</a></div>
+        </form>
+    </div>
+</div>     !-->
+
+<div id="message-bar" class="swagger-ui-wrap">
+    &nbsp;
+</div>
+
+<div id="swagger-ui-container" class="swagger-ui-wrap">
+
+</div>
+
+</body>
+
+</html>

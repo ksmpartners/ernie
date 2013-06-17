@@ -7,7 +7,7 @@
 
 package com.ksmpartners.ernie.server
 
-import com.ksmpartners.ernie.server.filter.{ AuthUtil, SAMLConstants }
+import filter.SAMLConstants
 import org.testng.annotations._
 import net.liftweb.mockweb.{ MockWeb, WebSpec }
 import bootstrap.liftweb.Boot
@@ -34,12 +34,12 @@ import net.liftweb.json.JsonAST.JBool
 import scala.xml.NodeSeq
 import scala.collection.JavaConversions.asJavaCollection
 import com.ksmpartners.ernie.server.service.{ ServiceRegistry, ConflictResponse }
-import com.ksmpartners.ernie.util.TestLogger
+
 import com.ksmpartners.ernie.engine.PurgeResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
 import scala.collection.JavaConversions
 
-class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) with TestLogger {
+class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) {
 
   var outputDir: File = null
   var jobsDir: File = null
@@ -83,7 +83,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[InMemoryResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[InMemoryResponse])
       val resultResp = resp.open_!.asInstanceOf[InMemoryResponse]
       Assert.assertEquals(resultResp.size, 0)
       Assert.assertEquals(resultResp.code, 200)
@@ -91,7 +91,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
   }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-108")))
-  @Test(dependsOnMethods = Array("canPostJob"))
+  @Test(dependsOnMethods = Array("canGetJobStatus"))
   def canGetJobStatusSupportsHead() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
     mockReq.method = "HEAD"
@@ -100,7 +100,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[InMemoryResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[InMemoryResponse])
       val resultResp = resp.open_!.asInstanceOf[InMemoryResponse]
       Assert.assertEquals(resultResp.size, 0)
       Assert.assertEquals(resultResp.code, 200)
@@ -117,7 +117,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val respBox = DispatchRestAPI(req)()
       Assert.assertTrue(respBox.isDefined)
-      Assert.assertEquals(respBox.open_!.getClass, classOf[InMemoryResponse])
+      Assert.assertTrue(respBox.open_!.isInstanceOf[InMemoryResponse])
 
       val resultResp = respBox.open_!.asInstanceOf[InMemoryResponse]
       Assert.assertEquals(resultResp.size, 0)
@@ -136,7 +136,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[InMemoryResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[InMemoryResponse])
       val resultResp = resp.open_!.asInstanceOf[InMemoryResponse]
       Assert.assertEquals(resultResp.size, 0)
       Assert.assertEquals(resultResp.code, 200)
@@ -152,11 +152,21 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[InMemoryResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[InMemoryResponse])
       val resultResp = resp.open_!.asInstanceOf[InMemoryResponse]
       Assert.assertEquals(resultResp.size, 0)
       Assert.assertEquals(resultResp.code, 200)
     }
+  }
+
+  @AfterMethod
+  def logMethodAfter(result: java.lang.reflect.Method) {
+    log.debug("END test:" + result.getName)
+  }
+
+  @BeforeMethod
+  def logMethodBefore(result: java.lang.reflect.Method) {
+    log.debug("BEGIN test:" + result.getName)
   }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-91")))
@@ -174,7 +184,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
       noCSVJob = reportResponse.getJobId()
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
@@ -186,7 +196,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val statusResponse: StatusResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse])
       Assert.assertEquals(statusResponse.getJobStatus, JobStatus.FAILED_UNSUPPORTED_FORMAT)
@@ -259,7 +269,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
       {
         val resp = DispatchRestAPI(req)()
         Assert.assertTrue(resp.isDefined)
-        Assert.assertEquals(resp.open_!.getClass, classOf[MethodNotAllowedResponse])
+        Assert.assertTrue(resp.open_!.isInstanceOf[MethodNotAllowedResponse])
         Assert.assertEquals(resp.open_!.toResponse.code, 405)
       }
     }
@@ -275,7 +285,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
@@ -290,7 +300,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[OkResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[OkResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
 
     }
@@ -306,7 +316,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
@@ -321,7 +331,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val body = resp.open_!.asInstanceOf[PlainTextResponse].text
       val respObj = mapper.readValue(body, classOf[JobsMapResponse])
@@ -343,7 +353,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ResponseWithReason])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
       Assert.assertEquals(resp.open_!.toResponse.code, 400)
     }
   }
@@ -358,7 +368,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
@@ -372,7 +382,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
@@ -399,7 +409,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
     }
   }
@@ -431,7 +441,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
@@ -445,7 +455,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
@@ -459,7 +469,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
@@ -474,7 +484,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
@@ -484,21 +494,21 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
   private var testJobCSVID: Long = -1L
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-104")))
-  @Test
+  @Test(dependsOnMethods = Array("canPutDefs"))
   def canPostJob() {
     val mockReq = new MockWriteAuthReq("/jobs")
     mockReq.method = "POST"
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     val mockReportReq = new ReportRequest()
-    mockReportReq.setDefId("test_def")
+    mockReportReq.setDefId(testDef)
     mockReportReq.setRptType(ReportType.PDF)
     mockReq.body = DispatchRestAPI.serialize(mockReportReq).getBytes
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
       testJobID = reportResponse.getJobId()
@@ -522,7 +532,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
       testJobID = reportResponse.getJobId()
@@ -546,7 +556,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
 
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
@@ -570,7 +580,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
 
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
@@ -594,7 +604,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
@@ -613,7 +623,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ResponseWithReason])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
       Assert.assertEquals(resp.open_!.asInstanceOf[ResponseWithReason].reason, "No such definition ID")
     }
   }
@@ -633,7 +643,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
@@ -653,7 +663,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       log.info(resp.open_!.toResponse.code + "")
-      Assert.assertEquals(resp.open_!.getClass, classOf[BadResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[BadResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 400)
     }
   } */
@@ -670,7 +680,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ResponseWithReason])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
       Assert.assertEquals(resp.open_!.toResponse.code, 400)
     }
   }
@@ -690,29 +700,31 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
       Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-120"))) //@Test(dependsOnMethods = Array("canPostJob"))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-120")))
+  //@Test(dependsOnMethods = Array("canPostJob"))
   def cantDeleteInUseDef() {
-    val mockReq = new MockWriteAuthReq("/defs/test_def")
+    val mockReq = new MockWriteAuthReq("/defs/" + testDef)
     mockReq.method = "DELETE"
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ConflictResponse])
+
+      Assert.assertTrue(resp.open_!.isInstanceOf[ConflictResponse])
     }
   }
-
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-120")))
   @Test(dependsOnMethods = Array("canPostJob"))
   def canCompleteJob() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
 
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    var triedDelInUseDef = false
     var jobRunning = true
     val end = System.currentTimeMillis + (1000 * 300)
     while (jobRunning && (System.currentTimeMillis < end)) {
@@ -723,6 +735,9 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
             if (DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.COMPLETE) {
             jobRunning = false
             Assert.assertTrue(DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.COMPLETE)
+          } else {
+            if (!triedDelInUseDef) cantDeleteInUseDef()
+            triedDelInUseDef = true
           })
       }
     }
@@ -780,7 +795,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val respBox = DispatchRestAPI(req)()
       Assert.assertTrue(respBox.isDefined)
-      Assert.assertEquals(respBox.open_!.getClass, classOf[StreamingResponse])
+      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse])
 
       val resultResp = respBox.open_!.asInstanceOf[StreamingResponse]
       Assert.assertEquals(resultResp.code, 200)
@@ -798,7 +813,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val respBox = DispatchRestAPI(req)()
       Assert.assertTrue(respBox.isDefined, "Response is not defined")
-      Assert.assertEquals(respBox.open_!.getClass, classOf[StreamingResponse], "Response is not of type StreamingResponse")
+      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse], "Response is not of type StreamingResponse")
 
       val resultResp = respBox.open_!.asInstanceOf[StreamingResponse]
       Assert.assertEquals(resultResp.code, 200, "Status code is not 200")
@@ -816,7 +831,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val respBox = DispatchRestAPI(req)()
       Assert.assertTrue(respBox.isDefined)
-      Assert.assertEquals(respBox.open_!.getClass, classOf[StreamingResponse])
+      Assert.assertTrue(respBox.open_!.isInstanceOf[StreamingResponse])
 
       val resultResp = respBox.open_!.asInstanceOf[StreamingResponse]
       Assert.assertEquals(resultResp.code, 200)
@@ -834,7 +849,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
@@ -847,7 +862,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
@@ -875,13 +890,13 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-60")))
-  @Test(dependsOnMethods = Array("canPostJob"))
+  @Test(dependsOnMethods = Array("canCompleteJob"))
   def canGetJobStatus() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
 
@@ -890,10 +905,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val statusResponse: StatusResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse])
-      Assert.assertTrue(JobStatus.values().contains(statusResponse.getJobStatus))
+      Assert.assertEquals(statusResponse.getJobStatus, JobStatus.COMPLETE)
 
     }
   }
@@ -907,7 +922,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ResponseWithReason])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
       Assert.assertEquals(resp.open_!.asInstanceOf[ResponseWithReason].reason, "Job ID provided is not a number: test")
     }
   }
@@ -934,7 +949,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val deleteResponse: DeleteResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DeleteResponse])
       Assert.assertTrue(deleteResponse.getDeleteStatus == DeleteStatus.SUCCESS)
@@ -951,7 +966,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
@@ -979,7 +994,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
@@ -994,7 +1009,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[GoneResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[GoneResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 410)
     }
   }
@@ -1009,7 +1024,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[GoneResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[GoneResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 410)
     }
   }
@@ -1023,7 +1038,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val body = resp.open_!.asInstanceOf[PlainTextResponse].text
       val respObj = mapper.readValue(body, classOf[DefinitionEntity])
@@ -1040,7 +1055,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI.apply(req).apply()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
@@ -1055,7 +1070,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI.apply(req).apply()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
@@ -1081,7 +1096,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI.apply(req).apply()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotFoundResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotFoundResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 404)
     }
   }
@@ -1096,7 +1111,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val defDetailResponse: DefinitionEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DefinitionEntity])
       // Assert.assertTrue(JobStatus.values().contains(statusResponse.getJobStatus))
@@ -1120,7 +1135,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ResponseWithReason])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
       Assert.assertEquals(resp.open_!.toResponse.code, 400)
       Assert.assertEquals(resp.open_!.asInstanceOf[ResponseWithReason].reason, "Retention date before request time")
     }
@@ -1142,7 +1157,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ResponseWithReason])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
       Assert.assertEquals(resp.open_!.toResponse.code, 400)
       Assert.assertEquals(resp.open_!.asInstanceOf[ResponseWithReason].reason, "Retention date exceeds maximum")
     }
@@ -1151,7 +1166,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
   var testDef = ""
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-47"), new TestSpec(key = "ERNIE-49"), new TestSpec(key = "ERNIE-162")))
-  @Test(dependsOnMethods = Array("canDeleteDefs"))
+  @Test //(dependsOnMethods = Array("canDeleteDefs"))
   def canPostDefs() {
     val mockReq = new MockWriteAuthReq("/defs")
     mockReq.method = "POST"
@@ -1159,6 +1174,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     val defEnt = new DefinitionEntity()
+    defEnt.setCreatedUser("default")
     defEnt.setDefId("test_def2")
     mockReq.body = DispatchRestAPI.serialize(defEnt).getBytes
 
@@ -1168,9 +1184,10 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
 
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
 
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
 
       val defEntRsp: DefinitionEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DefinitionEntity])
+      Assert.assertEquals(defEntRsp.getCreatedUser, "default")
       testDef = defEntRsp.getDefId
       Assert.assertTrue(resp.open_!.toResponse.headers.contains(("Location", req.hostAndPath + "/defs/" + defEntRsp.getDefId)))
 
@@ -1198,7 +1215,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
 
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
 
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
 
       val defEntRsp: DefinitionEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DefinitionEntity])
 
@@ -1251,21 +1268,21 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
     }
   }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-92"), new TestSpec(key = "ERNIE-95")))
   @Test
   def canDeleteDefs() {
-    val mockReq = new MockWriteAuthReq("/defs/test_def2")
+    val mockReq = new MockWriteAuthReq("/defs/" + testDef)
     mockReq.method = "DELETE"
     mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
 
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       val deleteDefinitionResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[DeleteDefinitionResponse])
       Assert.assertEquals(deleteDefinitionResponse.getDeleteStatus, DeleteStatus.SUCCESS)
     }
@@ -1283,19 +1300,8 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
-    }
-  }
-
-  @Test
-  def authUtil() {
-    val mockReq = new MockWriteAuthReq("/defs/test_def2")
-    MockWeb.testReq(mockReq) { req =>
-      {
-        Assert.assertEquals(AuthUtil.getRoles(req).length, 1)
-        Assert.assertEquals(AuthUtil.getUserName(req), "mockWriteUser")
-      }
     }
   }
 
@@ -1317,7 +1323,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
 
       Assert.assertEquals(resp.open_!.toResponse.code, 400)
 
-      Assert.assertEquals(resp.open_!.getClass, classOf[ResponseWithReason])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ResponseWithReason])
 
     }
   }
@@ -1341,7 +1347,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
 
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
 
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
 
     }
   }
@@ -1365,7 +1371,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
 
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
 
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
 
     }
   }
@@ -1390,7 +1396,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
 
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
 
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
 
     }
   }
@@ -1415,7 +1421,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
 
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
 
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
 
     }
   }
@@ -1439,7 +1445,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
       val resp = DispatchRestAPI(req)()
 
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
       testParamsJobID = reportResponse.getJobId()
@@ -1481,7 +1487,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
       val resp = DispatchRestAPI(req)()
 
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
       testParamsJobID = reportResponse.getJobId()
@@ -1525,7 +1531,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
       val resp = DispatchRestAPI(req)()
 
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 201)
       val reportResponse: ReportResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportResponse])
       val testParamsJobID = reportResponse.getJobId()
@@ -1544,7 +1550,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val rptDetailResponse: ReportEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportEntity])
       Assert.assertEquals(rptDetailResponse.getRptId, jobToRptId(testJobID))
@@ -1562,7 +1568,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
@@ -1577,7 +1583,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
@@ -1592,7 +1598,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val jobDetailResponse: JobEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobEntity])
       Assert.assertEquals(jobDetailResponse.getJobStatus, JobStatus.COMPLETE)
@@ -1609,7 +1615,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 406)
     }
   }
@@ -1624,7 +1630,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 403)
     }
   }
@@ -1639,7 +1645,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
       Assert.assertTrue(jobCatalogResp.getJobsCatalog.size > 0)
@@ -1655,7 +1661,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[NotAcceptableResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[NotAcceptableResponse])
 
     }
   }
@@ -1670,7 +1676,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[ForbiddenResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[ForbiddenResponse])
 
     }
   }
@@ -1685,7 +1691,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
       Assert.assertTrue(jobCatalogResp.getJobsCatalog.size > 0)
@@ -1702,7 +1708,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
       Assert.assertTrue(jobCatalogResp.getJobsCatalog.size == 0)
@@ -1719,7 +1725,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
       // Assert.assertEquals(jobCatalogResp.getJobsCatalog.size, 2)
@@ -1736,7 +1742,7 @@ class DispatchRestAPITest extends WebSpec(() => (new TestBoot).setUpAndBoot()) w
     MockWeb.testReq(mockReq) { req =>
       val resp = DispatchRestAPI(req)()
       Assert.assertTrue(resp.isDefined)
-      Assert.assertEquals(resp.open_!.getClass, classOf[PlainTextResponse])
+      Assert.assertTrue(resp.open_!.isInstanceOf[PlainTextResponse])
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val jobCatalogResp: JobsCatalogResponse = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[JobsCatalogResponse])
       import JavaConversions._

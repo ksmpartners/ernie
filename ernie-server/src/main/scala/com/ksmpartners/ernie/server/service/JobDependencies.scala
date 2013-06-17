@@ -30,6 +30,7 @@ import net.liftweb.http.BadResponse
 import net.liftweb.http.GoneResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
 import com.ksmpartners.ernie.server.filter.AuthUtil
+import com.ksmpartners.ernie.server.RestGenerator._
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
@@ -41,9 +42,14 @@ trait JobDependencies extends RequiresCoordinator
    * Resource for handling HTTP requests at /jobs
    */
   class JobsResource extends JsonTranslator {
+    val timeoutError = (TimeoutResponse().toResponse.code, "Request timed out")
+
     /**
      * Return a Box[ListResponse] containing a map of jobId to URI for that jobId
      */
+    val getJobsListAction = Action("getJobsMap", getMap(_), "Return a map of jobId to URI", "", "jobStatusMap", timeoutError)
+    def getMap(p: Package): Box[LiftResponse] = getMap
+    def getMap(): Box[LiftResponse] = getMap("/jobs")
     def getMap(uriPrefix: String) = {
       val respOpt = (coordinator !? (timeout, engine.JobsListRequest())).asInstanceOf[Option[engine.JobsListResponse]]
       if (respOpt.isEmpty) {
@@ -62,6 +68,13 @@ trait JobDependencies extends RequiresCoordinator
     /**
      * Return a Box[ListResponse] containing a catalog of all JobEntities
      */
+    val getJobsCatalogAction = Action("getJobsCatalog", getCatalog(_)(None), "Return a catalog of all JobEntities", "", "JobsCatalogResponse", timeoutError)
+    val getFailedCatalogAction = Action("getFailedJobsCatalog", getCatalog(_)(Some("failed")), "Return a catalog of failed jobs' JobEntities", "", "JobsCatalogResponse", timeoutError)
+    val getCompleteCatalogAction = Action("getCompleteJobsCatalog", getCatalog(_)(Some("complete")), "Return a catalog of complete jobs' JobEntities", "", "JobsCatalogResponse", timeoutError)
+    val getExpiredCatalogAction = Action("getExpiredJobsCatalog", getCatalog(_)(Some("expired")), "Return a catalog of expired jobs' JobEntities", "", "JobsCatalogResponse", timeoutError)
+    val getDeletedCatalogAction = Action("getDeletedJobsCatalog", getCatalog(_)(Some("deleted")), "Return a catalog of deleted jobs' JobEntities", "", "JobsCatalogResponse", timeoutError)
+
+    def getCatalog(p: Package)(catalog: Option[String]): Box[LiftResponse] = getCatalog(catalog)
     def getCatalog(): Box[LiftResponse] = getCatalog(None)
     def getCatalog(catalog: Option[String]): Box[LiftResponse] = {
       val respOpt: Option[engine.JobsCatalogResponse] = catalog.getOrElse("").toLowerCase match {
@@ -85,7 +98,9 @@ trait JobDependencies extends RequiresCoordinator
     /**
      * Return a Box[ListResponse] containing a JobEntity
      */
-    def get(jobId: String) = {
+    val getJobDetailAction = Action("getJobEntity", get(_), "Return a JobEntity", "", "JobEntity", timeoutError, (NotFoundResponse().toResponse.code, "Job ID not found"))
+    def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job ID")) else get(p.params(0).data.toString)
+    def get(jobId: String): Box[LiftResponse] = {
       val respOpt = (coordinator !? (timeout, engine.JobDetailRequest(jobId.toLong))).asInstanceOf[Option[engine.JobDetailResponse]]
       if (respOpt.isEmpty) {
         log.debug("Response: Timeout Response.")
@@ -103,6 +118,9 @@ trait JobDependencies extends RequiresCoordinator
      *
      * @return the jobId returned by the Coordinator associated with the request
      */
+    val postJobAction = Action("postJob", post(_), "Schedules the submitted job", "", "void",
+      timeoutError, (400, "No request body"), (400, "Retention date exceeds maximum"),
+      (400, "Retention date before request time"), (400, "No such definition ID"), (400, "Server error"))
     def post(body: Box[Array[Byte]], hostAndPath: String, userName: String): Box[LiftResponse] = {
       try {
         if (body.isEmpty) {
@@ -138,22 +156,26 @@ trait JobDependencies extends RequiresCoordinator
         }
       }
     }
+    def post(p: Package): Box[LiftResponse] = post(p.req)
     def post(body: Box[Array[Byte]], userName: String): Box[LiftResponse] = post(body, "", userName)
     def post(req: Req): Box[LiftResponse] = post(req.body, req.hostAndPath, AuthUtil.getUserName(req))
 
+    val purgeAction = Action("purgeExpired", purge(_), "Purges expired jobs", "", "void", timeoutError, (InternalServerErrorResponse().toResponse.code, "Purge failed"))
+    def purge(p: Package): Box[LiftResponse] = purge
     def purge(): Box[LiftResponse] = {
-      val respOpt = coordinator !? (timeout, PurgeRequest())
-      if (respOpt.isEmpty) {
+      val purgeRespOpt = (coordinator !? (timeout, PurgeRequest())).asInstanceOf[Option[PurgeResponse]]
+      if (purgeRespOpt.isEmpty) {
         log.debug("Response: Timeout Response.")
         Full(TimeoutResponse())
-      }
-      val purgeResp = respOpt.get.asInstanceOf[PurgeResponse]
-      if (purgeResp.deleteStatus == DeleteStatus.SUCCESS) {
-        log.debug("Response: Ok Response.")
-        Full(OkResponse())
       } else {
-        log.debug("Response: Internal server error response.")
-        Full(InternalServerErrorResponse())
+        val purgeResp = purgeRespOpt.get
+        if (purgeResp.deleteStatus == DeleteStatus.SUCCESS) {
+          log.debug("Response: Ok Response.")
+          Full(OkResponse())
+        } else {
+          log.debug("Response: Internal server error response.")
+          Full(InternalServerErrorResponse())
+        }
       }
     }
   }
@@ -162,9 +184,14 @@ trait JobDependencies extends RequiresCoordinator
    * Resource for handling HTTP requests at /jobs/<JOB_ID>/status
    */
   class JobStatusResource extends JsonTranslator {
+    val timeoutError = (TimeoutResponse().toResponse.code, "Job Status Request timed out")
+
     /**
      * Return a Box[ListResponse] containing status for the given jobId
      */
+    val getJobStatusAction = Action("getJobStatus", get(_), "Return StatusResponse for given jobId", "", "StatusResponse", timeoutError, (GoneResponse().toResponse.code, "Job deleted"))
+    def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job ID")) else get(p.params(0).data.toString)
+
     def get(jobId: String) = {
       val respOpt = (coordinator !? (timeout, engine.StatusRequest(jobId.toLong))).asInstanceOf[Option[engine.StatusResponse]]
       if (respOpt.isEmpty) {
@@ -184,9 +211,15 @@ trait JobDependencies extends RequiresCoordinator
    * Resource for handling HTTP requests at /jobs/<JOB_ID>/result
    */
   class JobResultsResource extends JsonTranslator {
+    val timeoutError = (TimeoutResponse().toResponse.code, "Job Results request timed out")
+
     /**
      * Return a Box[StreamingResponse] containing the result content for the given jobId
      */
+    val getJobResultAction = Action("getJobResult", get(_), "Returns a stream containing the result content for the given Job ID", "", "byte",
+      timeoutError, (GoneResponse().toResponse.code, "Job deleted"), (NotFoundResponse().toResponse.code, "Job ID not found"), (GoneResponse().toResponse.code, "Report expired"),
+      (400, "Job incomplete"), (NotAcceptableResponse().toResponse.code, "Resource does not serve specified Accept type"), (400, "Job ID undefined"))
+    def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else get(p.params(0).data.toString, Full(p.req))
     def get(jobId: String): Box[LiftResponse] = get(jobId, Empty)
 
     /**
@@ -255,6 +288,9 @@ trait JobDependencies extends RequiresCoordinator
     /**
      * Retrieves details for output from a given jobId
      */
+    val getDetailAction = Action("getResultDetail", getDetail(_), "Retrieves details for output from a given jobId", "", "ReportEntity",
+      timeoutError, (NotFoundResponse().toResponse.code, ""), (InternalServerErrorResponse().toResponse.code, ""))
+    def getDetail(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else getDetail(p.params(0).data.toString, Full(p.req))
     def getDetail(jobId: String, req: Box[Req]): Box[LiftResponse] = {
       val respOpt = (coordinator !? (timeout, engine.ReportDetailRequest(jobId.toLong))).asInstanceOf[Option[engine.ReportDetailResponse]]
       if (respOpt.isDefined) {
@@ -274,6 +310,9 @@ trait JobDependencies extends RequiresCoordinator
     /**
      * Purges the report output for a given jobId
      */
+    val deleteReportAction = Action("deleteReport", del(_), "Purges report output for a given Job ID", "", "DeleteResponse", timeoutError,
+      (NotFoundResponse().toResponse.code, "Job ID not found"), (ConflictResponse().toResponse.code, "Job result in use"), (400, "Job deletion failed"))
+    def del(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else del(p.params(0).data.toString)
     def del(jobId: String): Box[LiftResponse] = {
       val respOpt = (coordinator !? (timeout, engine.DeleteRequest(jobId.toLong))).asInstanceOf[Option[engine.DeleteResponse]]
       if (respOpt.isEmpty) {
@@ -289,8 +328,8 @@ trait JobDependencies extends RequiresCoordinator
           log.debug("Response: Conflict Response")
           Full(ConflictResponse())
         } else {
-          log.debug("Response: Bad Response. Reason: Definition deletion failed")
-          Full(ResponseWithReason(BadResponse(), "Definition deletion failed"))
+          log.debug("Response: Bad Response. Reason: Job deletion failed")
+          Full(ResponseWithReason(BadResponse(), "Job deletion failed"))
         }
       }
     }

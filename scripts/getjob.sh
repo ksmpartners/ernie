@@ -29,4 +29,4 @@ yutBIj4fsbsj+PGqLnN7Dx38IV5uXVloStWlaOGfBwbqkao1gdve1aZ1zHesC0Zr/C58PNRX4PGH\
 +CUsn8RucHlpUVNLMAcrUPi3AaEymsfzDOwwzGq77rd2xAc+yLEfL3FVoQjGuFmLf51DGIrctu68\
 K4oYlvg7HR9Ww1N1dY//Ol85Q+diB6/9+SjEtzjfLd4rb7nc+GCcBXaO4c8rzUsPRi2YxQFcJCFs\
 /YdFfS/fxr/gv89/7aAuogOroREFQ/yWwst7O0QVYOy1xhm03Bvvuyj/fOyier7hT8G/qn8qVl4N\
-xdf9/I/z3SMnwfj3hImfG098+QsY/xs=" http://localhost:8080/jobs/$1/status
+xdf9/I/z3SMnwfj3hImfG098+QsY/xs=" http://localhost:8080/jobs/$1

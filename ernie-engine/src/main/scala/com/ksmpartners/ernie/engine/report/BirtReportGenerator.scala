@@ -22,7 +22,7 @@ import org.joda.time.DateTime
 import java.util.Date
 import java.text.DecimalFormat
 import java.sql.Time
-import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
+import org.joda.time.format.DateTimeFormat
 
 /**
  * Class used to generate BIRT reports
@@ -71,16 +71,39 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
             })
         }
 
-        entity += (ReportManager.paramMap -> reportParameters)
+        entity += (ReportManager.paramMap -> rptParams)
         entity += (ReportManager.startDate -> DateTime.now)
         try_(reportManager.putReport(entity)) { rptOutputStream =>
           runReport(defInputStream, rptOutputStream, rptType, rptParams)
         }
         entity += (ReportManager.finishDate -> DateTime.now)
         if (reportManager.getReport(rptId).isDefined) try { reportManager.updateReportEntity(entity) }
+
       }
     }
   }
+
+  /* def stringToBirtParamData(data: String = null, param: ParameterEntity): Any = {
+    if (((data == null) || (data == "")) && (!param.getAllowNull)) {
+      throw new ParameterNullException(param.getParamName)
+    } else try {
+      param.getDataType match { //TODO: do not hardcode data type names. http://www.eclipse.org/birt/ref/rom/elements/ScalarParameter.html#Property-dataType
+        case "boolean" => data.toBoolean
+        case "date" => Date.parse(data)
+        case "dateTime" => DateTime.parse(data)
+        case "decimal" => data.toDouble
+        case "float" => data.toFloat
+        case "integer" => data.toInt.asInstanceOf[Integer]
+        case "string" => data
+        case "time" => Time.valueOf(data)
+        case "any" => data
+        case _ => throw new UnsupportedDataTypeException(param.getParamName)
+      }
+    } catch {
+      case e: UnsupportedDataTypeException => throw new UnsupportedDataTypeException(param.getParamName)
+      case e: Exception => throw new ClassCastException()
+    }
+  } */
 
   /**
    * Method that runs the .rtpdesign file in the input stream defInputStream, and outputs the results to

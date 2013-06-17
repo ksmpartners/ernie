@@ -15,10 +15,9 @@ import com.ksmpartners.ernie.model.{ ParameterEntity, DeleteStatus, DefinitionEn
 import java.io.ByteArrayInputStream
 import com.ksmpartners.ernie.engine.report.{ Definition, BirtReportGenerator }
 import net.liftweb.http.BadResponse
-import net.liftweb.common.Full
+import net.liftweb.common.{ Box, Full }
 import org.slf4j.{ LoggerFactory, Logger }
-import com.ksmpartners.ernie.server.filter.AuthUtil
-
+import com.ksmpartners.ernie.server.RestGenerator._
 /**
  * Dependencies for interacting with report definitions
  */
@@ -29,6 +28,8 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
    */
   class DefsResource extends JsonTranslator {
     private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefsResource")
+    val getDefsAction = Action("getDefinition", get(_), "Retrieve a mapping of definition IDs to URIs", "", "ReportDefinitionMapResponse")
+    def get(p: Package): Box[LiftResponse] = get("/defs")
     def get(uriPrefix: String) = {
       val defMap: util.Map[String, String] = new util.HashMap
       reportManager.getAllDefinitionIds.foreach({ defId =>
@@ -36,7 +37,8 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       })
       getJsonResponse(new model.ReportDefinitionMapResponse(defMap))
     }
-
+    val postDefAction = Action("postDefinition", post(_), "Post a DefinitionEntity", "", "byte", (400, "No DefinitionEntity in request body"), (400, "Malformed DefinitionEntity"))
+    def post(p: Package): Box[LiftResponse] = post(p.req)
     def post(req: net.liftweb.http.Req) = {
 
       if (req.body.isEmpty) {
@@ -48,7 +50,6 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
           log.debug("Response: Conflict Response.")
           Full(ConflictResponse())
         } else {*/
-        defEnt.setCreatedUser(AuthUtil.getUserName(req))
         val put = reportManager.putDefinition(defEnt)
         defEnt = put._1
         //put._2.write(req.body.open_!)
@@ -72,6 +73,10 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
   class DefDetailResource extends JsonTranslator {
     private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefinitionDependencies")
 
+    val timeoutError = (TimeoutResponse().toResponse.code, "Request timed out")
+
+    val getDefDetailAction = Action("getDefinitionDetail", get(_), "Retrieve the DefinitionEntity for a specific Definition ID", "", "DefinitionEntity", (NotFoundResponse().toResponse.code, "Definition ID not found"))
+    def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid def id")) else get(p.params(0).data.toString)
     def get(defId: String) = {
       val defEnt = reportManager.getDefinition(defId)
       if (defEnt.isDefined) {
@@ -83,6 +88,9 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       }
     }
 
+    val deleteDefAction = Action("deleteDefinition", del(_), "Deletes a specific definition", "", "DefinitionDeleteResponse", timeoutError,
+      (NotFoundResponse().toResponse.code, "Definition not found"), (ConflictResponse().toResponse.code, "Definition in use"), (400, "Definition deletion failed"))
+    def del(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else del(p.params(0).data.toString)
     def del(defId: String) = {
 
       val respOpt = (coordinator !? (timeout, engine.DeleteDefinitionRequest(defId))).asInstanceOf[Option[engine.DeleteDefinitionResponse]]
@@ -104,6 +112,11 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
         }
       }
     }
+
+    val putDefAction = Action("putDefinition", put(_), "Put definition rptdesign", "", "DefinitionEntity",
+      (400, "Unacceptable Content-Type"), (400, "No report design in request body"), (404, "Definition not found"),
+      (400, "Unable to validate report design"), (400, "Malformed report design"))
+    def put(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else put(p.params(0).data.toString, p.req)
 
     def put(defId: String, req: net.liftweb.http.Req) = {
       var ctype = ""

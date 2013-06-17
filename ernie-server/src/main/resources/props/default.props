@@ -7,4 +7,3 @@ output.dir=./ernie-engine/src/main/resources/output
 jobs.dir=./ernie-engine/src/main/resources/jobs
 retention.period.default=7
 retention.period.maximum=14
-request.timeout.seconds=30
