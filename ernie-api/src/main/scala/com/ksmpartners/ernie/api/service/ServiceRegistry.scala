@@ -37,8 +37,6 @@ package object ServiceRegistry extends JobDependencies
   protected def maxRetentionDays = ernieConfig.map(c => c.defaultRetentionDays) getOrElse 14
   protected def fileReportManager = ernieConfig.map(frm => frm.fileMgr) getOrElse false
 
-  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.ServiceRegistry")
-
   private var reportManagerOpt: Option[ReportManager] = None
   private var coordinatorOpt: Option[Coordinator] = None
 
@@ -48,6 +46,7 @@ package object ServiceRegistry extends JobDependencies
     var rm: ReportManager = null
     if (fileReportManager) rm = new FileReportManager(defDir, outputDir)
     else rm = new MemoryReportManager
+    val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.report.FileReportManager")
     rm.putDefaultRetentionDays(defaultRetentionDays)
     rm.putMaximumRetentionDays(maxRetentionDays)
     reportManagerOpt = Some(rm)

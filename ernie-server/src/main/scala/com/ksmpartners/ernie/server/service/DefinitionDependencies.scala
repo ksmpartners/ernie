@@ -7,10 +7,10 @@
 
 package com.ksmpartners.ernie.server.service
 
-import com.ksmpartners.ernie.{ engine, model }
+import com.ksmpartners.ernie.{ model, api }
 import java.util
 import net.liftweb.http._
-import com.ksmpartners.ernie.server.JsonTranslator
+import com.ksmpartners.ernie.server.{ DispatchRestAPI, JsonTranslator }
 import com.ksmpartners.ernie.model.{ ParameterEntity, DeleteStatus, DefinitionEntity }
 import java.io.ByteArrayInputStream
 import com.ksmpartners.ernie.engine.report.{ Definition, BirtReportGenerator }
@@ -18,45 +18,55 @@ import net.liftweb.http.BadResponse
 import net.liftweb.common.{ Box, Full }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.RestGenerator._
+import com.ksmpartners.ernie.server.filter.AuthUtil
+import com.ksmpartners.ernie.api.MissingArgumentException
+import com.ksmpartners.ernie.server.DispatchRestAPI.TimeoutResponse
+
 /**
  * Dependencies for interacting with report definitions
  */
-trait DefinitionDependencies extends RequiresReportManager with RequiresCoordinator {
+trait DefinitionDependencies extends RequiresAPI {
 
   /**
    * Resource for handling HTTP requests at /defs
    */
   class DefsResource extends JsonTranslator {
     private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefsResource")
-    val getDefsAction = Action("getDefinition", get(_), "Retrieve a mapping of definition IDs to URIs", "", "ReportDefinitionMapResponse")
+    val getDefsAction: Action = Action("getDefinition", get(_: Package), "Retrieve a mapping of definition IDs to URIs", "", "ReportDefinitionMapResponse",
+      DispatchRestAPI.timeoutErnieError("Defs list"))
     def get(p: Package): Box[LiftResponse] = get("/defs")
     def get(uriPrefix: String) = {
-      val defMap: util.Map[String, String] = new util.HashMap
-      reportManager.getAllDefinitionIds.foreach({ defId =>
-        defMap.put(defId, uriPrefix + "/" + defId)
-      })
-      getJsonResponse(new model.ReportDefinitionMapResponse(defMap))
+      val (list, error) = ernie.getDefinitionList
+      checkResponse(getDefsAction, error) or {
+        val defMap: util.Map[String, String] = new util.HashMap
+        list.foreach({ defId =>
+          defMap.put(defId, uriPrefix + "/" + defId)
+        })
+        getJsonResponse(new model.ReportDefinitionMapResponse(defMap))
+      }
     }
-    val postDefAction = Action("postDefinition", post(_), "Post a DefinitionEntity", "", "byte", (400, "No DefinitionEntity in request body"), (400, "Malformed DefinitionEntity"))
-    def post(p: Package): Box[LiftResponse] = post(p.req)
-    def post(req: net.liftweb.http.Req) = {
 
+    val postDefAction = Action("postDefinition", post(_), "Post a DefinitionEntity", "", "byte",
+      ErnieError(ResponseWithReason(BadResponse(), "No DefinitionEntity in request body"), None),
+      ErnieError(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity"), None),
+      DispatchRestAPI.timeoutErnieError("Definition creation"))
+    def post(p: Package): Box[LiftResponse] = post(p.req)
+    def post(req: net.liftweb.http.Req): Box[LiftResponse] = {
       if (req.body.isEmpty) {
         log.info("Response: Bad Response. Reason: No DefinitionEntity in request body")
         Full(ResponseWithReason(BadResponse(), "No DefinitionEntity in request body"))
       } else try {
         var defEnt: DefinitionEntity = deserialize(req.body.open_!, classOf[DefinitionEntity]).asInstanceOf[DefinitionEntity]
-        /*if (reportManager.getAllDefinitionIds.contains(defEnt.getDefId)) {
-          log.debug("Response: Conflict Response.")
-          Full(ConflictResponse())
-        } else {*/
-        val put = reportManager.putDefinition(defEnt)
-        defEnt = put._1
-        //put._2.write(req.body.open_!)
-        getJsonResponse(defEnt, 201, List(("Location", req.hostAndPath + "/defs/" + defEnt.getDefId)))
-        //    }
+        val resp = ernie.createDefinition(None, defEnt.getDefDescription, AuthUtil.getUserName(req))
+        checkResponse(postDefAction, resp) or {
+          if (resp.defEnt.isDefined)
+            getJsonResponse(resp.defEnt.get, 201, List(("Location", req.hostAndPath + "/defs/" + resp.defEnt.get.getDefId)))
+          else {
+            log.info("Response: Internal server error.")
+            Full(InternalServerErrorResponse())
+          }
+        }
       } catch {
-
         case e: Exception => {
           log.info("Caught exception while posting definition: {}", e.getMessage + "\n" + e.getStackTraceString)
           log.info("Response: Bad Response. Reason: Malformed DefinitionEntity")
@@ -73,37 +83,36 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
   class DefDetailResource extends JsonTranslator {
     private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefinitionDependencies")
 
-    val timeoutError = (TimeoutResponse().toResponse.code, "Request timed out")
-
-    val getDefDetailAction = Action("getDefinitionDetail", get(_), "Retrieve the DefinitionEntity for a specific Definition ID", "", "DefinitionEntity", (NotFoundResponse().toResponse.code, "Definition ID not found"))
+    val getDefDetailAction: Action = Action("getDefinitionDetail", get(_), "Retrieve the DefinitionEntity for a specific Definition ID", "", "DefinitionEntity",
+      ErnieError(NotFoundResponse(), Some(com.ksmpartners.ernie.api.NotFoundException("Definition ID not found"))),
+      DispatchRestAPI.timeoutErnieError("Get definition"))
     def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid def id")) else get(p.params(0).data.toString)
     def get(defId: String) = {
-      val defEnt = reportManager.getDefinition(defId)
-      if (defEnt.isDefined) {
-        val defEntity = defEnt.get.getEntity
-        getJsonResponse(defEntity)
-      } else {
-        log.debug("Response: Not Found Response.")
-        Full(NotFoundResponse())
+      val definition = ernie.getDefinitionEntity(defId)
+      // val defEnt = reportManager.getDefinition(defId)
+      checkResponse(getDefDetailAction, definition) or {
+        if (definition.defEnt.isDefined) getJsonResponse(definition.defEnt.get)
+        else {
+          log.debug("Response: Not Found Response.")
+          Full(NotFoundResponse())
+        }
       }
     }
 
-    val deleteDefAction = Action("deleteDefinition", del(_), "Deletes a specific definition", "", "DefinitionDeleteResponse", timeoutError,
-      (NotFoundResponse().toResponse.code, "Definition not found"), (ConflictResponse().toResponse.code, "Definition in use"), (400, "Definition deletion failed"))
+    val deleteDefAction: Action = Action("deleteDefinition", del(_: Package), "Deletes a specific definition", "", "DefinitionDeleteResponse",
+      DispatchRestAPI.timeoutErnieError("Definition delete"),
+      ErnieError(NotFoundResponse(), Some(api.NotFoundException("Definition not found"))),
+      ErnieError(ResponseWithReason(ConflictResponse(), "Definition in use"), None),
+      ErnieError(ResponseWithReason(BadResponse(), "Definition deletion failed"), None))
     def del(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else del(p.params(0).data.toString)
     def del(defId: String) = {
-
-      val respOpt = (coordinator !? (timeout, engine.DeleteDefinitionRequest(defId))).asInstanceOf[Option[engine.DeleteDefinitionResponse]]
-      if (respOpt.isEmpty) {
-        log.debug("Response: Timeout Response.")
-        Full(TimeoutResponse())
-      } else {
-        val response = respOpt.get
-        if (response.deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteDefinitionResponse(response.deleteStatus))
-        else if (response.deleteStatus == DeleteStatus.NOT_FOUND) {
+      val (delete, error) = ernie.deleteDefinition(defId)
+      checkResponse(deleteDefAction, error) or {
+        if (delete == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteDefinitionResponse(delete))
+        else if (delete == DeleteStatus.NOT_FOUND) {
           log.debug("Response: Not Found Response.")
           Full(NotFoundResponse("Definition not found"))
-        } else if (response.deleteStatus == DeleteStatus.FAILED_IN_USE) {
+        } else if (delete == DeleteStatus.FAILED_IN_USE) {
           log.debug("Response: Conflict Response")
           Full(ConflictResponse())
         } else {
@@ -113,9 +122,12 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       }
     }
 
-    val putDefAction = Action("putDefinition", put(_), "Put definition rptdesign", "", "DefinitionEntity",
-      (400, "Unacceptable Content-Type"), (400, "No report design in request body"), (404, "Definition not found"),
-      (400, "Unable to validate report design"), (400, "Malformed report design"))
+    val putDefAction: Action = Action("putDefinition", put(_), "Put definition rptdesign", "", "DefinitionEntity",
+      ErnieError(ResponseWithReason(BadResponse(), "Unacceptable Content-Type"), None),
+      ErnieError(ResponseWithReason(BadResponse(), "No report design in request body"), Some(MissingArgumentException("No report design in request body"))),
+      ErnieError(NotFoundResponse(), Some(com.ksmpartners.ernie.api.NotFoundException("Definition not found"))),
+      ErnieError(BadResponse(), Some(com.ksmpartners.ernie.api.InvalidDefinitionException("Unable to validate report design"))),
+      ErnieError(InternalServerErrorResponse(), None))
     def put(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else put(p.params(0).data.toString, p.req)
 
     def put(defId: String, req: net.liftweb.http.Req) = {
@@ -132,45 +144,13 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
         log.debug("Response: Bad Response. Reason: No report design in request body")
         Full(ResponseWithReason(BadResponse(), "No report design in request body"))
       } else {
-        val defOpt: Option[Definition] = reportManager.getDefinition(defId)
-        if (defOpt.isEmpty) {
-          log.debug("Response: Not Found Response.")
-          Full(NotFoundResponse("Definition not found"))
-        } else {
-          val defEnt = defOpt.get.getEntity
-          try {
-            val bAIS = new ByteArrayInputStream(req.body.open_!)
-
-            if (!BirtReportGenerator.isValidDefinition(bAIS)) {
-              log.debug("Response: Bad Response. Reason: Unable to validate report design")
-              Full(ResponseWithReason(BadResponse(), "Unable to validate report design"))
-            } else {
-              val rptDesign = scala.xml.XML.load(new ByteArrayInputStream(req.body.open_!))
-
-              var paramList: java.util.List[ParameterEntity] = if (defEnt.getParams == null) new java.util.ArrayList[ParameterEntity]() else defEnt.getParams
-
-              (rptDesign \\ "parameters").foreach(f => f.child.foreach(g => {
-                var param = new ParameterEntity()
-                param.setParamName((g \ "@name").text)
-                g.child.foreach(prop => (prop \ "@name").text match {
-                  case "allowBlank" => param.setAllowNull(prop.text == "true")
-                  case "dataType" => param.setDataType(prop.text)
-                  case "defaultValue" => param.setDefaultValue(prop.text)
-                  case _ =>
-                })
-                if ((param.getParamName != "") && (param.getDataType != "") && (param.getDefaultValue != "") && (param.getAllowNull != null)) paramList.add(param)
-              }))
-
-              defEnt.setParams(paramList)
-
-              reportManager.updateDefinition(defId, defEnt).write(req.body.open_!)
-              getJsonResponse(defEnt, 201)
-            }
-          } catch {
-            case _ => {
-              log.debug("Response: Bad Response. Reason: Malformed report design")
-              Full(ResponseWithReason(BadResponse(), "Malformed report design"))
-            }
+        val resp = ernie.updateDefinition(defId, api.Definition(None, Some(req.body.open_!), None))
+        checkResponse(putDefAction, resp) or {
+          if (resp.defEnt.isEmpty) {
+            log.debug("Response: Internal server error")
+            Full(InternalServerErrorResponse())
+          } else {
+            getJsonResponse(resp.defEnt.get, 201)
           }
         }
       }

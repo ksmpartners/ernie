@@ -16,24 +16,17 @@ import java.io.{ FileInputStream, File }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.RequiresProperties
 import scala.Either
+import com.ksmpartners.ernie.api.ErnieAPI
 
 /**
  * Object that registers the services used by the stateless dispatch
  */
 object ServiceRegistry extends JobDependencies
     with DefinitionDependencies
-    with ReportActorDependencies
-    with RequiresCoordinator
-    with RequiresReportManager
+    with RequiresAPI
     with RequiresProperties {
 
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.ServiceRegistry")
-
-  def getTimeout: Long = timeout
-
-  def getDefaultRetentionDays: Int = {
-    reportManager.getDefaultRetentionDays
-  }
 
   protected val properties: Properties = {
 
@@ -58,7 +51,7 @@ object ServiceRegistry extends JobDependencies
     props
   }
 
-  protected val reportManager: ReportManager = {
+  protected val ernie: ErnieAPI = {
 
     if (!properties.stringPropertyNames.contains(rptDefsDirProp)) {
       throw new RuntimeException("Properties file does not contain property " + rptDefsDirProp)
@@ -66,38 +59,23 @@ object ServiceRegistry extends JobDependencies
     if (!properties.stringPropertyNames.contains(outputDirProp)) {
       throw new RuntimeException("Properties file does not contain property " + outputDirProp)
     }
-
-    val rptDefsDir = properties.get(rptDefsDirProp).toString
-    val outputDir = properties.get(outputDirProp).toString
-
-    val fileReportManager = new FileReportManager(rptDefsDir, outputDir)
-
-    val defaultRetentionDays: Int = try { properties.get(defaultRetentionPeriod).toString.toInt } catch { case e: Exception => ReportManager.getDefaultRetentionDays }
-    val maximumRetentionDays: Int = try { properties.get(maximumRetentionPeriod).toString.toInt } catch { case e: Exception => ReportManager.getMaximumRetentionDays }
-
-    fileReportManager.putDefaultRetentionDays(defaultRetentionDays)
-    fileReportManager.putMaximumRetentionDays(maximumRetentionDays)
-
-    fileReportManager
-  }
-
-  protected val timeout = {
-    var to = 30 * 1000L
-    if (properties.contains(requestTimeoutSeconds))
-      to = properties.get(requestTimeoutSeconds).asInstanceOf[Long]
-    to
-  }
-
-  protected val coordinator: Coordinator = {
-
     if (!properties.stringPropertyNames.contains(jobDirProp)) {
       throw new RuntimeException("Properties file does not contain property " + jobDirProp)
     }
+
     val jobDir = properties.get(jobDirProp).toString
-    val coord = new Coordinator(jobDir, reportManager) with BirtReportGeneratorFactory
-    coord.start()
-    coord.setTimeout(timeout)
-    coord
+    val rptDefsDir = properties.get(rptDefsDirProp).toString
+    val outputDir = properties.get(outputDirProp).toString
+    var to = 30 * 1000L
+
+    if (properties.contains(requestTimeoutSeconds))
+      to = properties.get(requestTimeoutSeconds).asInstanceOf[Long]
+
+    val defaultRetentionDays: Int = try { properties.get(defaultRetentionPeriod).toString.toInt } catch { case e: Exception => 7 }
+    val maximumRetentionDays: Int = try { properties.get(maximumRetentionPeriod).toString.toInt } catch { case e: Exception => 14 }
+
+    ErnieAPI(jobDir, rptDefsDir, outputDir, to, defaultRetentionDays, maximumRetentionDays)
+
   }
 
   val jobsResource = new JobsResource
@@ -106,8 +84,6 @@ object ServiceRegistry extends JobDependencies
 
   val defsResource = new DefsResource
   val defDetailResource = new DefDetailResource
-
-  val shutdownResource = new ShutdownResource
 
   /**
    * Empty method. Calling instantiates this object.

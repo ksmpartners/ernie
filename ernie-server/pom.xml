@@ -59,7 +59,7 @@
         </dependency>
         <dependency>
             <groupId>com.ksmpartners.ernie</groupId>
-            <artifactId>ernie-engine</artifactId>
+            <artifactId>ernie-api</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>

@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.api.service
 
 import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.engine
-import java.io.{ ByteArrayOutputStream, IOException }
+import java.io.{ File, ByteArrayOutputStream, IOException }
 import java.util
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.model._
@@ -29,12 +29,15 @@ trait JobDependencies extends RequiresCoordinator
    * Resource for handling HTTP requests at /jobs
    */
   class JobsResource {
+    private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.service.JobDependencies")
 
     def createJob(defId: String, rptType: ReportType, retentionPeriod: Option[Int], reportParameters: immutable.Map[String, String], userName: String): JobStatus = {
       val respOpt = (coordinator !? (timeout, engine.ReportRequest(defId, rptType, retentionPeriod,
         reportParameters, userName))).asInstanceOf[Option[engine.ReportResponse]]
       if (respOpt.isEmpty) throw new TimeoutException("Job request timed out")
-      else JobStatus(respOpt.get.jobId, Some(respOpt.get.jobStatus), None)
+      else {
+        JobStatus(respOpt.get.jobId, Some(respOpt.get.jobStatus), None)
+      }
     }
 
     def getCatalog(catalog: Option[JobCatalog]): List[JobEntity] = {
@@ -42,6 +45,13 @@ trait JobDependencies extends RequiresCoordinator
       if (respOpt.isEmpty)
         throw new TimeoutException("Catalog request timed out")
       else respOpt.get.catalog
+    }
+
+    def getList(): List[String] = {
+      val respOpt: Option[engine.JobsListResponse] = (coordinator !? (timeout, engine.JobsListRequest())).asInstanceOf[Option[engine.JobsListResponse]]
+      if (respOpt.isEmpty)
+        throw new TimeoutException("Catalog request timed out")
+      else respOpt.get.jobsList.toList
     }
 
     def getJobEntity(jobId: Long): api.JobEntity = {
@@ -65,6 +75,8 @@ trait JobDependencies extends RequiresCoordinator
    * Resource for handling HTTP requests at /jobs/<JOB_ID>/status
    */
   class JobStatusResource {
+    private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.service.JobDependencies")
+
     /**
      * Return a Box[ListResponse] containing status for the given jobId
      */
@@ -97,6 +109,7 @@ trait JobDependencies extends RequiresCoordinator
             val response = respOpt.get
             if (response.rptId.isDefined) {
               val rptId = response.rptId.get
+
               var error: Option[Exception] = None
               var bAOS: Option[java.io.InputStream] = None
               if (stream) bAOS = try {
@@ -104,7 +117,7 @@ trait JobDependencies extends RequiresCoordinator
               } catch {
                 case e: Exception => { error = Some(e); None }
               }
-              api.ReportOutput(bAOS, if (file) Some(new java.io.File(outputDir, rptId + ".entity")) else None, error)
+              api.ReportOutput(bAOS, if (file) Some(new java.io.File(outputDir, rptId + ".entity")) else None, reportManager.getReport(rptId).get.getEntity, error)
             } else throw new api.NotFoundException("Report output not found")
           }
         }

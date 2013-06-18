@@ -4,7 +4,6 @@
  * form, except as allowed in a license agreement between KSM Technology Partners LLC
  * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
  */
-
 package com.ksmpartners.ernie.server.service
 
 import com.ksmpartners.ernie.engine.report.MemoryReportManager
@@ -22,25 +21,24 @@ import net.liftweb.mockweb.MockWeb
 import com.ksmpartners.ernie.server.DispatchRestAPI
 import net.liftweb.mocks.MockHttpServletRequest
 import com.ksmpartners.ernie.server.filter.SAMLConstants
-import java.io.File
+import java.io.{ FileInputStream, File }
+import com.ksmpartners.ernie.api.ErnieAPI
 
-class DefinitionDependenciesTest extends DefinitionDependencies with TestLogger {
+class DefinitionDependenciesTest extends DefinitionDependencies with TestLogger with RequiresAPI {
 
-  val reportManager = new MemoryReportManager
   val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefDependenciesTest")
 
-  val timeout = 300 * 1000L
-  val coordinator: Coordinator = {
-    val coord = new Coordinator(createTempDirectory.getAbsolutePath, reportManager) with TestReportGeneratorFactory
-    coord.setTimeout(timeout)
-    coord.start()
-    coord
-  }
+  protected val ernie =
+    ErnieAPI(createTempDirectory.getAbsolutePath, createTempDirectory.getAbsolutePath, createTempDirectory.getAbsolutePath, 300000L, 7, 14)
+
+  var defId = ""
 
   @BeforeClass
   def setup() {
-    val byteArr = Array[Byte](1, 2, 3)
-    reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null, null))
+    val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def_params.rptdesign").getPath)
+
+    defId = ernie.createDefinition(Some(Right(scala.xml.XML.loadFile(file).toString.getBytes)), "Test def", "testUser").defEnt.get.getDefId
+    //  reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null, null))
   }
 
   @Test
@@ -53,13 +51,12 @@ class DefinitionDependenciesTest extends DefinitionDependencies with TestLogger 
     val resp = respBox.open_!.asInstanceOf[PlainTextResponse]
     Assert.assertEquals(resp.code, 200)
     Assert.assertEquals(resp.headers, List(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
-    Assert.assertEquals(resp.text, """{"reportDefMap":{"test_def":"/defs/test_def"}}""")
   }
 
   @Test
   def canGetDefinition() {
     val defsResource = new DefDetailResource
-    val respBox = defsResource.get("test_def")
+    val respBox = defsResource.get(defId)
 
     Assert.assertTrue(respBox.isDefined)
 
@@ -67,9 +64,9 @@ class DefinitionDependenciesTest extends DefinitionDependencies with TestLogger 
     Assert.assertEquals(resp.code, 200)
     Assert.assertEquals(resp.headers, List(("Content-Type", "application/vnd.ksmpartners.ernie+json")))
     val defEnt = mapper.readValue(resp.text, classOf[DefinitionEntity])
-    Assert.assertEquals(defEnt.getCreatedUser, "default")
-    Assert.assertEquals(defEnt.getDefDescription, "")
-    Assert.assertEquals(defEnt.getDefId, "test_def")
+    Assert.assertEquals(defEnt.getCreatedUser, "testUser")
+    Assert.assertEquals(defEnt.getDefId, defId)
     Assert.assertNull(defEnt.getParamNames)
   }
 }
+

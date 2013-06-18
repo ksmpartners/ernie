@@ -12,13 +12,14 @@ import com.ksmpartners.ernie.server.filter.AuthUtil._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
 
 import net.liftweb.http._
-import org.slf4j.LoggerFactory
+import org.slf4j.{ Logger, LoggerFactory }
 import rest.RestHelper
 import com.ksmpartners.ernie.model.ModelObject
 import service.ServiceRegistry
 import RestGenerator._
 import ErnieRequestTemplates._
 import net.liftweb.json._
+import com.ksmpartners.ernie.api.ReportOutputException
 import net.liftweb.json.JsonDSL._
 /**
  * Object containing the stateless dispatch definition for an ernie server
@@ -40,9 +41,9 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
       Full(ForbiddenResponse("User is not authorized to perform that action"))
     }
   }
-  val readAuthFilter = Filter("Read Authorization Filter", authFilter(_: Req, readRole)_, Some(Parameter("Authorization", "header", "string")), (ForbiddenResponse().toResponse.code, "User is not authorized to perform that action"))
-  val writeAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, writeRole)_, Some(Parameter("Authorization", "header", "string")), (ForbiddenResponse().toResponse.code, "User is not authorized to perform that action"))
-  val writeRunAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, runRole, writeRole)_, Some(Parameter("Authorization", "header", "string")), (ForbiddenResponse().toResponse.code, "User is not authorized to perform that action"))
+  val readAuthFilter = Filter("Read Authorization Filter", authFilter(_: Req, readRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None))
+  val writeAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, writeRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None))
+  val writeRunAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, runRole, writeRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None))
 
   /**
    * Method that verifies that the requesting user accepts the correct ctype
@@ -56,9 +57,9 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
       Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_FULL))
     }
   }
-  val jsonFilter = Filter("JSON Content Type Filter", ctypeFilter(_: Req)_, Some(Parameter("Accept", "header", "string")), (NotAcceptableResponse().toResponse.code, "Resource only serves " + ModelObject.TYPE_FULL))
+  val jsonFilter = Filter("JSON Content Type Filter", ctypeFilter(_: Req)_, Some(Parameter("Accept", "header", "string")), ErnieError(ResponseWithReason(NotAcceptableResponse(), "Resource only serves " + ModelObject.TYPE_FULL), None))
 
-  val idFilter = Filter("ID is long filter", idIsLongFilter(_: Req)_, None, (BadResponse().toResponse.code, "Job ID provided is not a number"))
+  val idFilter = Filter("ID is long filter", idIsLongFilter(_: Req)_, None, ErnieError(ResponseWithReason(BadResponse(), "Job ID provided is not a number"), None))
   private def idIsLongFilter(req: Req)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = try {
     req.path(0).toLong
     f
@@ -69,8 +70,14 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
     }
   }
 
+  case class TimeoutResponse() extends LiftResponse with HeaderDefaults {
+    def toResponse = InMemoryResponse(Array(), headers, cookies, 504)
+  }
+
+  def timeoutErnieError(src: String = null): ErnieError = ErnieError(TimeoutResponse(), Some(com.ksmpartners.ernie.api.TimeoutException(if (src != null) src + " timed out" else "Timeout")))
+
   def shutdown() {
-    ServiceRegistry.shutdownResource.shutdown()
+    //   ServiceRegistry.shutdownResource.shutdown()
   }
 
   val reportDetail = Resource(Left("detail"), "Report details", false, List(getReportDetail, headReportDetail))
@@ -220,10 +227,40 @@ object RestGenerator {
   type restFilter = (restFunc => () => Box[LiftResponse])
   //  trait Filter(name: String, filter: (Req => restFunc => restFunc), error: (Int, String))
   case class Parameter(param: String, paramType: String, dataType: String)
-  case class Filter(name: String, filter: (Req => restFunc => restFunc), param: Option[Parameter], error: (Int, String))
+  case class Filter(name: String, filter: (Req => restFunc => restFunc), param: Option[Parameter], error: ErnieError)
   case class Variable(data: Any)
   case class Package(req: Req, params: Variable*)
-  case class Action(name: String, func: (Package) => Box[LiftResponse], summary: String, notes: String, responseClass: String, errors: (Int, String)*)
+  case class ErnieError(resp: LiftResponse, exception: Option[Exception]) {
+    def toResponse(reason: String = null): ResponseWithReason =
+      if (resp.isInstanceOf[ResponseWithReason]) resp.asInstanceOf[ResponseWithReason]
+      else ResponseWithReason(resp, if (reason == null) exception.map(e => e.getMessage) getOrElse "" else reason)
+  }
+
+  case class Action(name: String, func: (Package) => Box[LiftResponse], summary: String, notes: String, responseClass: String, errors: ErnieError*)
+
+  def checkResponse(a: Action, e: Option[Exception]): Box[LiftResponse] = if (e.isDefined) {
+    val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.RestGenerator")
+    val errors = a.errors
+    var result: List[ResponseWithReason] = Nil
+    errors.foreach(f => {
+      if ((f.exception.isDefined) && (e.get.getClass == f.exception.get.getClass)) {
+        if (e.get.isInstanceOf[ReportOutputException]) {
+          if (e.get.asInstanceOf[ReportOutputException].status.toList.contains(f.exception.get.asInstanceOf[ReportOutputException].status.getOrElse(null)))
+            result.::=(f.toResponse(e.get.getMessage))
+        } else result.::=(f.toResponse(e.get.getMessage))
+      }
+    })
+    if (result.isEmpty) {
+      log.debug("Response: Internal Server Error. Reason: {}", e.get.getMessage)
+      Full(ResponseWithReason(InternalServerErrorResponse(), e.get.getMessage))
+    } else {
+      log.debug("Response: " + result.head.response.getClass + ", reason: {}", result.head.reason)
+      Full(result.head)
+    }
+  } else net.liftweb.common.Empty
+
+  def checkResponse(a: Action, e: com.ksmpartners.ernie.api.ErnieResponse): Box[LiftResponse] = checkResponse(a, e.errorOpt)
+
   case class RequestTemplate(requestType: RequestType, produces: List[String], filters: List[Filter], action: Action, params: Parameter*) {
     def toSwaggerOperation: JObject = ("httpMethod" -> requestTypeToSwagger(requestType)) ~ ("nickname" -> action.name) ~ ("produces" -> produces) ~
       ("responseClass" -> action.responseClass) ~ ("parameters" -> {
@@ -231,7 +268,7 @@ object RestGenerator {
           DispatchRestAPI.buildSwaggerParam(f.param.get)
         }) ++ params.map(f => DispatchRestAPI.buildSwaggerParam(f))
       }) ~ ("summary" -> action.summary) ~
-      ("notes" -> action.notes) ~ ("errorResponses" -> (action.errors ++ filters.map(f => f.error)).map(e => ("code" -> e._1) ~ ("reason" -> e._2)).toList)
+      ("notes" -> action.notes) ~ ("errorResponses" -> (action.errors ++ filters.map(f => f.error)).foldLeft(List.empty[JObject])((list, e) => list.::(("code" -> e.toResponse(null).toResponse.code) ~ ("reason" -> e.toResponse(null).reason))))
   }
   case class Resource(path: Either[String, Variable], description: String, isResourceGroup: Boolean, requestTemplates: List[RequestTemplate], children: Resource*) {
     def swaggerPath = "/" + {

@@ -35,7 +35,8 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       if (rptDesign.isDefined) {
         if (!BirtReportGenerator.isValidDefinition(rptDesign.get))
           throw new InvalidDefinitionException("Definition invalid")
-        else {
+        else try {
+          rptDesign.get.reset
           val designXml = scala.xml.XML.load(rptDesign.get)
 
           var paramList: java.util.List[ParameterEntity] = if (defEnt.getParams == null) new java.util.ArrayList[ParameterEntity]() else defEnt.getParams
@@ -52,6 +53,8 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
             if ((param.getParamName != "") && (param.getDataType != "") && (param.getDefaultValue != "") && (param.getAllowNull != null)) paramList.add(param)
           }))
           defEnt.setParams(paramList)
+        } catch {
+          case e: Exception => throw InvalidDefinitionException("Malformed report design while extracting parameters: " + e.getMessage)
         }
       }
       if (!defId.isDefined) {
@@ -61,12 +64,18 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
         stream.close
         Definition(Some(defEnt), None, None)
       } else {
+        defEnt.setDefId(defId.get)
         val result = reportManager.updateDefinition(defId.get, defEnt)
+        rptDesign.get.reset
         if (rptDesign.isDefined)
           IOUtils.copy(rptDesign.get, result)
+        result.close
         Definition(Some(defEnt), None, None)
       }
     }
+
+    def getList(): List[String] = reportManager.getAllDefinitionIds
+
     def getCatalog(): DefinitionCatalog = {
       DefinitionCatalog(reportManager.getAllDefinitionIds.foldLeft[List[DefinitionEntity]](Nil)((list, dId) =>
         list ::: (reportManager.getDefinition(dId).map(f => f.getEntity).toList)), None)

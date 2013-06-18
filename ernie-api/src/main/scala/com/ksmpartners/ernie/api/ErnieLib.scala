@@ -23,12 +23,19 @@ case class DefinitionCatalog(catalog: List[DefinitionEntity], error: Option[Exce
 case class JobStatus(jobId: Long, jobStatus: Option[com.ksmpartners.ernie.model.JobStatus], error: Option[Exception]) extends ErnieResponse(error)
 case class JobEntity(jobEntity: Option[com.ksmpartners.ernie.model.JobEntity], error: Option[Exception]) extends ErnieResponse(error)
 case class ReportEntity(rptEntity: Option[com.ksmpartners.ernie.model.ReportEntity], error: Option[Exception]) extends ErnieResponse(error)
-case class ReportOutput(stream: Option[java.io.InputStream], file: Option[java.io.File], error: Option[Exception]) extends ErnieResponse(error)
+case class ReportOutput(stream: Option[java.io.InputStream], file: Option[java.io.File], rptEnt: com.ksmpartners.ernie.model.ReportEntity, error: Option[Exception]) extends ErnieResponse(error)
 case class PurgeResult(deleteStatus: DeleteStatus, purgedIds: List[String], error: Option[Exception]) extends ErnieResponse(error)
-class MissingArgumentException(msg: String) extends Exception(msg)
-class InvalidDefinitionException(msg: String) extends Exception(msg)
-class NotFoundException(msg: String) extends Exception(msg)
-class NothingToReturnException(msg: String) extends Exception(msg)
-class TimeoutException(msg: String) extends Exception(msg)
-class ReportOutputException(status: Option[com.ksmpartners.ernie.model.JobStatus], msg: String) extends Exception(msg)
+case class MissingArgumentException(msg: String) extends Exception(msg)
+case class InvalidDefinitionException(msg: String) extends Exception(msg)
+case class NotFoundException(msg: String) extends Exception(msg)
+case class NothingToReturnException(msg: String) extends Exception(msg)
+case class TimeoutException(msg: String) extends Exception(msg)
+case class ReportOutputException(status: Option[com.ksmpartners.ernie.model.JobStatus], msg: String) extends Exception(msg) {
+  def compare(e: Exception): Boolean = {
+    if (e.isInstanceOf[ReportOutputException]) {
+      if (status.isEmpty || e.asInstanceOf[ReportOutputException].status.isEmpty) true
+      else e.asInstanceOf[ReportOutputException].status.equals(status)
+    } else false
+  }
+}
 

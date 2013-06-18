@@ -9,18 +9,12 @@ package com.ksmpartners.ernie.server.service
 
 import com.ksmpartners.ernie.engine.Coordinator
 import com.ksmpartners.ernie.engine.report.ReportManager
+import com.ksmpartners.ernie.api.ErnieAPI
 
 /**
  * Trait that indicates a requirement on a Coordinator
  */
-trait RequiresCoordinator {
-  protected val coordinator: Coordinator
-  protected val timeout: Long
+trait RequiresAPI {
+  protected val ernie: ErnieAPI
 }
 
-/**
- * Trait that indicates a requirement on a ReportManager
- */
-trait RequiresReportManager {
-  protected val reportManager: ReportManager
-}

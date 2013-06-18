@@ -53,7 +53,7 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
         entity += (ReportManager.sourceDefId -> defId)
         entity += (ReportManager.reportType -> rptType)
         entity += (ReportManager.createdUser -> userName)
-        entity += (ReportManager.retentionDate -> DateTime.now().plusDays(retentionDate getOrElse (reportManager.getDefaultRetentionDays)))
+        entity += (ReportManager.retentionDate -> DateTime.now().plusDays(retentionDate.getOrElse(reportManager.getDefaultRetentionDays)))
 
         var rptParams: Map[String, Any] = reportParameters
         //Ensure all parameter values are supported by the definition

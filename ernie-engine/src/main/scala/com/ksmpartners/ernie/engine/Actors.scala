@@ -11,21 +11,25 @@ import actors.Actor
 import collection._
 import com.ksmpartners.ernie.model._
 import com.ksmpartners.ernie.engine.report._
-import org.slf4j.LoggerFactory
+import org.slf4j.{ Logger, LoggerFactory }
 import org.joda.time.{ Days, DateTime }
 import com.ksmpartners.ernie.util.Utility._
 import org.eclipse.birt.report.engine.api.UnsupportedFormatException
 import com.ksmpartners.ernie.util.MapperUtility._
 import scala.Some
-import java.io.{ File, FileOutputStream }
+import java.io.{ IOException, File, FileOutputStream }
+import Coordinator._
 
+object Coordinator {
+  val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.report.Coordinator")
+}
 /**
  * Actor for coordinating report generation.
  */
 class Coordinator(pathToJobEntities: String, reportManager: ReportManager) extends Actor {
   this: ReportGeneratorFactory =>
 
-  private val log = LoggerFactory.getLogger(classOf[Coordinator])
+  //private val log = LoggerFactory.getLogger(classOf[Coordinator])
 
   private lazy val worker: Worker = new Worker(getReportGenerator(reportManager))
   private val jobIdToResultMap = new mutable.HashMap[Long, JobEntity]() /* rptId */
@@ -35,6 +39,11 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
     log.debug("in start()")
     super.start()
     worker.start()
+    val jobDir = new java.io.File(pathToJobEntities)
+    if (!(jobDir.isDirectory && jobDir.canRead))
+      throw new IOException("Input/output directories do not exist or do not have the correct read/write access. " +
+        "Job Dir: " + jobDir)
+
     val files = (new java.io.File(pathToJobEntities)).listFiles()
     if (files != null)
       files.filter({ _.isFile }).filter({ _.getName.endsWith("entity") }).foreach({ file =>
@@ -54,7 +63,6 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
     this
   }
   private def handleRestartingJobs() = if (!noRestartingJobs) {
-    log.info("Checking for restarting jobs...")
     val restJobs = jobIdToResultMap.filter(p => p._2.getJobStatus == JobStatus.RESTARTING)
     if (restJobs.isEmpty) noRestartingJobs = true
     else restJobs.foreach(f => {
@@ -83,6 +91,7 @@ class Coordinator(pathToJobEntities: String, reportManager: ReportManager) exten
       react {
         case req@ReportRequest(defId, rptType, retentionOption, reportParameters, userName) => {
           val jobId = generateJobId()
+          if (!reportParameters.isEmpty) log.info(pathToJobEntities + "/" + jobId + "")
           if (reportManager.getDefinition(defId).isDefined) {
             val rptEntity = new ReportEntity()
             rptEntity.setSourceDefId(defId)
@@ -294,6 +303,7 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
     loop {
       react {
         case req@JobRequest(defId, rptType, jobId, retentionOption, reportParameters, userName) => {
+          log.info("Worker reacting to job request for id: " + jobId)
           sender ! JobResponse(JobStatus.IN_PROGRESS, None, req)
           var resultStatus = JobStatus.COMPLETE
           var rptId: Option[String] = None
@@ -301,35 +311,35 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
             rptId = Some(runReport(defId, jobId, rptType, retentionOption, reportParameters, userName))
           } catch {
             case ex: ParameterNullException => {
-              log.error("Caught exception while generating report: {}", ex.getMessage)
+              log.error("Caught ParameterNullException exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_PARAMETER_NULL
             }
             case ex: InvalidParameterValuesException => {
-              log.error("Caught exception while generating report: {}", ex.getMessage)
+              log.error("Caught InvalidParameterValuesException exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_INVALID_PARAMETER_VALUES
             }
             case ex: UnsupportedDataTypeException => {
-              log.error("Caught exception while generating report: {}", ex.getMessage)
+              log.error("Caught UnsupportedDataTypeException exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_UNSUPPORTED_PARAMETER_TYPE
             }
             case ex: ReportManager.RetentionDateAfterMaximumException => {
-              log.error("Caught exception while generating report: {}", ex.getMessage)
+              log.error("Caught RetentionDateAfterMaximumException exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM
             }
             case ex: ReportManager.RetentionDateInThePastException => {
-              log.error("Caught exception while generating report: {}", ex.getMessage)
+              log.error("Caught RetentionDateInThePastException exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_RETENTION_DATE_PAST
             }
             case ex: UnsupportedFormatException => {
-              log.error("Caught exception while generating report: {}", ex.getMessage)
+              log.error("Caught UnsupportedFormatException exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_UNSUPPORTED_FORMAT
             }
             case ex: ClassCastException => {
-              log.error("Caught exception while generating report: {}", ex.getMessage)
+              log.error("Caught ClassCastException exception while generating report: {}", ex.getMessage)
               resultStatus = JobStatus.FAILED_INVALID_PARAMETER_VALUES
             }
             case ex: Exception => {
-              log.error("Caught exception while generating report: {}", ex.getMessage)
+              log.error("Caught " + ex.getClass + " exception while generating report: {}", ex.getMessage)
               log.error(ex.getStackTraceString)
               resultStatus = JobStatus.FAILED
             }
@@ -354,10 +364,10 @@ class Worker(rptGenerator: ReportGenerator) extends Actor {
   }
 
   private def runReport(defId: String, jobId: Long, rptType: ReportType, retentionOption: Option[Int], reportParameters: immutable.Map[String, String], userName: String): String = {
-    log.debug("Running report {} for jobId {}...", defId, jobId)
+    log.info("Running report {} for jobId {}...", defId, jobId)
     val rptId = jobToRptId(jobId)
     rptGenerator.runReport(defId, rptId, rptType, retentionOption, reportParameters, userName)
-    log.debug("Done running report {} for jobId {}...", defId, jobId)
+    log.info("Done running report {} for jobId {}...", defId, jobId)
     rptId
   }
 

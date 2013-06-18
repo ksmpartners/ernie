@@ -48,12 +48,11 @@ class ErnieAPI {
   def maxRetentionDays_=(value: Int): Unit = _maxRetentionDays = value
   def maxRetentionDays = _maxRetentionDays
 
-  def createDefinition(rptDesign: Array[Byte], description: String, createdUser: String): Definition = createDefinition(new ByteArrayInputStream(rptDesign), description, createdUser)
+  // def createDefinition(rptDesign: Option[Array[Byte]], description: String, createdUser: String): Definition = createDefinition(rptDesign.map(f => new ByteArrayInputStream(f)), description, createdUser)
 
-  def createDefinition(rptDesign: ByteArrayInputStream, description: String, createdUser: String): Definition =
+  def createDefinition(rptDesign: Option[Either[ByteArrayInputStream, Array[Byte]]], description: String, createdUser: String): Definition =
     try {
-      if (rptDesign == null) throw new MissingArgumentException("Null report design")
-      ServiceRegistry.defsResource.putDefinition(None, Some(rptDesign), {
+      ServiceRegistry.defsResource.putDefinition(None, rptDesign.map(r => if (r.isLeft) r.left.get else new ByteArrayInputStream(r.right.get)), {
         val defEnt = new model.DefinitionEntity
         defEnt.setDefDescription(description)
         defEnt.setCreatedUser(createdUser)
@@ -74,7 +73,7 @@ class ErnieAPI {
     try {
       if (defId == null) throw new MissingArgumentException("Null definition ID")
       ServiceRegistry.defsResource.putDefinition(Some(defId), if (definition.rptDesign.isDefined)
-        new Some(new ByteArrayInputStream(definition.rptDesign.get))
+        Some(new ByteArrayInputStream(definition.rptDesign.get))
       else None, definition.defEnt)
     } catch {
       case e: Exception => Definition(None, None, Some(e))
@@ -137,6 +136,18 @@ class ErnieAPI {
     case e: Exception => (Nil, Some(e))
   }
 
+  def getJobList(): (List[String], Option[Exception]) = try {
+    (ServiceRegistry.jobsResource.getList, None)
+  } catch {
+    case e: Exception => (Nil, Some(e))
+  }
+
+  def getDefinitionList(): (List[String], Option[Exception]) = try {
+    (ServiceRegistry.defsResource.getList, None)
+  } catch {
+    case e: Exception => (Nil, Some(e))
+  }
+
   def getJobEntity(jobId: Long): JobEntity = try {
     if (jobId == null) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobsResource.getJobEntity(jobId)
@@ -162,24 +173,24 @@ class ErnieAPI {
     if (jobId == null) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobResultsResource.get(jobId, false, true)
   } catch {
-    case e: Exception => ReportOutput(None, None, Some(e))
+    case e: Exception => ReportOutput(None, None, null, Some(e))
   }
 
   def getReportOutputFile(jobId: Long): ReportOutput = try {
     if (jobId == null) throw new MissingArgumentException("Null job ID")
-    else if (!fileReportManager) ReportOutput(None, None, Some(new NothingToReturnException("Memory report manager does not provide files")))
+    else if (!fileReportManager) ReportOutput(None, None, null, Some(new NothingToReturnException("Memory report manager does not provide files")))
     else {
       ServiceRegistry.jobResultsResource.get(jobId, true, false)
     }
   } catch {
-    case e: Exception => ReportOutput(None, None, Some(e))
+    case e: Exception => ReportOutput(None, None, null, Some(e))
   }
 
   def getReportOutput(jobId: Long): ReportOutput = try {
     if (jobId == null) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobResultsResource.get(jobId, fileReportManager, true)
   } catch {
-    case e: Exception => ReportOutput(None, None, Some(e))
+    case e: Exception => ReportOutput(None, None, null, Some(e))
   }
 
   def deleteReportOutput(jobId: Long): (model.DeleteStatus, Option[Exception]) = try {
@@ -202,7 +213,7 @@ class ErnieAPI {
 }
 
 object ErnieAPI {
-  def apply(jobsDir: String, defDir: String, outputDir: String, timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int) {
+  def apply(jobsDir: String, defDir: String, outputDir: String, timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int): ErnieAPI = {
     val api = new ErnieAPI
     api.jobsDir = jobsDir
     api.fileReportManager = true
@@ -214,7 +225,7 @@ object ErnieAPI {
     api.init
     api
   }
-  def apply(timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int) {
+  def apply(timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int): ErnieAPI = {
     val api = new ErnieAPI
     api.timeout = timeout
     api.defaultRetentionDays = defaultRetentionDays
