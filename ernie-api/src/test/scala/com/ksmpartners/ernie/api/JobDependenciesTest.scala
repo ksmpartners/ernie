@@ -92,11 +92,11 @@ class JobDependenciesTest extends TestLogger with JobDependencies with RequiresC
 
   @Test(dependsOnMethods = Array("canGetJobResults"))
   def purgeTest() {
-    val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
-    Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_2"))
-    Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_4"))
-    Assert.assertFalse(purgeResp.purgedRptIds.contains("REPORT_1"))
-    Assert.assertFalse(purgeResp.purgedRptIds.contains("REPORT_3"))
+    val purgeResp = (new JobCatalogResource).purge //(coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
+    Assert.assertTrue(purgeResp.purgedIds.contains("REPORT_2"))
+    Assert.assertTrue(purgeResp.purgedIds.contains("REPORT_4"))
+    Assert.assertFalse(purgeResp.purgedIds.contains("REPORT_1"))
+    Assert.assertFalse(purgeResp.purgedIds.contains("REPORT_3"))
   }
 
   @Test

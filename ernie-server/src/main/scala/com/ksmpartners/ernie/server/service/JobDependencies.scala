@@ -17,7 +17,7 @@ import collection.JavaConversions._
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.{ DispatchRestAPI, RestGenerator, JsonTranslator }
 import com.ksmpartners.ernie.model._
-import com.ksmpartners.ernie.server.service.JobDependencies._
+import com.ksmpartners.ernie.server.service.JobDependencies.log
 import net.liftweb.http.StreamingResponse
 import net.liftweb.http.InternalServerErrorResponse
 import net.liftweb.http.ResponseWithReason
@@ -94,14 +94,17 @@ trait JobDependencies extends RequiresAPI {
     /**
      * Return a Box[ListResponse] containing a JobEntity
      */
-    val getJobDetailAction = Action("getJobEntity", get(_: Package), "Return a JobEntity", "", "JobEntity", DispatchRestAPI.timeoutErnieError("Job detail"), ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found"))))
+    val jobNotFound = ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found")))
+    val getJobDetailAction = Action("getJobEntity", get(_: Package), "Return a JobEntity", "", "JobEntity", DispatchRestAPI.timeoutErnieError("Job detail"),
+      jobNotFound)
+
     def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job ID")) else get(p.params(0).data.toString)
     def get(jobId: String): Box[LiftResponse] = {
       val jobEnt: api.JobEntity = ernie.getJobEntity(jobId.toLong)
       checkResponse(getJobDetailAction, jobEnt) or {
         if (jobEnt.jobEntity isDefined)
           getJsonResponse(jobEnt.jobEntity.get)
-        else Full(NotFoundResponse())
+        else jobNotFound.send
       }
     }
 
@@ -110,44 +113,46 @@ trait JobDependencies extends RequiresAPI {
      *
      * @return the jobId returned by the Coordinator associated with the request
      */
+    val retentionDateExceedsMaximum = ErnieError(ResponseWithReason(BadResponse(), "Retention date exceeds maximum"), None)
+    val retentionDateBeforeRequest = ErnieError(ResponseWithReason(BadResponse(), "Retention date before request time"), None)
+    val noSuchDefinition = ErnieError(ResponseWithReason(BadResponse(), "No such definition ID"), None)
+    val serverError = ErnieError(ResponseWithReason(InternalServerErrorResponse(), "Server error"), None)
+    val invalidRequest = ErnieError(BadResponse(), None)
     val postJobAction = Action("postJob", post(_: Package), "Schedules the submitted job", "", "void",
-      DispatchRestAPI.timeoutErnieError("Job creation"), ErnieError(BadResponse(), Some(api.MissingArgumentException("No request body"))), ErnieError(ResponseWithReason(BadResponse(), "Retention date exceeds maximum"), None),
-      ErnieError(ResponseWithReason(BadResponse(), "Retention date before request time"), None), ErnieError(ResponseWithReason(BadResponse(), "No such definition ID"), None), ErnieError(ResponseWithReason(BadResponse(), "Server error"), None))
+      DispatchRestAPI.timeoutErnieError("Job creation"),
+      ErnieError(BadResponse(), Some(api.MissingArgumentException("No request body"))),
+      retentionDateExceedsMaximum, retentionDateBeforeRequest, noSuchDefinition, serverError, invalidRequest)
+
     def post(body: Box[Array[Byte]], hostAndPath: String, userName: String): Box[LiftResponse] = {
       try {
-        if (body.isEmpty) {
-          log.debug("Response: Bad Response. Reason: Undefined byte array")
-          Full(ResponseWithReason(BadResponse(), "Undefined byte array"))
-        } else {
+        if (body.isEmpty) invalidRequest.send(Some("No request body"))
+        else {
           val req = deserialize(body.open_!, classOf[model.ReportRequest])
           val resp = ernie.createJob(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays), if (req.getReportParameters == null) collection.immutable.Map.empty[String, String] else scala.collection.immutable.Map(req.getReportParameters.toList: _*), userName)
           checkResponse(postJobAction, resp) or {
-            if (resp.jobStatus.get == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM) {
-              log.debug("Response: Bad Response. Reason: Retention date exceeds maximum")
-              Full(ResponseWithReason(BadResponse(), "Retention date exceeds maximum"))
-            } else if (resp.jobStatus.get == JobStatus.FAILED_RETENTION_DATE_PAST) {
-              log.debug("Response: Bad Response. Reason: Retention date before request time")
-              Full(ResponseWithReason(BadResponse(), "Retention date before request time"))
-            } else if (resp.jobStatus.get == JobStatus.FAILED_NO_SUCH_DEFINITION) {
-              log.debug("Response: Bad Response. Reason: No such definition ID")
-              Full(ResponseWithReason(BadResponse(), "No such definition ID"))
-            } else
-              getJsonResponse(new model.ReportResponse(resp.jobId, resp.jobStatus.getOrElse(JobStatus.FAILED)), 201, List(("Location", hostAndPath + "/jobs/" + resp.jobId)))
+            if (resp.jobStatus.get == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM) retentionDateExceedsMaximum.send
+            else if (resp.jobStatus.get == JobStatus.FAILED_RETENTION_DATE_PAST) retentionDateBeforeRequest.send
+            else if (resp.jobStatus.get == JobStatus.FAILED_NO_SUCH_DEFINITION) noSuchDefinition.send
+            else getJsonResponse(new model.ReportResponse(resp.jobId, resp.jobStatus.getOrElse(JobStatus.FAILED)), 201, List(("Location", hostAndPath + "/jobs/" + resp.jobId)))
           }
         }
       } catch {
         case e: IOException => {
           log.error("Caught exception while handling request: {}", e.getMessage)
-          log.debug("Response: Bad Response. Reason: Exception thrown in post request")
-          Full(ResponseWithReason(BadResponse(), "Exception thrown in post request"))
+          invalidRequest.send(Some("Invalid request"))
+        }
+        case e: Exception => {
+          log.error("Caught exception while handling request: {}", e.getMessage)
+          serverError.send
         }
       }
     }
+
     def post(p: Package): Box[LiftResponse] = post(p.req)
     def post(body: Box[Array[Byte]], userName: String): Box[LiftResponse] = post(body, "", userName)
     def post(req: Req): Box[LiftResponse] = post(req.body, req.hostAndPath, AuthUtil.getUserName(req))
-
-    val purgeAction = Action("purgeExpired", purge(_: Package), "Purges expired jobs", "", "void", DispatchRestAPI.timeoutErnieError("Purge"), ErnieError(InternalServerErrorResponse(), Some(new Exception())))
+    val unexpectedErrorWithException = ErnieError(InternalServerErrorResponse(), Some(new Exception()))
+    val purgeAction = Action("purgeExpired", purge(_: Package), "Purges expired jobs", "", "void", DispatchRestAPI.timeoutErnieError("Purge"), unexpectedErrorWithException)
     def purge(p: Package): Box[LiftResponse] = purge
     def purge(): Box[LiftResponse] = {
       val purgeResp = ernie.purgeExpiredReports
@@ -155,10 +160,7 @@ trait JobDependencies extends RequiresAPI {
         if (purgeResp.deleteStatus == DeleteStatus.SUCCESS) {
           log.debug("Response: Ok Response.")
           Full(OkResponse())
-        } else {
-          log.debug("Response: Internal server error response.")
-          Full(InternalServerErrorResponse())
-        }
+        } else unexpectedErrorWithException.send
       }
     }
 
@@ -171,19 +173,17 @@ trait JobDependencies extends RequiresAPI {
     /**
      * Return a Box[ListResponse] containing status for the given jobId
      */
-    val getJobStatusAction: Action = Action("getJobStatus", get(_), "Return StatusResponse for given jobId", "", "StatusResponse", DispatchRestAPI.timeoutErnieError("Job status"), ErnieError(GoneResponse(), Some(api.NotFoundException("Job not found"))))
+    val jobGone = ErnieError(GoneResponse(), Some(api.NotFoundException("Job deleted")))
+    val unexpectedError = ErnieError(InternalServerErrorResponse(), None)
+    val getJobStatusAction: Action = Action("getJobStatus", get(_), "Return StatusResponse for given jobId", "", "StatusResponse", DispatchRestAPI.timeoutErnieError("Job status"),
+      jobGone, unexpectedError)
     def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job ID")) else get(p.params(0).data.toString)
 
     def get(jobId: String): Box[LiftResponse] = {
       val jobStatus = ernie.getJobStatus(jobId.toLong)
       checkResponse(getJobStatusAction, jobStatus) or {
-        if (jobStatus.jobStatus.isEmpty || (jobStatus.jobStatus.get == JobStatus.DELETED)) {
-          log.debug("Response: Gone Response.")
-          Full(GoneResponse())
-        } else jobStatus.jobStatus.map(js => getJsonResponse(new model.StatusResponse(js))) getOrElse {
-          log.debug("Response: Internal Server Error Response.")
-          Full(InternalServerErrorResponse())
-        }
+        if (jobStatus.jobStatus.isEmpty || (jobStatus.jobStatus.get == JobStatus.DELETED)) jobGone.send
+        else jobStatus.jobStatus.map(js => getJsonResponse(new model.StatusResponse(js))) getOrElse unexpectedError.send
       }
     }
   }
@@ -196,14 +196,15 @@ trait JobDependencies extends RequiresAPI {
     /**
      * Return a Box[StreamingResponse] containing the result content for the given jobId
      */
+    val notAcceptable = ErnieError(ResponseWithReason(NotAcceptableResponse(), "Resource does not serve specified Accept type"), None)
+    val unexpectedError = ErnieError(InternalServerErrorResponse(), None)
     val getJobResultAction = Action("getJobResult", get(_), "Returns a stream containing the result content for the given Job ID", "", "byte",
       DispatchRestAPI.timeoutErnieError("Job result"),
       ErnieError(GoneResponse(), Some(api.ReportOutputException(Some(JobStatus.DELETED), "Job deleted"))),
       ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found"))),
       ErnieError(GoneResponse(), Some(api.ReportOutputException(Some(JobStatus.EXPIRED), "Report expired"))),
       ErnieError(BadResponse(), Some(api.ReportOutputException(None, "Job incomplete"))),
-      ErnieError(ResponseWithReason(NotAcceptableResponse(), "Resource does not serve specified Accept type"), None),
-      ErnieError(InternalServerErrorResponse(), None))
+      notAcceptable, unexpectedError)
     def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else get(p.params(0).data.toString, Full(p.req))
     def get(jobId: String): Box[LiftResponse] = get(jobId, Empty)
     /**
@@ -219,11 +220,9 @@ trait JobDependencies extends RequiresAPI {
             ("Content-Type" -> ("application/" + rptOutput.rptEnt.getReportType.toString.toLowerCase)) ::
               ("Content-Length" -> fileStream.available.toString) ::
               ("Content-Disposition" -> ("attachment; filename=\"" + rptOutput.rptEnt.getRptId + "." + rptOutput.rptEnt.getReportType.toString.toLowerCase + "\"")) :: Nil
-          log.info(header + "")
           if (!req.isEmpty && !req.open_!.headers.contains(("Accept", header(0)._2))) {
             fileStream.close
-            log.debug("Response: Not Acceptable Response. Reason: Resource only serves " + rptOutput.rptEnt.getReportType.toString.toLowerCase)
-            Full(NotAcceptableResponse("Resource only serves " + rptOutput.rptEnt.getReportType.toString.toLowerCase))
+            notAcceptable.send(Some("Resource only serves " + rptOutput.rptEnt.getReportType.toString.toLowerCase))
           } else {
             log.debug("Response: Streaming Response.")
             Full(StreamingResponse(
@@ -232,54 +231,47 @@ trait JobDependencies extends RequiresAPI {
               fileStream.available,
               header, Nil, 200))
           }
-        } else Full(InternalServerErrorResponse())
+        } else unexpectedError.send
       }
     }
 
     /**
      * Retrieves details for output from a given jobId
      */
+    val invalidId = ErnieError(BadResponse(), None)
     val getDetailAction = Action("getResultDetail", getDetail(_), "Retrieves details for output from a given jobId", "", "ReportEntity",
       DispatchRestAPI.timeoutErnieError("Job detail"),
       ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found"))),
-      ErnieError(InternalServerErrorResponse(), None))
-    def getDetail(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else getDetail(p.params(0).data.toString, Full(p.req))
+      ErnieError(InternalServerErrorResponse(), None),
+      invalidId)
+    def getDetail(p: Package): Box[LiftResponse] = if (p.params.length != 1) invalidId.send(Some("Job ID Invalid")) else getDetail(p.params(0).data.toString, Full(p.req))
     def getDetail(jobId: String, req: Box[Req]): Box[LiftResponse] = {
       val resp = ernie.getReportEntity(jobId.toLong)
       checkResponse(getDetailAction, resp) or {
         if (resp.rptEntity.isDefined) {
           log.debug("Response: Report Entity")
           getJsonResponse(resp.rptEntity.get)
-        } else {
-          log.debug("Response: Not Found Response")
-          Full(InternalServerErrorResponse())
-        }
+        } else unexpectedError.send
       }
     }
 
     /**
      * Purges the report output for a given jobId
      */
+    val jobNotFound = ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found")))
+    val jobInUse = ErnieError(ResponseWithReason(ConflictResponse(), "Job result in use"), None)
+    val deleteFailed = ErnieError(ResponseWithReason(InternalServerErrorResponse(), "Job deletion failed"), None)
     val deleteReportAction = Action("deleteReport", del(_), "Purges report output for a given Job ID", "", "DeleteResponse",
       DispatchRestAPI.timeoutErnieError("Report delete"),
-      ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found"))),
-      ErnieError(ResponseWithReason(ConflictResponse(), "Job result in use"), None),
-      ErnieError(ResponseWithReason(InternalServerErrorResponse(), "Job deletion failed"), None))
+      jobNotFound, jobInUse, deleteFailed)
     def del(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else del(p.params(0).data.toString)
     def del(jobId: String): Box[LiftResponse] = {
       val (deleteStatus, error) = ernie.deleteReportOutput(jobId.toLong)
       checkResponse(deleteReportAction, error) or {
         if (deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteResponse(deleteStatus))
-        else if (deleteStatus == DeleteStatus.NOT_FOUND) {
-          log.debug("Response: Not Found Response. Reason: Job ID not found")
-          Full(NotFoundResponse("Job ID not found"))
-        } else if (deleteStatus == DeleteStatus.FAILED_IN_USE) {
-          log.debug("Response: Conflict Response")
-          Full(ConflictResponse())
-        } else {
-          log.debug("Response: Bad Response. Reason: Job deletion failed")
-          Full(ResponseWithReason(BadResponse(), "Job deletion failed"))
-        }
+        else if (deleteStatus == DeleteStatus.NOT_FOUND) jobNotFound.send
+        else if (deleteStatus == DeleteStatus.FAILED_IN_USE) jobInUse.send
+        else deleteFailed.send
       }
     }
   }
@@ -287,6 +279,6 @@ trait JobDependencies extends RequiresAPI {
 }
 
 object JobDependencies {
-  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.service.JobDependencies")
+  val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.service.JobDependencies")
 }
 

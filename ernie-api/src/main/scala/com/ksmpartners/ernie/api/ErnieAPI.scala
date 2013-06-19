@@ -14,6 +14,7 @@ import java.io.{ ByteArrayOutputStream, ByteArrayInputStream }
 import scala.collection.immutable
 import org.apache.commons.io.IOUtils
 import com.ksmpartners.ernie.api._
+import com.ksmpartners.ernie.util.Utility._
 
 /**
  * Object containing the
@@ -48,8 +49,6 @@ class ErnieAPI {
   def maxRetentionDays_=(value: Int): Unit = _maxRetentionDays = value
   def maxRetentionDays = _maxRetentionDays
 
-  // def createDefinition(rptDesign: Option[Array[Byte]], description: String, createdUser: String): Definition = createDefinition(rptDesign.map(f => new ByteArrayInputStream(f)), description, createdUser)
-
   def createDefinition(rptDesign: Option[Either[ByteArrayInputStream, Array[Byte]]], description: String, createdUser: String): Definition =
     try {
       ServiceRegistry.defsResource.putDefinition(None, rptDesign.map(r => if (r.isLeft) r.left.get else new ByteArrayInputStream(r.right.get)), {
@@ -72,9 +71,10 @@ class ErnieAPI {
   def updateDefinition(defId: String, definition: Definition): Definition = {
     try {
       if (defId == null) throw new MissingArgumentException("Null definition ID")
-      ServiceRegistry.defsResource.putDefinition(Some(defId), if (definition.rptDesign.isDefined)
-        Some(new ByteArrayInputStream(definition.rptDesign.get))
-      else None, definition.defEnt)
+      if (definition.rptDesign.isDefined) fTry_(new ByteArrayInputStream((definition.rptDesign.get))) { bAIS =>
+        ServiceRegistry.defsResource.putDefinition(Some(defId), Some(bAIS), definition.defEnt)
+      }
+      else ServiceRegistry.defsResource.putDefinition(Some(defId), None, definition.defEnt)
     } catch {
       case e: Exception => Definition(None, None, Some(e))
     }
@@ -131,7 +131,7 @@ class ErnieAPI {
   }
 
   def getJobCatalog(catalog: Option[model.JobCatalog]): (List[com.ksmpartners.ernie.model.JobEntity], Option[Exception]) = try {
-    (ServiceRegistry.jobsResource.getCatalog(catalog), None)
+    (ServiceRegistry.jobCatalogResource.getCatalog(catalog), None)
   } catch {
     case e: Exception => (Nil, Some(e))
   }
@@ -201,10 +201,12 @@ class ErnieAPI {
   }
 
   def purgeExpiredReports(): PurgeResult = try {
-    ServiceRegistry.jobsResource.purge
+    ServiceRegistry.jobCatalogResource.purge
   } catch {
     case e: Exception => PurgeResult(model.DeleteStatus.FAILED, Nil, Some(e))
   }
+
+  def shutDown() = ServiceRegistry.shutdownResource.shutdown
 
   protected def init() {
     ServiceRegistry.init(ErnieConfig(fileReportManager, jobsDir, defDir, outputDir, timeout, defaultRetentionDays, maxRetentionDays))

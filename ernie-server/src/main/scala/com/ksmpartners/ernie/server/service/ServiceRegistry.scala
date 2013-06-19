@@ -94,4 +94,6 @@ object ServiceRegistry extends JobDependencies
     log.info("END Initializing ServiceRegistry...")
   }
 
+  def shutDown() = ernie.shutDown()
+
 }

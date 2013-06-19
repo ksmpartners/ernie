@@ -31,6 +31,26 @@ object Utility {
     }
   }
 
+  /**
+   * Method that mimics Java 1.7's try-with-resources
+   *
+   * Usage:
+   * try_(new Closable...) { closableInstance =>
+   *   closableInstance.doSomething()
+   * }
+   */
+  def fTry_[A <: Closeable, B](closeable: A)(tryBlock: A => B): B = {
+    try {
+      tryBlock(closeable)
+    } finally {
+      try {
+        closeable.close()
+      } catch {
+        case e: Throwable =>
+      }
+    }
+  }
+
   private implicit def funcAsPartial(f: Throwable => Unit) = new {
     def asPartial(isDefinedAt: Throwable => Boolean): PartialFunction[Throwable, Unit] = {
       case a if isDefinedAt(a) => f(a)
@@ -100,5 +120,14 @@ object Utility {
     }
 
     temp
+  }
+
+  def checkContentType(headers: List[(String, String)], cType: String): Boolean = {
+    var ctype = ""
+    headers.foreach({ tup =>
+      if (tup._1.equalsIgnoreCase("Content-Type"))
+        ctype = tup._2
+    })
+    ctype.contains(cType)
   }
 }

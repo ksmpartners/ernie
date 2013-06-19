@@ -16,6 +16,7 @@ import com.ksmpartners.ernie.api._
 import org.apache.cxf.helpers.IOUtils
 import com.ksmpartners.ernie.api.Definition
 import scala.Some
+import com.ksmpartners.ernie.util.Utility._
 
 /**
  * Dependencies for interacting with report definitions
@@ -33,6 +34,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       if (!(definitionEntity.isDefined || rptDesign.isDefined)) throw new MissingArgumentException("Must specify at least a definition entity or design")
       var defEnt = definitionEntity.getOrElse(new DefinitionEntity)
       if (rptDesign.isDefined) {
+
         if (!BirtReportGenerator.isValidDefinition(rptDesign.get))
           throw new InvalidDefinitionException("Definition invalid")
         else try {

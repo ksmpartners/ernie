@@ -1,1 +1,0 @@
-{"jobId":1371581882448,"jobStatus":"FAILED_UNSUPPORTED_FORMAT","submitDate":"2013-06-18T14:58:09.258-04:00","rptId":null,"rptEntity":{"createdDate":"2013-06-18T14:58:09.258-04:00","startDate":null,"finishDate":null,"retentionDate":"2013-06-25T14:58:09.258-04:00","rptId":null,"sourceDefId":"test_def_nocsv","createdUser":"mockWriteUser","params":{},"reportType":"CSV"}}

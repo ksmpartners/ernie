@@ -15,6 +15,8 @@ public abstract class ModelObject {
     public static final String TYPE_PREFIX = "application";
     public static final String TYPE_POSTFIX = "vnd.ksmpartners.ernie+json";
     public static final String TYPE_FULL = TYPE_PREFIX + "/" + TYPE_POSTFIX;
+    public static final String TYPE_RPTDESIGN = "rptdesign+xml" ;
+    public static final String TYPE_RPTDESIGN_FULL = TYPE_PREFIX + "/" + TYPE_RPTDESIGN;
 
     /**
      * Method that returns the custom MIME type of the serialized object

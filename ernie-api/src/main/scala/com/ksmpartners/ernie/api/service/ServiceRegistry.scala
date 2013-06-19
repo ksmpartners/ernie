@@ -64,6 +64,7 @@ package object ServiceRegistry extends JobDependencies
 
   val jobsResource = new JobsResource
   val jobStatusResource = new JobStatusResource
+  val jobCatalogResource = new JobCatalogResource
   val jobResultsResource = new JobResultsResource
 
   val defsResource = new DefsResource

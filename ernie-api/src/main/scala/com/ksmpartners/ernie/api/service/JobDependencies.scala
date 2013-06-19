@@ -25,9 +25,6 @@ import com.ksmpartners.ernie.api.{ NothingToReturnException, JobStatus, TimeoutE
 trait JobDependencies extends RequiresCoordinator
     with RequiresReportManager {
 
-  /**
-   * Resource for handling HTTP requests at /jobs
-   */
   class JobsResource {
     private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.service.JobDependencies")
 
@@ -38,13 +35,6 @@ trait JobDependencies extends RequiresCoordinator
       else {
         JobStatus(respOpt.get.jobId, Some(respOpt.get.jobStatus), None)
       }
-    }
-
-    def getCatalog(catalog: Option[JobCatalog]): List[JobEntity] = {
-      val respOpt: Option[engine.JobsCatalogResponse] = (coordinator !? (timeout, engine.JobsCatalogRequest(catalog))).asInstanceOf[Option[engine.JobsCatalogResponse]]
-      if (respOpt.isEmpty)
-        throw new TimeoutException("Catalog request timed out")
-      else respOpt.get.catalog
     }
 
     def getList(): List[String] = {
@@ -64,6 +54,16 @@ trait JobDependencies extends RequiresCoordinator
       }
     }
 
+  }
+
+  class JobCatalogResource {
+    def getCatalog(catalog: Option[JobCatalog]): List[JobEntity] = {
+      val respOpt: Option[engine.JobsCatalogResponse] = (coordinator !? (timeout, engine.JobsCatalogRequest(catalog))).asInstanceOf[Option[engine.JobsCatalogResponse]]
+      if (respOpt.isEmpty)
+        throw new TimeoutException("Catalog request timed out")
+      else respOpt.get.catalog
+    }
+
     def purge(): api.PurgeResult = {
       val respOpt = (coordinator !? (timeout, PurgeRequest())).asInstanceOf[Option[PurgeResponse]]
       if (respOpt.isEmpty) throw new TimeoutException("Purge request timed out")
@@ -71,15 +71,9 @@ trait JobDependencies extends RequiresCoordinator
     }
   }
 
-  /**
-   * Resource for handling HTTP requests at /jobs/<JOB_ID>/status
-   */
   class JobStatusResource {
     private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.service.JobDependencies")
 
-    /**
-     * Return a Box[ListResponse] containing status for the given jobId
-     */
     def get(jobId: Long): api.JobStatus = {
       val respOpt = (coordinator !? (timeout, engine.StatusRequest(jobId))).asInstanceOf[Option[engine.StatusResponse]]
       if (respOpt.isEmpty) throw new TimeoutException("Job status request timed out")
@@ -89,9 +83,6 @@ trait JobDependencies extends RequiresCoordinator
     }
   }
 
-  /**
-   * Resource for handling HTTP requests at /jobs/<JOB_ID>/result
-   */
   class JobResultsResource {
 
     def get(jobId: Long, file: Boolean, stream: Boolean): api.ReportOutput = {
@@ -124,18 +115,12 @@ trait JobDependencies extends RequiresCoordinator
       }
     }
 
-    /**
-     * Retrieves details for output from a given jobId
-     */
     def getReportEntity(jobId: Long): api.ReportEntity = {
       val respOpt = (coordinator !? (timeout, engine.ReportDetailRequest(jobId))).asInstanceOf[Option[engine.ReportDetailResponse]]
       if (respOpt.isEmpty) throw new TimeoutException("Report entity request timed out")
       else api.ReportEntity(respOpt.get.rptEntity, None)
     }
 
-    /**
-     * Purges the report output for a given jobId
-     */
     def del(jobId: Long): DeleteStatus = {
       val respOpt = (coordinator !? (timeout, engine.DeleteRequest(jobId))).asInstanceOf[Option[engine.DeleteResponse]]
       if (respOpt.isEmpty) throw new TimeoutException("Delete request timed out")
