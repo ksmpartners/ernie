@@ -27,20 +27,37 @@ import com.ksmpartners.ernie.engine.PurgeResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
 import com.ksmpartners.ernie.util.TestLogger
 import com.ksmpartners.ernie.api.ErnieAPI
+import com.ksmpartners.ernie.model.DeleteStatus
+import com.ksmpartners.ernie.api.JobStatus
+import scala.Some
 
-class JobDependenciesTest extends TestLogger with JobDependencies with RequiresCoordinator with RequiresReportManager {
+@Test(dependsOnGroups = Array("timeout"))
+class JobDependenciesTest extends JobDependencies with RequiresCoordinator with RequiresReportManager { //TestLogger with
 
-  val tempInputDir = createTempDirectory
-  val tempOutputDir = createTempDirectory
-  val tempJobDir = createTempDirectory
+  private val tempInputDir = createTempDirectory
+  private val tempOutputDir = createTempDirectory
+  private val tempJobDir = createTempDirectory
 
-  def jobsDir = tempJobDir.getAbsolutePath
-  def outputDir = tempOutputDir.getAbsolutePath
-  def defDir = tempInputDir.getAbsolutePath
+  @BeforeClass
+  protected def jobsDir = tempJobDir.getAbsolutePath
 
-  var testDef = ""
-  val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.JobDependenciesTest")
-  val timeout = 300 * 1000L
+  @BeforeClass
+  protected def outputDir = tempOutputDir.getAbsolutePath
+
+  @BeforeClass
+  protected def defDir = tempInputDir.getAbsolutePath
+
+  @BeforeClass
+  private var testDef = ""
+
+  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.JobDependenciesTest")
+
+  @BeforeClass
+  protected def timeout: Long = 300 * 1000L
+
+  @BeforeClass(dependsOnGroups = Array("timeout"))
+  def startup() {
+  }
 
   protected val reportManager = {
     for (i <- 1 to 4) {
@@ -75,14 +92,17 @@ class JobDependenciesTest extends TestLogger with JobDependencies with RequiresC
     rm
   }
 
-  val coordinator: Coordinator = {
-    val coord = new Coordinator(tempJobDir.getAbsolutePath, reportManager) with TestReportGeneratorFactory
+  @BeforeClass
+  protected val coordinator: Coordinator = {
+    val coord = new Coordinator(Some(tempJobDir.getAbsolutePath), reportManager) with TestReportGeneratorFactory
     coord.setTimeout(timeout)
     coord.start()
     coord
   }
 
-  var jobId = -1L
+  @BeforeClass
+  private var jobId = -1L
+
   @AfterTest
   def shutdown() {
     recDel(tempInputDir)
@@ -90,7 +110,13 @@ class JobDependenciesTest extends TestLogger with JobDependencies with RequiresC
     recDel(tempJobDir)
   }
 
-  @Test(dependsOnMethods = Array("canGetJobResults"))
+  @Test(groups = Array("jDCleanUp"), dependsOnGroups = Array("main"))
+  def deleteJob() {
+    val resultRes = new JobResultsResource
+    Assert.assertEquals(resultRes.del(jobId), DeleteStatus.SUCCESS)
+  }
+
+  @Test(groups = Array("jDCleanUp"), dependsOnGroups = Array("main"))
   def purgeTest() {
     val purgeResp = (new JobCatalogResource).purge //(coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
     Assert.assertTrue(purgeResp.purgedIds.contains("REPORT_2"))
@@ -99,7 +125,7 @@ class JobDependenciesTest extends TestLogger with JobDependencies with RequiresC
     Assert.assertFalse(purgeResp.purgedIds.contains("REPORT_3"))
   }
 
-  @Test
+  @Test(groups = Array("main"))
   def canGetJobsMap() {
     val jobsResource = new JobsResource
     val respBox = jobsResource.getList()
@@ -107,7 +133,7 @@ class JobDependenciesTest extends TestLogger with JobDependencies with RequiresC
     Assert.assertTrue(!respBox.isEmpty)
   }
 
-  @Test
+  @Test(groups = Array("main"), dependsOnGroups = Array("timeout"))
   def canPostNewJob() {
     val jobsResource = new JobsResource
     val resp: JobStatus = jobsResource.createJob(testDef, model.ReportType.PDF, Some(5), Map.empty[String, String], "testUser")
@@ -116,7 +142,14 @@ class JobDependenciesTest extends TestLogger with JobDependencies with RequiresC
     Assert.assertEquals(resp.jobStatus.get, model.JobStatus.IN_PROGRESS)
   }
 
-  @Test(dependsOnMethods = Array("canPostNewJob"))
+  @Test(dependsOnMethods = Array("canPostNewJob"), groups = Array("main"))
+  def canGetJobEntity() {
+    val jobEntityResource = new JobEntityResource
+    val resp = jobEntityResource.getJobEntity(jobId)
+    Assert.assertTrue(resp.jobEntity.isDefined)
+  }
+
+  @Test(dependsOnMethods = Array("canPostNewJob"), groups = Array("main"))
   def canGetJobStatus() {
     val jobStatusResource = new JobStatusResource
     val resp = jobStatusResource.get(jobId)
@@ -124,7 +157,22 @@ class JobDependenciesTest extends TestLogger with JobDependencies with RequiresC
     Assert.assertTrue(resp.jobStatus.isDefined)
   }
 
-  @Test(dependsOnMethods = Array("canPostNewJob"))
+  @Test(dependsOnMethods = Array("canGetJobResults"), groups = Array("main"))
+  def canGetRptEntity() {
+    val jobStatusResource = new JobResultsResource
+    val resp = jobStatusResource.getReportEntity(jobId)
+    Assert.assertTrue(resp.rptEntity.isDefined)
+  }
+
+  @Test(dependsOnMethods = Array("canPostNewJob"), groups = Array("main"))
+  def canGetJobCatalog() {
+    val jobCatalogResource = new JobCatalogResource
+    val resp = jobCatalogResource.getCatalog(None)
+
+    Assert.assertTrue(resp.size > 0)
+  }
+
+  @Test(dependsOnMethods = Array("canPostNewJob"), groups = Array("main"))
   def canGetJobResults() {
     val jobResultsResource = new JobResultsResource
     val jobsResource = new JobsResource

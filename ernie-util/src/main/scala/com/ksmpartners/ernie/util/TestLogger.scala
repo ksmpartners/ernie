@@ -7,10 +7,12 @@
 
 package com.ksmpartners.ernie.util
 
-import org.testng.annotations.{ BeforeMethod, AfterMethod }
+import org.testng.annotations.{ Test, BeforeMethod, AfterMethod }
 import org.slf4j.{ LoggerFactory, Logger }
 
 trait TestLogger {
+
+  @Test(enabled = false)
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.TestLogger")
 
   @AfterMethod

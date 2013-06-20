@@ -44,16 +44,6 @@ trait JobDependencies extends RequiresCoordinator
       else respOpt.get.jobsList.toList
     }
 
-    def getJobEntity(jobId: Long): api.JobEntity = {
-      val respOpt = (coordinator !? (timeout, engine.JobDetailRequest(jobId))).asInstanceOf[Option[engine.JobDetailResponse]]
-      if (respOpt.isEmpty) {
-        throw new TimeoutException("Job entity request tiemd out")
-      } else {
-        if (respOpt.get.jobEntity.isEmpty) api.JobEntity(None, Some(new api.NotFoundException("Job ID not found")))
-        else api.JobEntity(respOpt.get.jobEntity, None)
-      }
-    }
-
   }
 
   class JobCatalogResource {
@@ -79,6 +69,18 @@ trait JobDependencies extends RequiresCoordinator
       if (respOpt.isEmpty) throw new TimeoutException("Job status request timed out")
       else {
         JobStatus(jobId, Some(respOpt.get.jobStatus), None)
+      }
+    }
+  }
+
+  class JobEntityResource {
+    def getJobEntity(jobId: Long): api.JobEntity = {
+      val respOpt = (coordinator !? (timeout, engine.JobDetailRequest(jobId))).asInstanceOf[Option[engine.JobDetailResponse]]
+      if (respOpt.isEmpty) {
+        throw new TimeoutException("Job entity request timed out")
+      } else {
+        if (respOpt.get.jobEntity.isEmpty) api.JobEntity(None, Some(new api.NotFoundException("Job ID not found")))
+        else api.JobEntity(respOpt.get.jobEntity, None)
       }
     }
   }

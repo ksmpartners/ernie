@@ -7,14 +7,14 @@
 
 package com.ksmpartners.ernie.api.service
 
-import com.ksmpartners.ernie.engine.Coordinator
+import com.ksmpartners.ernie.engine.ErnieCoordinator
 import com.ksmpartners.ernie.engine.report.ReportManager
 
 /**
  * Trait that indicates a requirement on a Coordinator
  */
 trait RequiresCoordinator {
-  protected def coordinator: Coordinator
+  protected def coordinator: ErnieCoordinator
   protected def timeout: Long
   protected def jobsDir: String
 }

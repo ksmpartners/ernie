@@ -92,23 +92,6 @@ trait JobDependencies extends RequiresAPI {
     }
 
     /**
-     * Return a Box[ListResponse] containing a JobEntity
-     */
-    val jobNotFound = ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found")))
-    val getJobDetailAction = Action("getJobEntity", get(_: Package), "Return a JobEntity", "", "JobEntity", DispatchRestAPI.timeoutErnieError("Job detail"),
-      jobNotFound)
-
-    def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job ID")) else get(p.params(0).data.toString)
-    def get(jobId: String): Box[LiftResponse] = {
-      val jobEnt: api.JobEntity = ernie.getJobEntity(jobId.toLong)
-      checkResponse(getJobDetailAction, jobEnt) or {
-        if (jobEnt.jobEntity isDefined)
-          getJsonResponse(jobEnt.jobEntity.get)
-        else jobNotFound.send
-      }
-    }
-
-    /**
      * Sends the given ReportRequest to the Coordinator to be scheduled
      *
      * @return the jobId returned by the Coordinator associated with the request
@@ -164,6 +147,25 @@ trait JobDependencies extends RequiresAPI {
       }
     }
 
+  }
+
+  class JobEntityResource extends JsonTranslator {
+    /**
+     * Return a Box[ListResponse] containing a JobEntity
+     */
+    val jobNotFound = ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found")))
+    val getJobDetailAction = Action("getJobEntity", get(_: Package), "Return a JobEntity", "", "JobEntity", DispatchRestAPI.timeoutErnieError("Job detail"),
+      jobNotFound)
+
+    def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job ID")) else get(p.params(0).data.toString)
+    def get(jobId: String): Box[LiftResponse] = {
+      val jobEnt: api.JobEntity = ernie.getJobEntity(jobId.toLong)
+      checkResponse(getJobDetailAction, jobEnt) or {
+        if (jobEnt.jobEntity isDefined)
+          getJsonResponse(jobEnt.jobEntity.get)
+        else jobNotFound.send
+      }
+    }
   }
 
   /**

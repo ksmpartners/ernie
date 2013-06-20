@@ -23,10 +23,14 @@ import Coordinator._
 object Coordinator {
   val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.report.Coordinator")
 }
+
+trait ErnieCoordinator extends Actor {
+
+}
 /**
  * Actor for coordinating report generation.
  */
-class Coordinator(_pathToJobEntities: String, rptMgr: ReportManager) extends Actor with ErnieActions {
+class Coordinator(_pathToJobEntities: Option[String], rptMgr: ReportManager) extends ErnieCoordinator with ErnieActions {
   this: ReportGeneratorFactory =>
 
   //private val log = LoggerFactory.getLogger(classOf[Coordinator])
@@ -35,34 +39,37 @@ class Coordinator(_pathToJobEntities: String, rptMgr: ReportManager) extends Act
   protected val jobIdToResultMap: mutable.HashMap[Long, JobEntity] = new mutable.HashMap[Long, JobEntity]() /* rptId */
   protected var timeout: Long = 1000L
   protected val reportManager = rptMgr
-  protected val pathToJobEntities: String = _pathToJobEntities
+  protected val pathToJobEntities: Option[String] = _pathToJobEntities
 
   private var noRestartingJobs = true
   override def start(): Actor = {
     log.debug("in start()")
     super.start()
     worker.start()
-    val jobDir = new java.io.File(pathToJobEntities)
-    if (!(jobDir.isDirectory && jobDir.canRead))
-      throw new IOException("Input/output directories do not exist or do not have the correct read/write access. " +
-        "Job Dir: " + jobDir)
+    if (pathToJobEntities.isDefined) {
+      val path = pathToJobEntities.get
+      val jobDir = new java.io.File(path)
+      if (!(jobDir.isDirectory && jobDir.canRead))
+        throw new IOException("Input/output directories do not exist or do not have the correct read/write access. " +
+          "Job Dir: " + jobDir)
 
-    val files = (new java.io.File(pathToJobEntities)).listFiles()
-    if (files != null)
-      files.filter({ _.isFile }).filter({ _.getName.endsWith("entity") }).foreach({ file =>
-        try {
-          val jobEnt = mapper.readValue(file, classOf[JobEntity])
-          val jobId = file.getName.replaceFirst("[.][^.]+$", "").toLong
-          jobIdToResultMap += (jobId -> jobEnt)
-          if (((jobEnt.getJobStatus == JobStatus.IN_PROGRESS) || (jobEnt.getJobStatus == JobStatus.PENDING)) && (jobEnt.getRptEntity != null)) {
-            jobEnt.setJobStatus(JobStatus.RESTARTING)
-            noRestartingJobs = false
-            updateJob(jobId, jobEnt)
+      val files = (new java.io.File(path)).listFiles()
+      if (files != null)
+        files.filter({ _.isFile }).filter({ _.getName.endsWith("entity") }).foreach({ file =>
+          try {
+            val jobEnt = mapper.readValue(file, classOf[JobEntity])
+            val jobId = file.getName.replaceFirst("[.][^.]+$", "").toLong
+            jobIdToResultMap += (jobId -> jobEnt)
+            if (((jobEnt.getJobStatus == JobStatus.IN_PROGRESS) || (jobEnt.getJobStatus == JobStatus.PENDING)) && (jobEnt.getRptEntity != null)) {
+              jobEnt.setJobStatus(JobStatus.RESTARTING)
+              noRestartingJobs = false
+              updateJob(jobId, jobEnt)
+            }
+          } catch {
+            case e: Exception => log.error("Caught exception while loading job entities: {}", e.getMessage)
           }
-        } catch {
-          case e: Exception => log.error("Caught exception while loading job entities: {}", e.getMessage)
-        }
-      })
+        })
+    }
     this
   }
   private def handleRestartingJobs() = if (!noRestartingJobs) {
@@ -87,6 +94,7 @@ class Coordinator(_pathToJobEntities: String, rptMgr: ReportManager) extends Act
       }
     })
   }
+
   def act() {
     log.debug("in act()")
     loop {
@@ -126,12 +134,14 @@ class Coordinator(_pathToJobEntities: String, rptMgr: ReportManager) extends Act
 
   protected def updateJob(jobId: Long, jobEnt: JobEntity) {
     jobIdToResultMap += (jobId -> jobEnt)
-    val jobEntFile = new File(pathToJobEntities, jobId + ".entity")
-    jobEntFile.delete
-    jobEntFile.createNewFile
-    try_(new FileOutputStream(jobEntFile, false)) { fos =>
-      mapper.writeValue(fos, jobEnt)
-    }
+    pathToJobEntities.map(path => {
+      val jobEntFile = new File(path, jobId + ".entity")
+      jobEntFile.delete
+      jobEntFile.createNewFile
+      try_(new FileOutputStream(jobEntFile, false)) { fos =>
+        mapper.writeValue(fos, jobEnt)
+      }
+    })
   }
 
   private var currJobId = System.currentTimeMillis

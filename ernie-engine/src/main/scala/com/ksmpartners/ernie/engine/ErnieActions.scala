@@ -14,42 +14,19 @@ import com.ksmpartners.ernie.engine.report.ReportManager
 import scala.actors.OutputChannel
 import Coordinator._
 import com.ksmpartners.ernie.util.Utility._
-import com.ksmpartners.ernie.engine.DeleteRequest
 import scala.Some
-import com.ksmpartners.ernie.engine.DeleteDefinitionRequest
-import com.ksmpartners.ernie.engine.DeleteDefinitionResponse
-import com.ksmpartners.ernie.engine.ReportRequest
-import com.ksmpartners.ernie.engine.PurgeResponse
-import com.ksmpartners.ernie.engine.JobRequest
-import com.ksmpartners.ernie.engine.DeleteResponse
-import com.ksmpartners.ernie.engine.ReportResponse
-import com.ksmpartners.ernie.engine.PurgeRequest
-import com.ksmpartners.ernie.engine.DeleteRequest
-import scala.Some
-import com.ksmpartners.ernie.engine.DeleteDefinitionRequest
-import com.ksmpartners.ernie.engine.DeleteDefinitionResponse
-import com.ksmpartners.ernie.engine.ReportRequest
-import com.ksmpartners.ernie.engine.PurgeResponse
-import com.ksmpartners.ernie.engine.JobRequest
-import com.ksmpartners.ernie.engine.ResultRequest
-import com.ksmpartners.ernie.engine.ResultResponse
-import com.ksmpartners.ernie.engine.JobsCatalogRequest
-import com.ksmpartners.ernie.engine.DeleteResponse
-import com.ksmpartners.ernie.engine.ReportResponse
-import com.ksmpartners.ernie.engine.PurgeRequest
-import com.ksmpartners.ernie.engine.JobsCatalogResponse
 
 trait ErnieActions {
   protected val worker: Worker
   protected val jobIdToResultMap: mutable.HashMap[Long, JobEntity]
   protected var timeout: Long
   protected val reportManager: ReportManager
-  protected val pathToJobEntities: String
+  protected val pathToJobEntities: Option[String]
   protected def generateJobId(): Long
   protected def updateJob(jobId: Long, jobEnt: JobEntity)
 
   def reportRequest(req: ReportRequest, sender: OutputChannel[Any]) {
-    val reportParameters = req.reportParameters
+    val reportParameters = if (req.reportParameters != null) req.reportParameters else Map.empty[String, String]
     val retentionOption = req.retentionPeriod
     val defId = req.defId
     val userName = req.userName

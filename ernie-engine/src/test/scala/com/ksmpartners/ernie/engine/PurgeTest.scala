@@ -89,7 +89,7 @@ class PurgeTest extends TestLogger {
     }
     try {
       reportManager = new FileReportManager(rptDefDir.getAbsolutePath, outputDir.getAbsolutePath)
-      coordinator = new Coordinator(jobDir.getAbsolutePath, reportManager) with TestReportGeneratorFactory
+      coordinator = new Coordinator(Some(jobDir.getAbsolutePath), reportManager) with TestReportGeneratorFactory
       coordinator.start()
     } finally {
 

@@ -51,13 +51,17 @@ class ErnieAPI {
 
   def createDefinition(rptDesign: Option[Either[ByteArrayInputStream, Array[Byte]]], description: String, createdUser: String): Definition =
     try {
-      ServiceRegistry.defsResource.putDefinition(None, rptDesign.map(r => if (r.isLeft) r.left.get else new ByteArrayInputStream(r.right.get)), {
-        val defEnt = new model.DefinitionEntity
-        defEnt.setDefDescription(description)
-        defEnt.setCreatedUser(createdUser)
-        Some(defEnt)
-      })
+      ServiceRegistry.defsResource.putDefinition(None,
+        rptDesign.map(r => if (r.isLeft) r.left.get
+        else fTry_(new ByteArrayInputStream(r.right.get)) { bAIS => bAIS }),
+        {
+          val defEnt = new model.DefinitionEntity
+          defEnt.setDefDescription(description)
+          defEnt.setCreatedUser(createdUser)
+          Some(defEnt)
+        })
     } catch {
+      case e: NullPointerException => Definition(None, None, Some(InvalidDefinitionException("Design byte array null")))
       case e: Exception => Definition(None, None, Some(e))
     }
 
@@ -82,8 +86,8 @@ class ErnieAPI {
 
   def updateDefinition(defId: String, rptDesign: ByteArrayInputStream, definition: Definition): Definition = try {
     if (defId == null) throw new MissingArgumentException("Null definition ID")
-    if (rptDesign == null) Definition(None, None, Some(new MissingArgumentException("Design input stream null")))
-    else if (definition == null) Definition(None, None, Some(new MissingArgumentException("Definition null")))
+    if (rptDesign == null) throw new MissingArgumentException("Design input stream null")
+    else if (definition == null) throw new MissingArgumentException("Definition null")
     updateDefinition(defId, Definition(definition.defEnt, Some(IOUtils.toByteArray(rptDesign)), None))
   } catch {
     case e: Exception => Definition(None, None, Some(e))
@@ -124,7 +128,7 @@ class ErnieAPI {
   }
 
   def getJobStatus(jobId: Long): JobStatus = try {
-    if (jobId == null) throw new MissingArgumentException("Null job ID")
+    if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobStatusResource.get(jobId)
   } catch {
     case e: Exception => JobStatus(jobId, None, Some(e))
@@ -149,14 +153,14 @@ class ErnieAPI {
   }
 
   def getJobEntity(jobId: Long): JobEntity = try {
-    if (jobId == null) throw new MissingArgumentException("Null job ID")
-    ServiceRegistry.jobsResource.getJobEntity(jobId)
+    if (jobId <= 0) throw new MissingArgumentException("Null job ID")
+    ServiceRegistry.jobEntityResource.getJobEntity(jobId)
   } catch {
     case e: Exception => JobEntity(None, Some(e))
   }
 
   def getReportEntity(jobId: Long): ReportEntity = try {
-    if (jobId == null) throw new MissingArgumentException("Null job ID")
+    if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobResultsResource.getReportEntity(jobId)
   } catch {
     case e: Exception => ReportEntity(None, Some(e))
@@ -170,14 +174,14 @@ class ErnieAPI {
   }
 
   def getReportOutputStream(jobId: Long): ReportOutput = try {
-    if (jobId == null) throw new MissingArgumentException("Null job ID")
+    if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobResultsResource.get(jobId, false, true)
   } catch {
     case e: Exception => ReportOutput(None, None, null, Some(e))
   }
 
   def getReportOutputFile(jobId: Long): ReportOutput = try {
-    if (jobId == null) throw new MissingArgumentException("Null job ID")
+    if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     else if (!fileReportManager) ReportOutput(None, None, null, Some(new NothingToReturnException("Memory report manager does not provide files")))
     else {
       ServiceRegistry.jobResultsResource.get(jobId, true, false)
@@ -187,14 +191,14 @@ class ErnieAPI {
   }
 
   def getReportOutput(jobId: Long): ReportOutput = try {
-    if (jobId == null) throw new MissingArgumentException("Null job ID")
+    if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobResultsResource.get(jobId, fileReportManager, true)
   } catch {
     case e: Exception => ReportOutput(None, None, null, Some(e))
   }
 
   def deleteReportOutput(jobId: Long): (model.DeleteStatus, Option[Exception]) = try {
-    if (jobId == null) throw new MissingArgumentException("Null job ID")
+    if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     (ServiceRegistry.jobResultsResource.del(jobId), None)
   } catch {
     case e: Exception => (model.DeleteStatus.FAILED, Some(e))
@@ -227,9 +231,10 @@ object ErnieAPI {
     api.init
     api
   }
-  def apply(timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int): ErnieAPI = {
+  def apply(jobsDir: String, timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int): ErnieAPI = {
     val api = new ErnieAPI
     api.timeout = timeout
+    api.jobsDir = jobsDir
     api.defaultRetentionDays = defaultRetentionDays
     api.maxRetentionDays = maxRetentionDays
     api.fileReportManager = false

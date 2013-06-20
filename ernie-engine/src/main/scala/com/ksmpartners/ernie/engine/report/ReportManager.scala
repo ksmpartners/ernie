@@ -241,10 +241,10 @@ object ReportManager {
     } else rptEnt.setRetentionDate(DateTime.now().plusDays(defaultRetentionDays))
 
     if (entity.contains(paramMap)) {
-      val paramMapObj = entity.get(paramMap).get.asInstanceOf[Map[String, String]]
+      val paramMapObj = entity.get(paramMap).get.asInstanceOf[Map[String, Any]]
       val params: util.Map[String, String] = new util.HashMap()
       for (entry <- paramMapObj) {
-        params.put(entry._1, entry._2)
+        params.put(entry._1, entry._2.toString)
       }
       rptEnt.setParams(params)
     }

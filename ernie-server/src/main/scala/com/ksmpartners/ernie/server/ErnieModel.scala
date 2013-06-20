@@ -187,7 +187,7 @@ package object ErnieRequestTemplates {
   val getExpiredCatalog = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter), ServiceRegistry.jobsResource.getExpiredCatalogAction)
   val headExpiredCatalog = getToHead(getExpiredCatalog)
   val purgeExpired = RequestTemplate(DeleteRequest, justJSON, List(writeAuthFilter, jsonFilter), ServiceRegistry.jobsResource.purgeAction)
-  val getJob = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobsResource.getJobDetailAction)
+  val getJob = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobEntityResource.getJobDetailAction)
   val headJob = getToHead(getJob)
   val getJobStatus = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobStatusResource.getJobStatusAction)
   val headJobStatus = getToHead(getJobStatus)

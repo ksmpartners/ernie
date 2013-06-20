@@ -8,7 +8,7 @@
 package com.ksmpartners.ernie.api.service
 
 import com.ksmpartners.ernie.engine.report.{ MemoryReportManager, BirtReportGeneratorFactory, FileReportManager, ReportManager }
-import com.ksmpartners.ernie.engine.Coordinator
+import com.ksmpartners.ernie.engine.{ Coordinator, ErnieCoordinator }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.api.ErnieConfig
 import java.io.File
@@ -38,14 +38,16 @@ package object ServiceRegistry extends JobDependencies
   protected def fileReportManager = ernieConfig.map(frm => frm.fileMgr) getOrElse false
 
   private var reportManagerOpt: Option[ReportManager] = None
-  private var coordinatorOpt: Option[Coordinator] = None
+  private var coordinatorOpt: Option[ErnieCoordinator] = None
 
   protected def reportManager = reportManagerOpt.getOrElse {
-    if (!(new File(defDir)).isDirectory) throw new RuntimeException("Definition path is not a directory")
-    if (!(new File(outputDir)).isDirectory) throw new RuntimeException("Output path is not a directory")
+
     var rm: ReportManager = null
-    if (fileReportManager) rm = new FileReportManager(defDir, outputDir)
-    else rm = new MemoryReportManager
+    if (fileReportManager) {
+      if (!(new File(defDir)).isDirectory) throw new RuntimeException("Definition path is not a directory")
+      if (!(new File(outputDir)).isDirectory) throw new RuntimeException("Output path is not a directory")
+      rm = new FileReportManager(defDir, outputDir)
+    } else rm = new MemoryReportManager
     val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.report.FileReportManager")
     rm.putDefaultRetentionDays(defaultRetentionDays)
     rm.putMaximumRetentionDays(maxRetentionDays)
@@ -55,16 +57,19 @@ package object ServiceRegistry extends JobDependencies
 
   protected def coordinator = coordinatorOpt getOrElse {
     if (!(new File(jobsDir)).isDirectory) throw new RuntimeException("Jobs path is not a directory")
-    val coord = new Coordinator(jobsDir, reportManager) with BirtReportGeneratorFactory
+    val coord = new Coordinator(if (fileReportManager) Some(jobsDir) else None, reportManager) with BirtReportGeneratorFactory
     coord.start()
     coord.setTimeout(timeout)
     coordinatorOpt = Some(coord)
     coord
   }
 
+  def setCoordinator(c: ErnieCoordinator) { coordinatorOpt = Some(c) }
+
   val jobsResource = new JobsResource
   val jobStatusResource = new JobStatusResource
   val jobCatalogResource = new JobCatalogResource
+  val jobEntityResource = new JobEntityResource
   val jobResultsResource = new JobResultsResource
 
   val defsResource = new DefsResource
@@ -73,6 +78,8 @@ package object ServiceRegistry extends JobDependencies
 
   def init(config: ErnieConfig) {
     ernieConfig = Some(config)
+    coordinatorOpt = None
+    reportManagerOpt = None
     coordinator
   }
 

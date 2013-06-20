@@ -27,6 +27,12 @@ class UtilityTest {
   }
 
   @Test
+  def canCheckContentType() {
+    val headers = List(("test", "test"), ("test2", "test2"))
+    Assert.assertFalse(checkContentType(headers, "test3"))
+  }
+
+  @Test
   def canUseTryCatch() {
     val cls = new Cls
     cls.open()

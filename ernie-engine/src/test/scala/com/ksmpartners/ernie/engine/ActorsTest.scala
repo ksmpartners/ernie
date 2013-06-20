@@ -42,7 +42,7 @@ class ActorsTest extends TestLogger {
       val byteArr = new Array[Byte](file.length().asInstanceOf[Int])
       fis.read(byteArr)
       reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", JavaConversions.asJavaList(List(ReportType.CSV)), null))
-      coordinator = new Coordinator(createTempDirectory.getAbsolutePath, reportManager) with TestReportGeneratorFactory
+      coordinator = new Coordinator(Some(createTempDirectory.getAbsolutePath), reportManager) with TestReportGeneratorFactory
       coordinator.start()
     } finally {
       try { fis.close() } catch { case e => }

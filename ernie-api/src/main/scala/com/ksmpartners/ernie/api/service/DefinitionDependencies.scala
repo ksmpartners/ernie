@@ -34,7 +34,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       if (!(definitionEntity.isDefined || rptDesign.isDefined)) throw new MissingArgumentException("Must specify at least a definition entity or design")
       var defEnt = definitionEntity.getOrElse(new DefinitionEntity)
       if (rptDesign.isDefined) {
-
+        if (rptDesign.get == null) throw new InvalidDefinitionException("Definition null")
         if (!BirtReportGenerator.isValidDefinition(rptDesign.get))
           throw new InvalidDefinitionException("Definition invalid")
         else try {
@@ -68,9 +68,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       } else {
         defEnt.setDefId(defId.get)
         val result = reportManager.updateDefinition(defId.get, defEnt)
-        rptDesign.get.reset
-        if (rptDesign.isDefined)
-          IOUtils.copy(rptDesign.get, result)
+        rptDesign.map(r => { r.reset; IOUtils.copy(r, result) })
         result.close
         Definition(Some(defEnt), None, None)
       }
