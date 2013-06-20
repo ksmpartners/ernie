@@ -11,6 +11,7 @@ import com.ksmpartners.ernie.util.Utility._
 import org.testng.annotations.Test
 import java.io._
 import org.testng.Assert
+import org.slf4j.{ LoggerFactory, Logger }
 
 class UtilityTest {
 

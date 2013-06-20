@@ -11,6 +11,7 @@
   </appender>
 
   <logger name="com.ksmpartners.ernie" level="DEBUG" />
+  <logger name="com.ksmpartners.ernie.engine" level="ERROR" />
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />

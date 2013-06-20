@@ -94,6 +94,7 @@ trait JobDependencies extends RequiresCoordinator
       else {
         val statusResponse = statusRespOpt.get
         if (statusResponse.jobStatus != model.JobStatus.COMPLETE) {
+          if (statusResponse.jobStatus == model.JobStatus.NO_SUCH_JOB) throw new api.NotFoundException("Job " + jobId + " not found")
           throw new api.ReportOutputException(Some(statusResponse.jobStatus), "Failure to retrieve job output")
         } else {
           val respOpt = (coordinator !? (timeout, engine.ResultRequest(jobId.toLong))).asInstanceOf[Option[engine.ResultResponse]]

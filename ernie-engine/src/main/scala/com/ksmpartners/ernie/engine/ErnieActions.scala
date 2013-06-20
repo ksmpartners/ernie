@@ -97,7 +97,7 @@ trait ErnieActions {
     if (jobIdToResultMap.find(p => {
       val defIdOpt = if (p._2.getRptEntity != null) Some(p._2.getRptEntity.getSourceDefId)
       else reportManager.getReport(p._2.getRptId).map(r => r.getSourceDefId)
-      if (defIdOpt.isDefined) (defIdOpt.get == defId) && ((p._2.getJobStatus == JobStatus.IN_PROGRESS) || (p._2.getJobStatus == JobStatus.PENDING))
+      if (defIdOpt.isDefined) (defIdOpt.get == defId) && ((p._2.getJobStatus == JobStatus.IN_PROGRESS) || (p._2.getJobStatus == JobStatus.PENDING) || (p._2.getJobStatus == JobStatus.RESTARTING))
       else false
     }).isDefined) {
       sender ! DeleteDefinitionResponse(DeleteStatus.FAILED_IN_USE, req)

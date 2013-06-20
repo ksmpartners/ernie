@@ -73,9 +73,9 @@ class Coordinator(_pathToJobEntities: Option[String], rptMgr: ReportManager) ext
     this
   }
   private def handleRestartingJobs() = if (!noRestartingJobs) {
+    noRestartingJobs = true
     val restJobs = jobIdToResultMap.filter(p => p._2.getJobStatus == JobStatus.RESTARTING)
-    if (restJobs.isEmpty) noRestartingJobs = true
-    else restJobs.foreach(f => {
+    restJobs.foreach(f => {
       val jobEnt = f._2
       val jobId = f._1
       import JavaConversions._
