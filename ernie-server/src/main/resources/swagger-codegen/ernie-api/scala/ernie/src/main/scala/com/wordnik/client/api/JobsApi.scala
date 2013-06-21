@@ -416,7 +416,7 @@ class JobsApi {
       case ex: ApiException => throw ex
     }
   }
-  def getJobResult(job_id: String, Authorization: String): Option[byte] = {
+  def getJobResult(job_id: String, Authorization: String, Accept: String): Option[byte] = {
     // create path and map variables
     val path = "/jobs/{job_id}/result".replaceAll("\\{format\\}", "json").replaceAll("\\{" + "job_id" + "\\}", apiInvoker.escapeString(job_id))
 
@@ -434,6 +434,7 @@ class JobsApi {
       case _ => throw new Exception("missing required params")
     }
     headerParams += "Authorization" -> Authorization
+    headerParams += "Accept" -> Accept
     try {
       apiInvoker.invokeApi(basePath, path, "GET", queryParams.toMap, None, headerParams.toMap, contentType) match {
         case s: String =>

@@ -29,14 +29,14 @@
       "summary":"Return a map of jobId to URI",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs list timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -61,14 +61,14 @@
       "summary":"Return a map of jobId to URI",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs list timed out"
       }]
     },{
       "httpMethod":"POST",
@@ -100,29 +100,32 @@
       "summary":"Schedules the submitted job",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
       },{
         "code":400,
-        "reason":"No request body"
+        "reason":""
       },{
-        "code":400,
-        "reason":"Retention date exceeds maximum"
-      },{
-        "code":400,
-        "reason":"Retention date before request time"
+        "code":500,
+        "reason":"Server error"
       },{
         "code":400,
         "reason":"No such definition ID"
       },{
         "code":400,
-        "reason":"Server error"
+        "reason":"Retention date before request time"
       },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
+        "code":400,
+        "reason":"Retention date exceeds maximum"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":400,
+        "reason":"No request body"
+      },{
+        "code":504,
+        "reason":"Job creation timed out"
       }]
     }]
   },{
@@ -151,14 +154,14 @@
       "summary":"Return a catalog of deleted jobs' JobEntities",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs catalog timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -183,14 +186,14 @@
       "summary":"Return a catalog of deleted jobs' JobEntities",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs catalog timed out"
       }]
     }]
   },{
@@ -219,14 +222,14 @@
       "summary":"Return a catalog of failed jobs' JobEntities",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs catalog timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -251,14 +254,14 @@
       "summary":"Return a catalog of failed jobs' JobEntities",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs catalog timed out"
       }]
     }]
   },{
@@ -287,17 +290,17 @@
       "summary":"Purges expired jobs",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
-      },{
-        "code":500,
-        "reason":"Purge failed"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":500,
+        "reason":null
+      },{
+        "code":504,
+        "reason":"Purge timed out"
       }]
     },{
       "httpMethod":"GET",
@@ -322,14 +325,14 @@
       "summary":"Return a catalog of expired jobs' JobEntities",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs catalog timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -354,14 +357,14 @@
       "summary":"Return a catalog of expired jobs' JobEntities",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs catalog timed out"
       }]
     }]
   },{
@@ -390,14 +393,14 @@
       "summary":"Return a catalog of complete jobs' JobEntities",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs catalog timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -422,14 +425,14 @@
       "summary":"Return a catalog of complete jobs' JobEntities",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs catalog timed out"
       }]
     }]
   },{
@@ -458,14 +461,14 @@
       "summary":"Return a catalog of all JobEntities",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs catalog timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -490,14 +493,14 @@
       "summary":"Return a catalog of all JobEntities",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Jobs catalog timed out"
       }]
     }]
   },{
@@ -533,20 +536,20 @@
       "summary":"Return a JobEntity",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
-      },{
-        "code":404,
-        "reason":"Job ID not found"
-      },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
+        "code":400,
+        "reason":"Job ID provided is not a number"
       },{
         "code":406,
         "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
-        "code":400,
-        "reason":"Job ID provided is not a number"
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":404,
+        "reason":"Job ID not found"
+      },{
+        "code":504,
+        "reason":"Job detail timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -578,20 +581,20 @@
       "summary":"Return a JobEntity",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
-      },{
-        "code":404,
-        "reason":"Job ID not found"
-      },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
+        "code":400,
+        "reason":"Job ID provided is not a number"
       },{
         "code":406,
         "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
-        "code":400,
-        "reason":"Job ID provided is not a number"
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":404,
+        "reason":"Job ID not found"
+      },{
+        "code":504,
+        "reason":"Job detail timed out"
       }]
     }]
   },{
@@ -616,36 +619,43 @@
         "dataType":"string",
         "required":false,
         "allowMultiple":false
+      },{
+        "paramType":"header",
+        "name":"Accept",
+        "description":"Accept",
+        "dataType":"string",
+        "required":false,
+        "allowMultiple":false
       }],
       "summary":"Returns a stream containing the result content for the given Job ID",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Job Results request timed out"
-      },{
-        "code":410,
-        "reason":"Job deleted"
-      },{
-        "code":404,
-        "reason":"Job ID not found"
-      },{
-        "code":410,
-        "reason":"Report expired"
-      },{
         "code":400,
-        "reason":"Job incomplete"
+        "reason":"Job ID provided is not a number"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":500,
+        "reason":""
       },{
         "code":406,
         "reason":"Resource does not serve specified Accept type"
       },{
         "code":400,
-        "reason":"Job ID undefined"
+        "reason":"Job incomplete"
       },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
+        "code":410,
+        "reason":"Report expired"
       },{
-        "code":400,
-        "reason":"Job ID provided is not a number"
+        "code":404,
+        "reason":"Job ID not found"
+      },{
+        "code":410,
+        "reason":"Job deleted"
+      },{
+        "code":504,
+        "reason":"Job result timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -670,32 +680,32 @@
       "summary":"Returns a stream containing the result content for the given Job ID",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Job Results request timed out"
-      },{
-        "code":410,
-        "reason":"Job deleted"
-      },{
-        "code":404,
-        "reason":"Job ID not found"
-      },{
-        "code":410,
-        "reason":"Report expired"
-      },{
         "code":400,
-        "reason":"Job incomplete"
+        "reason":"Job ID provided is not a number"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":500,
+        "reason":""
       },{
         "code":406,
         "reason":"Resource does not serve specified Accept type"
       },{
         "code":400,
-        "reason":"Job ID undefined"
+        "reason":"Job incomplete"
       },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
+        "code":410,
+        "reason":"Report expired"
       },{
-        "code":400,
-        "reason":"Job ID provided is not a number"
+        "code":404,
+        "reason":"Job ID not found"
+      },{
+        "code":410,
+        "reason":"Job deleted"
+      },{
+        "code":504,
+        "reason":"Job result timed out"
       }]
     },{
       "httpMethod":"DELETE",
@@ -727,26 +737,26 @@
       "summary":"Purges report output for a given Job ID",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Job Results request timed out"
-      },{
-        "code":404,
-        "reason":"Job ID not found"
-      },{
-        "code":409,
-        "reason":"Job result in use"
-      },{
         "code":400,
-        "reason":"Job deletion failed"
-      },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
+        "reason":"Job ID provided is not a number"
       },{
         "code":406,
         "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
-        "code":400,
-        "reason":"Job ID provided is not a number"
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":500,
+        "reason":"Job deletion failed"
+      },{
+        "code":409,
+        "reason":"Job result in use"
+      },{
+        "code":404,
+        "reason":"Job ID not found"
+      },{
+        "code":504,
+        "reason":"Report delete timed out"
       }]
     }]
   },{
@@ -782,23 +792,26 @@
       "summary":"Retrieves details for output from a given jobId",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Job Results request timed out"
+        "code":400,
+        "reason":"Job ID provided is not a number"
       },{
-        "code":404,
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":400,
         "reason":""
       },{
         "code":500,
         "reason":""
       },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
+        "code":404,
+        "reason":"Job ID not found"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
-      },{
-        "code":400,
-        "reason":"Job ID provided is not a number"
+        "code":504,
+        "reason":"Job detail timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -830,23 +843,26 @@
       "summary":"Retrieves details for output from a given jobId",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Job Results request timed out"
+        "code":400,
+        "reason":"Job ID provided is not a number"
       },{
-        "code":404,
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":400,
         "reason":""
       },{
         "code":500,
         "reason":""
       },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
+        "code":404,
+        "reason":"Job ID not found"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
-      },{
-        "code":400,
-        "reason":"Job ID provided is not a number"
+        "code":504,
+        "reason":"Job detail timed out"
       }]
     }]
   },{
@@ -882,20 +898,23 @@
       "summary":"Return StatusResponse for given jobId",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Job Status Request timed out"
-      },{
-        "code":410,
-        "reason":"Job deleted"
-      },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
+        "code":400,
+        "reason":"Job ID provided is not a number"
       },{
         "code":406,
         "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
-        "code":400,
-        "reason":"Job ID provided is not a number"
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":500,
+        "reason":""
+      },{
+        "code":410,
+        "reason":"Job deleted"
+      },{
+        "code":504,
+        "reason":"Job status timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -927,20 +946,23 @@
       "summary":"Return StatusResponse for given jobId",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Job Status Request timed out"
-      },{
-        "code":410,
-        "reason":"Job deleted"
-      },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
+        "code":400,
+        "reason":"Job ID provided is not a number"
       },{
         "code":406,
         "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
-        "code":400,
-        "reason":"Job ID provided is not a number"
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":500,
+        "reason":""
+      },{
+        "code":410,
+        "reason":"Job deleted"
+      },{
+        "code":504,
+        "reason":"Job status timed out"
       }]
     }]
   }],

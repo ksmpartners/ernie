@@ -467,7 +467,7 @@ public class JobsApi {
       }
     }
   }
-  public byte getJobResult (String job_id, String Authorization) throws ApiException {
+  public byte getJobResult (String job_id, String Authorization, String Accept) throws ApiException {
     // create path and map variables
     String path = "/jobs/{job_id}/result".replaceAll("\\{format\\}","json").replaceAll("\\{" + "job_id" + "\\}", apiInvoker.escapeString(job_id.toString()));
 
@@ -480,6 +480,7 @@ public class JobsApi {
        throw new ApiException(400, "missing required params");
     }
     headerParams.put("Authorization", Authorization);
+    headerParams.put("Accept", Accept);
     try {
       String response = apiInvoker.invokeAPI(basePath, path, "GET", queryParams, null, headerParams);
       if(response != null){

@@ -29,11 +29,14 @@
       "summary":"Retrieve a mapping of definition IDs to URIs",
       "notes":"",
       "errorResponses":[{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Defs list timed out"
       }]
     },{
       "httpMethod":"HEAD",
@@ -58,11 +61,14 @@
       "summary":"Retrieve a mapping of definition IDs to URIs",
       "notes":"",
       "errorResponses":[{
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Defs list timed out"
       }]
     },{
       "httpMethod":"POST",
@@ -94,17 +100,23 @@
       "summary":"Post a DefinitionEntity",
       "notes":"",
       "errorResponses":[{
-        "code":400,
-        "reason":"No DefinitionEntity in request body"
-      },{
-        "code":400,
-        "reason":"Malformed DefinitionEntity"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Definition creation timed out"
+      },{
+        "code":500,
+        "reason":""
+      },{
+        "code":400,
+        "reason":"Malformed DefinitionEntity"
+      },{
+        "code":400,
+        "reason":"No DefinitionEntity in request body"
       }]
     }]
   },{
@@ -140,14 +152,17 @@
       "summary":"Retrieve the DefinitionEntity for a specific Definition ID",
       "notes":"",
       "errorResponses":[{
-        "code":404,
-        "reason":"Definition ID not found"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Get definition timed out"
+      },{
+        "code":404,
+        "reason":"Definition ID not found"
       }]
     },{
       "httpMethod":"HEAD",
@@ -179,14 +194,17 @@
       "summary":"Retrieve the DefinitionEntity for a specific Definition ID",
       "notes":"",
       "errorResponses":[{
-        "code":404,
-        "reason":"Definition ID not found"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":504,
+        "reason":"Get definition timed out"
+      },{
+        "code":404,
+        "reason":"Definition ID not found"
       }]
     },{
       "httpMethod":"DELETE",
@@ -218,23 +236,23 @@
       "summary":"Deletes a specific definition",
       "notes":"",
       "errorResponses":[{
-        "code":504,
-        "reason":"Request timed out"
-      },{
-        "code":404,
-        "reason":"Definition not found"
-      },{
-        "code":409,
-        "reason":"Definition in use"
-      },{
-        "code":400,
-        "reason":"Definition deletion failed"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
       },{
         "code":403,
         "reason":"User is not authorized to perform that action"
       },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "code":400,
+        "reason":"Definition deletion failed"
+      },{
+        "code":409,
+        "reason":"Definition in use"
+      },{
+        "code":404,
+        "reason":"Definition ID not found"
+      },{
+        "code":504,
+        "reason":"Definition delete timed out"
       }]
     }]
   },{
@@ -277,26 +295,26 @@
       "summary":"Put definition rptdesign",
       "notes":"",
       "errorResponses":[{
-        "code":400,
-        "reason":"Unacceptable Content-Type"
+        "code":406,
+        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+      },{
+        "code":403,
+        "reason":"User is not authorized to perform that action"
+      },{
+        "code":500,
+        "reason":""
       },{
         "code":400,
-        "reason":"No report design in request body"
+        "reason":"Unable to validate report design"
       },{
         "code":404,
         "reason":"Definition not found"
       },{
         "code":400,
-        "reason":"Unable to validate report design"
+        "reason":"No report design in request body"
       },{
         "code":400,
-        "reason":"Malformed report design"
-      },{
-        "code":403,
-        "reason":"User is not authorized to perform that action"
-      },{
-        "code":406,
-        "reason":"Resource only serves application/vnd.ksmpartners.ernie+json"
+        "reason":"Unacceptable Content-Type"
       }]
     }]
   }],

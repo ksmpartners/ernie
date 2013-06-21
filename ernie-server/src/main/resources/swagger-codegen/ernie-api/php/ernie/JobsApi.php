@@ -681,10 +681,11 @@ class JobsApi {
 	 * Returns a stream containing the result content for the given Job ID
    * job_id, string: job_id (optional)
    * Authorization, string: Authorization (optional)
+   * Accept, string: Accept (optional)
    * @return byte
 	 */
 
-   public function getJobResult($job_id=null, $Authorization=null) {
+   public function getJobResult($job_id=null, $Authorization=null, $Accept=null) {
 
   		//parse inputs
   		$resourcePath = "/jobs/{job_id}/result";
@@ -695,6 +696,9 @@ class JobsApi {
 
       if($Authorization != null) {
   		 	$headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
+  		}
+      if($Accept != null) {
+  		 	$headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
   		}
       if($job_id != null) {
   			$resourcePath = str_replace("{" . "job_id" . "}",
