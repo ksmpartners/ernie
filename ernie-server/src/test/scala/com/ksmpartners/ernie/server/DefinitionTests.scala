@@ -127,7 +127,6 @@ class DefinitionTest extends WebSpec(() => {
 
   @AfterSuite
   def shutdown() {
-    log.info("When is this happenign")
 
     DispatchRestAPI.shutdown()
     for (file <- outputDir.listFiles()) {

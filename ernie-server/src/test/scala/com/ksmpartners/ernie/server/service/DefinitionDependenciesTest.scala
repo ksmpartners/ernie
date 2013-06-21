@@ -38,10 +38,7 @@ class DefinitionDependenciesTest extends TestLogger { // extends DefinitionDepen
 
   @BeforeClass
   def setup() {
-    log.info("DDT")
     val file = new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def_params.rptdesign").getPath)
-
-    //  reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null, null))
   }
 
   @Test

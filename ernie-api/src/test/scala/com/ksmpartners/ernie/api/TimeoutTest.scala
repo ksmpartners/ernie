@@ -37,7 +37,7 @@ class TestCoordinator extends ErnieCoordinator {
 class TimeoutTest {
 
   private val ernie = {
-    val e = ErnieAPI(createTempDirectory.getAbsolutePath, 1L, 7, 14)
+    val e = ErnieAPI(1L, 7, 14)
     ServiceRegistry.setCoordinator({
       val coord = new TestCoordinator()
       coord.start()

@@ -219,6 +219,7 @@ class ErnieAPI {
 }
 
 object ErnieAPI {
+  def apply = new ErnieAPI
   def apply(jobsDir: String, defDir: String, outputDir: String, timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int): ErnieAPI = {
     val api = new ErnieAPI
     api.jobsDir = jobsDir
@@ -231,10 +232,9 @@ object ErnieAPI {
     api.init
     api
   }
-  def apply(jobsDir: String, timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int): ErnieAPI = {
+  def apply(timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int): ErnieAPI = {
     val api = new ErnieAPI
     api.timeout = timeout
-    api.jobsDir = jobsDir
     api.defaultRetentionDays = defaultRetentionDays
     api.maxRetentionDays = maxRetentionDays
     api.fileReportManager = false

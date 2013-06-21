@@ -53,7 +53,6 @@ class APITest { //extends TestLogger {
     try_(new ByteArrayInputStream(xml.toString.getBytes)) { bAIS =>
       {
         val resp = ernie.createDefinition(Some(Left(bAIS)), "test", "test")
-        log.info(resp.error + "")
         Assert.assertEquals(resp.error, None)
         defId = resp.defEnt.get.getDefId
       }
@@ -168,7 +167,6 @@ class APITest { //extends TestLogger {
     Assert.assertTrue(resp.isDefined)
     resp = ernie.getReportEntity(jobToRptId(jobId)).rptEntity
     Assert.assertTrue(resp.isDefined)
-    log.info("Look in " + (new File(ernie.outputDir)).getAbsolutePath)
     Assert.assertTrue(resp.get.getStartDate.isBeforeNow)
   }
 
