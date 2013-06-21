@@ -56,7 +56,7 @@ package object ServiceRegistry extends JobDependencies
   }
 
   protected def coordinator = coordinatorOpt getOrElse {
-    if (!(new File(jobsDir)).isDirectory) throw new RuntimeException("Jobs path is not a directory")
+    if (fileReportManager) if (!(new File(jobsDir)).isDirectory) throw new RuntimeException("Jobs path is not a directory")
     val coord = new Coordinator(if (fileReportManager) Some(jobsDir) else None, reportManager) with BirtReportGeneratorFactory
     coord.start()
     coord.setTimeout(timeout)

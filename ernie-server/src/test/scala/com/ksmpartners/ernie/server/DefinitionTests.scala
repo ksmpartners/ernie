@@ -73,6 +73,12 @@ class DefinitionTest extends WebSpec(() => {
 
   val outputDir = new File(properties.get("output.dir").toString)
   val jobsDir = new File(properties.get("jobs.dir").toString)
+  for (file <- outputDir.listFiles()) {
+    recDel(file)
+  }
+  for (file <- jobsDir.listFiles()) {
+    recDel(file)
+  }
 
   for (i <- 1 to 4) {
     var report = new ReportEntity(DateTime.now, if (i % 2 == 0) DateTime.now.minusDays(10) else DateTime.now.plusDays(4), "REPORT_" + i, "test_def", "default", null, ReportType.PDF, null, null)
