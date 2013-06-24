@@ -21,12 +21,19 @@ import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.MapperUtility._
 import com.ksmpartners.ernie.util.TestLogger
 import com.ksmpartners.ernie.engine._
+import scala.concurrent.{ Await, ExecutionContext, Future }
+import ExecutionContext.Implicits.global
+import akka.actor.{ ActorSystem, ActorRef, ActorDSL }
+import akka.pattern.ask
+import akka.util.Timeout
+import scala.concurrent.duration._
 
 class PurgeTest extends TestLogger {
+  implicit val system = ActorSystem("purge-test-system")
 
   private var reportManager: FileReportManager = null
-  private var coordinator: Coordinator = null
-  private val timeout = 1000L
+  private var coordinator: ActorRef = null
+  implicit val timeout: Timeout = Timeout(365 days)
   private var testDef = ""
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.PurgeTest")
 
@@ -55,8 +62,7 @@ class PurgeTest extends TestLogger {
         log.info("Caught exception while generating test definition: {}", e.getMessage + "\n" + e.getStackTraceString)
         throw e
       }
-    }
-    finally {
+    } finally {
       try { fis.close() } catch { case e => }
     }
 
@@ -89,8 +95,7 @@ class PurgeTest extends TestLogger {
     }
     try {
       reportManager = new FileReportManager(rptDefDir.getAbsolutePath, outputDir.getAbsolutePath)
-      coordinator = new Coordinator(Some(jobDir.getAbsolutePath), reportManager) with TestReportGeneratorFactory
-      coordinator.start()
+      coordinator = ActorDSL.actor(system)(new Coordinator(Some(jobDir.getAbsolutePath), reportManager, None, 5) with TestReportGeneratorFactory)
     } finally {
 
     }
@@ -99,7 +104,7 @@ class PurgeTest extends TestLogger {
 
   @AfterClass
   def shutdown() {
-    val sResp = (coordinator !? ShutDownRequest()).asInstanceOf[ShutDownResponse]
+    Await.result((coordinator ? ShutDownRequest()), timeout.duration)
   }
 
   @Test
@@ -114,12 +119,11 @@ class PurgeTest extends TestLogger {
   @Test(dependsOnMethods = Array("hasReports"))
   def canPurgeExpiredJobs() {
     import com.ksmpartners.ernie.engine.StatusResponse
-    val statusList = List((coordinator !? (timeout, StatusRequest(2L))).asInstanceOf[Option[StatusResponse]], (coordinator !? (timeout, StatusRequest(4L))).asInstanceOf[Option[StatusResponse]])
-    statusList.foreach(f => {
-      Assert.assertTrue(f.isDefined)
-      Assert.assertEquals(f.get.jobStatus, JobStatus.EXPIRED)
-    })
-    val purgeResp = (coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
+    val statusList = Future.sequence(List((coordinator ? (StatusRequest(2L))).mapTo[StatusResponse], (coordinator ? (StatusRequest(4L))).mapTo[StatusResponse]))
+    Await.result(statusList, timeout.duration) foreach { f =>
+      Assert.assertEquals(f.jobStatus, JobStatus.EXPIRED)
+    }
+    val purgeResp = Await.result((coordinator ? PurgeRequest()).mapTo[PurgeResponse], timeout.duration)
     Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_2"))
     Assert.assertTrue(purgeResp.purgedRptIds.contains("REPORT_4"))
   }
@@ -128,15 +132,11 @@ class PurgeTest extends TestLogger {
   def pendingJobsRestart() {
     import com.ksmpartners.ernie.engine.StatusResponse
     var statusRespOpt: List[StatusResponse] = Nil
-    val end = DateTime.now.plus(timeout * 10L)
+    val end = DateTime.now.plusMillis(timeout.duration.toMillis.toInt)
     var result = false
     do {
-      statusRespOpt = Nil
-      (coordinator !? (timeout, StatusRequest(1L))).asInstanceOf[Option[StatusResponse]].map(f => statusRespOpt ::= f)
-      Assert.assertEquals(statusRespOpt.length, 1)
-      (coordinator !? (timeout, StatusRequest(3L))).asInstanceOf[Option[StatusResponse]].map(f => statusRespOpt ::= f)
-      Assert.assertEquals(statusRespOpt.length, 2)
-      result = (statusRespOpt(1).jobStatus == JobStatus.COMPLETE) && (statusRespOpt(0).jobStatus == JobStatus.FAILED_UNSUPPORTED_FORMAT)
+      statusRespOpt = Await.result(Future.sequence(List((coordinator ? (StatusRequest(1L))).mapTo[StatusResponse], (coordinator ? (StatusRequest(3L))).mapTo[StatusResponse])), timeout.duration)
+      result = (statusRespOpt(0).jobStatus == JobStatus.COMPLETE) && (statusRespOpt(1).jobStatus == JobStatus.FAILED_UNSUPPORTED_FORMAT)
     } while (!result && (DateTime.now.isBefore(end)))
     Assert.assertTrue(result)
   }
@@ -144,9 +144,9 @@ class PurgeTest extends TestLogger {
   @Test(dependsOnMethods = Array("pendingJobsRestart"))
   def canDeleteDef() {
     import com.ksmpartners.ernie.engine.DeleteDefinitionResponse
-    val respOpt = (coordinator !? (timeout, DeleteDefinitionRequest("test_def"))).asInstanceOf[Option[DeleteDefinitionResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    Assert.assertEquals(respOpt.get.deleteStatus, DeleteStatus.SUCCESS)
+    Assert.assertEquals(
+      Await.result((coordinator ? (DeleteDefinitionRequest("test_def"))).mapTo[DeleteDefinitionResponse], timeout.duration).deleteStatus,
+      DeleteStatus.SUCCESS)
   }
 
   private def createTempDirectory(): File = {

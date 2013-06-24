@@ -17,7 +17,7 @@
     <description>A JEE web application resource for serving RESTful Ernie Web Services</description>
     <inceptionYear>2013</inceptionYear>
     <properties>
-        <scala.version>2.9.1</scala.version>
+        <scala.version>2.10.0</scala.version>
         <jetty.version>6.1.26</jetty.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
@@ -37,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>net.liftweb</groupId>
-            <artifactId>lift-webkit_2.9.1</artifactId>
+            <artifactId>lift-webkit_2.10</artifactId>
             <version>2.5</version>
         </dependency>
         <dependency>
@@ -46,7 +46,7 @@
             <version>2.5</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
+       <dependency>
             <groupId>org.mortbay.jetty</groupId>
             <artifactId>jetty</artifactId>
             <version>${jetty.version}</version>
@@ -79,19 +79,25 @@
         </dependency>
         <dependency>
             <groupId>net.liftweb</groupId>
-            <artifactId>lift-testkit_2.9.1</artifactId>
+            <artifactId>lift-testkit_2.10</artifactId>
             <version>2.5</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
+       <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.9.1</artifactId>
+            <artifactId>specs2_2.10</artifactId>
             <version>1.12.3</version>
             <scope>test</scope>
         </dependency>
+        <!--<dependency>
+            <groupId>org.scala-tools.testing</groupId>
+            <artifactId>scalacheck</artifactId>
+            <version>1.6</version>
+            <scope>test</scope>
+        </dependency>!-->
         <dependency>
             <groupId>org.scalacheck</groupId>
-            <artifactId>scalacheck_2.9.1</artifactId>
+            <artifactId>scalacheck_2.10.0</artifactId>
             <version>1.10.0</version>
             <scope>test</scope>
         </dependency>
@@ -119,7 +125,7 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
             </plugin>
-            <plugin>
+           <plugin>
                 <groupId>org.mortbay.jetty</groupId>
                 <artifactId>maven-jetty-plugin</artifactId>
                 <version>${jetty.version}</version>
@@ -185,7 +191,7 @@
         <profile>
             <id>coverage</id>
             <dependencies>
-                <dependency>
+            <dependency>
                     <groupId>reaktor</groupId>
                     <artifactId>scct</artifactId>
                     <version>2.9.2</version>

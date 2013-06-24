@@ -90,7 +90,8 @@ class BirtReportGeneratorTest extends BirtReportGeneratorFactory with TestLogger
 
   @Test
   def canGetAvailableDefs() {
-    Assert.assertEquals(reportGenerator.getAvailableRptDefs, List("test_def", "test_def_var"))
+    Assert.assertTrue(reportGenerator.getAvailableRptDefs.contains("test_def"))
+    Assert.assertTrue(reportGenerator.getAvailableRptDefs.contains("test_def_var"))
   }
 
   @Test
@@ -177,6 +178,7 @@ class BirtReportGeneratorTest extends BirtReportGeneratorFactory with TestLogger
   @Test(expectedExceptions = Array(classOf[IllegalStateException]), dependsOnMethods = Array("canGetAvailableDefs", "canRunExistingDef", "canValidateReportDefinition", "canRunExistingDefWithParam", "nullParamsThrowsException", "canRunExistingDefWithDefaultParam", "startEngineIsIdempotent"))
   def cantRunExistingReportWithStoppedGenerator() {
     val rptGen = new BirtReportGenerator(new MemoryReportManager)
+    rptGen.startup
     rptGen.shutdown()
     rptGen.runReport("test1", "test2", ReportType.PDF, None, "testUser")
   }

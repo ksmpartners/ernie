@@ -29,6 +29,9 @@ import com.ksmpartners.ernie.util.TestLogger
 import com.ksmpartners.ernie.api.ErnieAPI
 import com.ksmpartners.ernie.model.{ DefinitionEntity, DeleteStatus }
 import org.apache.cxf.helpers.FileUtils
+import akka.actor.{ ActorSystem, ActorRef, ActorDSL }
+import akka.pattern.ask
+import scala.concurrent.duration._
 
 @Test(dependsOnGroups = Array("timeout"))
 class DefinitionDependenciesTest extends DefinitionDependencies with RequiresCoordinator with RequiresReportManager { //TestLogger
@@ -36,6 +39,10 @@ class DefinitionDependenciesTest extends DefinitionDependencies with RequiresCoo
   private val tempInputDir = createTempDirectory
   private val tempOutputDir = createTempDirectory
   private val tempJobDir = createTempDirectory
+
+  protected def workerCount: Int = 5
+
+  protected val system: ActorSystem = ActorSystem("definition-dependencies-test")
 
   @BeforeClass
   def jobsDir = tempJobDir.getAbsolutePath
@@ -64,10 +71,8 @@ class DefinitionDependenciesTest extends DefinitionDependencies with RequiresCoo
   }
 
   @BeforeClass
-  val coordinator: Coordinator = {
-    val coord = new Coordinator(Some(tempJobDir.getAbsolutePath), reportManager) with BirtReportGeneratorFactory
-    coord.setTimeout(timeout)
-    coord.start()
+  val coordinator: ActorRef = {
+    val coord = ActorDSL.actor(system)(new Coordinator(Some(tempJobDir.getAbsolutePath), reportManager, Some(30 minutes), 5) with BirtReportGeneratorFactory)
     coord
   }
 

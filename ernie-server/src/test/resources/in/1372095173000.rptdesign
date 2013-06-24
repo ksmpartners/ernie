@@ -19,7 +19,7 @@
         </scalar-parameter>
     </parameters>
     <data-sources>
-        <oda-data-source name="Classic Models" extensionID="org.eclipse.birt.report.data.oda.sampledb"></oda-data-source>
+        <oda-data-source name="Classic Models" extensionID="org.eclipse.birt.report.data.oda.sampledb"/>
     </data-sources>
     <data-sets>
         <oda-data-set name="Products List" extensionID="org.eclipse.birt.report.data.oda.jdbc.JdbcSelectDataSet">
@@ -127,9 +127,9 @@ San Francisco, CA 94107&lt;BR&gt;
                     <expression name="expression">params[&quot;MinQuantityInStock&quot;]</expression>
                 </structure>
             </list-property>
-            <column></column>
-            <column></column>
-            <column></column>
+            <column/>
+            <column/>
+            <column/>
             <header>
                 <row>
                     <property name="backgroundColor">#FFFF80</property>
@@ -222,9 +222,9 @@ San Francisco, CA 94107&lt;BR&gt;
             </detail>
             <footer>
                 <row>
-                    <cell></cell>
-                    <cell></cell>
-                    <cell></cell>
+                    <cell/>
+                    <cell/>
+                    <cell/>
                 </row>
             </footer>
         </table>

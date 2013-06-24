@@ -41,7 +41,9 @@ class APITest { //extends TestLogger {
 
   @Test(dependsOnGroups = Array("timeout"))
   def init() {
+    log.info("Beginning APITest")
     ernie = ErnieAPI(createTempDirectory.getAbsolutePath, createTempDirectory().getAbsolutePath, createTempDirectory.getAbsolutePath, 1000L * 300, 7, 14)
+
   }
 
   @Test(groups = Array("setup"), dependsOnMethods = Array("init"))

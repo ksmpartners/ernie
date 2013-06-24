@@ -49,6 +49,10 @@ class ErnieAPI {
   def maxRetentionDays_=(value: Int): Unit = _maxRetentionDays = value
   def maxRetentionDays = _maxRetentionDays
 
+  private var _workerCount = 14
+  def workerCount_=(value: Int): Unit = _workerCount = value
+  def workerCount = _workerCount
+
   def createDefinition(rptDesign: Option[Either[ByteArrayInputStream, Array[Byte]]], description: String, createdUser: String): Definition =
     try {
       ServiceRegistry.defsResource.putDefinition(None,
@@ -213,14 +217,18 @@ class ErnieAPI {
   def shutDown() = ServiceRegistry.shutdownResource.shutdown
 
   protected def init() {
-    ServiceRegistry.init(ErnieConfig(fileReportManager, jobsDir, defDir, outputDir, timeout, defaultRetentionDays, maxRetentionDays))
+    ServiceRegistry.init(ErnieConfig(fileReportManager, jobsDir, defDir, outputDir, timeout, defaultRetentionDays, maxRetentionDays, workerCount))
+  }
+
+  def spawnWorker() {
+    ServiceRegistry.spawnWorker()
   }
 
 }
 
 object ErnieAPI {
   def apply = new ErnieAPI
-  def apply(jobsDir: String, defDir: String, outputDir: String, timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int): ErnieAPI = {
+  def apply(jobsDir: String, defDir: String, outputDir: String, timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int, workerCount: Int = 5): ErnieAPI = {
     val api = new ErnieAPI
     api.jobsDir = jobsDir
     api.fileReportManager = true
@@ -229,15 +237,17 @@ object ErnieAPI {
     api.timeout = timeout
     api.defaultRetentionDays = defaultRetentionDays
     api.maxRetentionDays = maxRetentionDays
+    api.workerCount = workerCount
     api.init
     api
   }
-  def apply(timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int): ErnieAPI = {
+  def apply(timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int, workerCount: Int): ErnieAPI = {
     val api = new ErnieAPI
     api.timeout = timeout
     api.defaultRetentionDays = defaultRetentionDays
     api.maxRetentionDays = maxRetentionDays
     api.fileReportManager = false
+    api.workerCount = workerCount
     api.init
     api
   }

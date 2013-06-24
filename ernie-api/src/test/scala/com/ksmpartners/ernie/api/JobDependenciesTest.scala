@@ -23,13 +23,12 @@ import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import scala.Array
 
-import com.ksmpartners.ernie.engine.PurgeResponse
-import com.ksmpartners.ernie.engine.PurgeRequest
-import com.ksmpartners.ernie.util.TestLogger
-import com.ksmpartners.ernie.api.ErnieAPI
+import akka.pattern.ask
+import scala.concurrent.duration._
 import com.ksmpartners.ernie.model.DeleteStatus
 import com.ksmpartners.ernie.api.JobStatus
 import scala.Some
+import akka.actor.{ ActorRef, ActorDSL, ActorSystem }
 
 @Test(dependsOnGroups = Array("timeout"))
 class JobDependenciesTest extends JobDependencies with RequiresCoordinator with RequiresReportManager { //TestLogger with
@@ -37,6 +36,10 @@ class JobDependenciesTest extends JobDependencies with RequiresCoordinator with 
   private val tempInputDir = createTempDirectory
   private val tempOutputDir = createTempDirectory
   private val tempJobDir = createTempDirectory
+
+  protected def workerCount: Int = 5
+
+  protected val system: ActorSystem = ActorSystem("job-dependencies-test")
 
   @BeforeClass
   protected def jobsDir = tempJobDir.getAbsolutePath
@@ -93,10 +96,8 @@ class JobDependenciesTest extends JobDependencies with RequiresCoordinator with 
   }
 
   @BeforeClass
-  protected val coordinator: Coordinator = {
-    val coord = new Coordinator(Some(tempJobDir.getAbsolutePath), reportManager) with TestReportGeneratorFactory
-    coord.setTimeout(timeout)
-    coord.start()
+  protected val coordinator: ActorRef = {
+    val coord = ActorDSL.actor(ActorSystem("job-dependencies-tests"))(new Coordinator(Some(tempJobDir.getAbsolutePath), reportManager, Some(30 minutes), workerCount) with TestReportGeneratorFactory)
     coord
   }
 
@@ -217,23 +218,21 @@ trait TestReportGeneratorFactory extends ReportGeneratorFactory {
 
 class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator {
 
-  private var isStarted = false
+  protected var running = false
 
-  def startup() {
-    if (isStarted)
-      throw new IllegalStateException("ReportGenerator is already started")
-    isStarted = true
+  def startup() = if (!running) {
+    running = true
   }
 
   def getAvailableRptDefs: List[String] = {
-    if (!isStarted)
+    if (!running)
       throw new IllegalStateException("ReportGenerator is not started")
     List("def_1")
   }
 
   def runReport(defId: String, rptId: String, rptType: model.ReportType, retentionDays: Option[Int], userName: String) = runReport(defId, rptId, rptType, retentionDays, Map.empty[String, String], userName)
   def runReport(defId: String, rptId: String, rptType: model.ReportType, retentionDays: Option[Int], reportParameters: scala.collection.Map[String, String], userName: String) {
-    if (!isStarted)
+    if (!running)
       throw new IllegalStateException("ReportGenerator is not started")
     var entity = new mutable.HashMap[String, Any]()
     entity += (ReportManager.rptId -> rptId)
@@ -246,14 +245,13 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
   }
 
   def runReport(defInputStream: InputStream, rptOutputStream: OutputStream, rptType: model.ReportType) {
-    if (!isStarted)
+    if (!running)
       throw new IllegalStateException("ReportGenerator is not started")
   }
 
   def shutdown() {
-    if (!isStarted)
-      throw new IllegalStateException("ReportGenerator is not started")
-    isStarted = false
+    if (running)
+      running = false
   }
 }
 

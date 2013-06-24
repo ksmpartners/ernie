@@ -14,9 +14,14 @@ import java.io.{ ByteArrayOutputStream, ByteArrayInputStream }
 import scala.collection.immutable
 import org.apache.commons.io.IOUtils
 
-case class ErnieResponse(errorOpt: Option[Exception])
+class ErnieResponse(e: Option[Exception]) {
+  def errorOpt: Option[Exception] = e
+}
+object ErnieResponse {
+  def apply(errorOpt: Option[Exception]) = new ErnieResponse(errorOpt)
+}
 
-case class ErnieConfig(fileMgr: Boolean, jobsDir: String, defDir: String, outputDir: String, timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int)
+case class ErnieConfig(fileMgr: Boolean, jobsDir: String, defDir: String, outputDir: String, timeout: Long, defaultRetentionDays: Int, maxRetentionDays: Int, workerCount: Int)
 
 case class Definition(defEnt: Option[DefinitionEntity], rptDesign: Option[Array[Byte]], error: Option[Exception]) extends ErnieResponse(error)
 case class DefinitionCatalog(catalog: List[DefinitionEntity], error: Option[Exception]) extends ErnieResponse(error)
@@ -29,7 +34,6 @@ case class MissingArgumentException(msg: String) extends Exception(msg)
 case class InvalidDefinitionException(msg: String) extends Exception(msg)
 case class NotFoundException(msg: String) extends Exception(msg)
 case class NothingToReturnException(msg: String) extends Exception(msg)
-case class TimeoutException(msg: String) extends Exception(msg)
 case class ReportOutputException(status: Option[com.ksmpartners.ernie.model.JobStatus], msg: String) extends Exception(msg) {
   def compare(e: Exception): Boolean = {
     if (e.isInstanceOf[ReportOutputException]) {

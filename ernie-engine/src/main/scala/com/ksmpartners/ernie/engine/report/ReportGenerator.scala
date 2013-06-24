@@ -14,6 +14,8 @@ import com.ksmpartners.ernie.model.ReportType
  */
 trait ReportGenerator {
 
+  protected var running: Boolean
+
   /**
    * Method to be called before any reports can be generated
    */

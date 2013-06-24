@@ -7,7 +7,7 @@
 
 package com.ksmpartners.ernie.engine
 
-import org.testng.annotations.{ AfterClass, BeforeClass, Test }
+import org.testng.annotations._
 import java.io._
 import report._
 import java.net.URL
@@ -22,14 +22,34 @@ import com.ksmpartners.ernie.util.TestLogger
 import scala.Some
 import org.eclipse.birt.report.engine.api.UnsupportedFormatException
 import com.ksmpartners.ernie.engine.JobsCatalogResponse
+import akka.actor.{ ActorSystem, ActorRef, ActorDSL }
+import akka.pattern.ask
+import akka.util.Timeout
+import concurrent.duration._
+import DurationConversions._
+import scala.concurrent.{ Await, ExecutionContext, Future }
+import ExecutionContext.Implicits.global
+import scala.util.Success
+import com.ksmpartners.ernie.engine.StatusRequest
+import scala.Some
+import com.ksmpartners.ernie.engine.JobsListResponse
+import com.ksmpartners.ernie.engine.ReportDetailRequest
+import com.ksmpartners.ernie.engine.ShutDownRequest
+import com.ksmpartners.ernie.engine.DeleteRequest
+import com.ksmpartners.ernie.engine.ReportDetailResponse
+import com.ksmpartners.ernie.engine.ResultRequest
+import com.ksmpartners.ernie.engine.ShutDownResponse
+import com.ksmpartners.ernie.engine.ResultResponse
+import com.ksmpartners.ernie.engine.JobsCatalogRequest
+import com.ksmpartners.ernie.engine.JobsListRequest
 
 class ActorsTest extends TestLogger {
-
+  val system = ActorSystem("actors-test-system")
   private var reportManager: MemoryReportManager = null
-  private var coordinator: Coordinator = null
+  private var coordinator: ActorRef = null
 
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.ActorsTest")
-  private val timeout = 1000L
+  implicit val timeout: Timeout = Timeout(365 days)
 
   @BeforeClass
   def setup() {
@@ -42,8 +62,7 @@ class ActorsTest extends TestLogger {
       val byteArr = new Array[Byte](file.length().asInstanceOf[Int])
       fis.read(byteArr)
       reportManager.putDefinition("test_def", byteArr, new DefinitionEntity(DateTime.now(), "test_def", "default", null, "", JavaConversions.asJavaList(List(ReportType.CSV)), null))
-      coordinator = new Coordinator(Some(createTempDirectory.getAbsolutePath), reportManager) with TestReportGeneratorFactory
-      coordinator.start()
+      coordinator = ActorDSL.actor(system)(new Coordinator(Some(createTempDirectory.getAbsolutePath), reportManager, None, 5) with TestReportGeneratorFactory)
     } finally {
       try { fis.close() } catch { case e => }
     }
@@ -51,105 +70,75 @@ class ActorsTest extends TestLogger {
 
   @AfterClass
   def shutdown() {
-    val sResp = (coordinator !? (timeout, ShutDownRequest())).asInstanceOf[Option[ShutDownResponse]]
+    Await.result((coordinator ? (ShutDownRequest())).mapTo[ShutDownResponse], timeout.duration)
   }
 
   @Test
   def canRequestReportAndRetrieveStatus() {
     import com.ksmpartners.ernie.engine._
-    val respOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).asInstanceOf[Option[ReportResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    val resp = respOpt.get
-    val statusRespOpt = (coordinator !? (timeout, StatusRequest(resp.jobId))).asInstanceOf[Option[StatusResponse]]
-    Assert.assertTrue(statusRespOpt isDefined)
-    val statusResp = statusRespOpt.get
-    Assert.assertNotSame(statusResp.jobStatus, JobStatus.NO_SUCH_JOB)
+    val jobId = Await.result((coordinator ? (ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).mapTo[ReportResponse], timeout.duration).jobId
+    Assert.assertNotSame(Await.result((coordinator ? (StatusRequest(jobId))).mapTo[StatusResponse], timeout.duration).jobStatus, JobStatus.NO_SUCH_JOB)
   }
 
   @Test
   def statusForMissingJobIsNoSuchJob() {
     import com.ksmpartners.ernie.engine._
-
-    val statusRespOpt = (coordinator !? (timeout, StatusRequest(0))).asInstanceOf[Option[StatusResponse]]
-    Assert.assertTrue(statusRespOpt isDefined)
-    val statusResp = statusRespOpt.get
-    Assert.assertEquals(statusResp.jobStatus, JobStatus.NO_SUCH_JOB)
+    Assert.assertEquals(Await.result((coordinator ? (StatusRequest(0))).mapTo[StatusResponse], timeout.duration).jobStatus, JobStatus.NO_SUCH_JOB)
   }
 
   @Test
   def unsupportedOutputFormatJobHasCorrectStatus() {
     import com.ksmpartners.ernie.engine._
-
-    val respOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.CSV, None, Map.empty[String, String], "testUser"))).asInstanceOf[Option[ReportResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    val resp = respOpt.get
-    val statusRespOpt = (coordinator !? (timeout, StatusRequest(resp.jobId))).asInstanceOf[Option[StatusResponse]]
-    Assert.assertTrue(statusRespOpt isDefined)
-    Assert.assertEquals(statusRespOpt.get.jobStatus, JobStatus.FAILED_UNSUPPORTED_FORMAT)
+    val jobId = Await.result((coordinator ? (ReportRequest("test_def", ReportType.CSV, None, Map.empty[String, String], "testUser"))).mapTo[ReportResponse], timeout.duration).jobId
+    Assert.assertEquals(Await.result((coordinator ? (StatusRequest(jobId))).mapTo[StatusResponse], timeout.duration).jobStatus, JobStatus.FAILED_UNSUPPORTED_FORMAT)
   }
 
   @Test(dependsOnMethods = Array("reportEntitiesIncludeAllRequiredMetadata"))
   def canDeleteJobOutput() {
     import com.ksmpartners.ernie.engine._
-
-    var respOpt = (coordinator !? (timeout, DeleteRequest(jobId))).asInstanceOf[Option[DeleteResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    Assert.assertEquals(respOpt.get.deleteStatus, DeleteStatus.SUCCESS)
+    Assert.assertEquals(Await.result((coordinator ? (DeleteRequest(jobId))).mapTo[DeleteResponse], timeout.duration).deleteStatus, DeleteStatus.SUCCESS)
   }
 
   @Test
   def canRequestJobCatalogs() {
     import com.ksmpartners.ernie.engine._
 
-    var respOpt = (coordinator !? (timeout, JobsCatalogRequest(Some(JobCatalog.COMPLETE)))).asInstanceOf[Option[JobsCatalogResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    Assert.assertTrue(respOpt.get.catalog != null)
-    respOpt = (coordinator !? (timeout, JobsCatalogRequest(Some(JobCatalog.DELETED)))).asInstanceOf[Option[JobsCatalogResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    Assert.assertTrue(respOpt.get.catalog != null)
-    respOpt = (coordinator !? (timeout, JobsCatalogRequest(Some(JobCatalog.EXPIRED)))).asInstanceOf[Option[JobsCatalogResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    Assert.assertTrue(respOpt.get.catalog != null)
-    respOpt = (coordinator !? (timeout, JobsCatalogRequest(Some(JobCatalog.FAILED)))).asInstanceOf[Option[JobsCatalogResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    Assert.assertTrue(respOpt.get.catalog != null)
-    respOpt = (coordinator !? (timeout, JobsCatalogRequest(None))).asInstanceOf[Option[JobsCatalogResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    Assert.assertTrue(respOpt.get.catalog != null)
-    respOpt = (coordinator !? (timeout, JobsCatalogRequest(Some(JobCatalog.IN_PROGRESS)))).asInstanceOf[Option[JobsCatalogResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    Assert.assertTrue(respOpt.get.catalog != null)
+    val catalogs = List((coordinator ? (JobsCatalogRequest(Some(JobCatalog.COMPLETE)))).mapTo[JobsCatalogResponse],
+      (coordinator ? (JobsCatalogRequest(Some(JobCatalog.DELETED)))).mapTo[JobsCatalogResponse],
+      (coordinator ? (JobsCatalogRequest(Some(JobCatalog.EXPIRED)))).mapTo[JobsCatalogResponse],
+      (coordinator ? (JobsCatalogRequest(Some(JobCatalog.FAILED)))).mapTo[JobsCatalogResponse],
+      (coordinator ? (JobsCatalogRequest(None))).mapTo[JobsCatalogResponse],
+      (coordinator ? (JobsCatalogRequest(Some(JobCatalog.IN_PROGRESS)))).mapTo[JobsCatalogResponse])
+    Await.result(Future.sequence(catalogs), timeout.duration).foreach { c =>
+      Assert.assertNotSame(c.catalog, null)
+    }
+  }
 
+  @Test
+  def canSpawnWorker() {
+    coordinator ! NewWorkerRequest()
   }
 
   @Test
   def canRequestJobMap() {
-    val respOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).asInstanceOf[Option[ReportResponse]]
-    Assert.assertTrue(respOpt.isDefined)
-    val resp = respOpt.get
-    val jobMapRespOpt = (coordinator !? (timeout, JobsListRequest())).asInstanceOf[Option[JobsListResponse]]
-    Assert.assertTrue(jobMapRespOpt isDefined)
-    val jobMapResp: JobsListResponse = jobMapRespOpt.get
-    Assert.assertTrue(jobMapResp.jobsList.contains(resp.jobId.toString))
+    import com.ksmpartners.ernie.engine._
+    val jobId = Await.result((coordinator ? (ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).mapTo[ReportResponse], timeout.duration).jobId
+    Assert.assertTrue(Await.result((coordinator ? (JobsListRequest())).mapTo[JobsListResponse], timeout.duration).jobsList.contains(jobId.toString))
   }
 
   var jobId = -1L
 
   @Test
   def canGetResult() {
-    val rptRespOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).asInstanceOf[Option[ReportResponse]]
-    Assert.assertTrue(rptRespOpt.isDefined)
-    val rptResp = rptRespOpt.get
-    var statusRespOpt: Option[StatusResponse] = None
+    import com.ksmpartners.ernie.engine._
+    val rptResp: ReportResponse = Await.result((coordinator ? (ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).mapTo[ReportResponse], timeout.duration)
+    var status = rptResp.jobStatus
     do {
-      statusRespOpt = (coordinator !? (timeout, StatusRequest(rptResp.jobId))).asInstanceOf[Option[StatusResponse]]
-      Assert.assertTrue(statusRespOpt.isDefined)
-    } while (statusRespOpt.get.jobStatus == JobStatus.IN_PROGRESS)
-    val resultRespOpt = (coordinator !? (timeout, ResultRequest(rptResp.jobId))).asInstanceOf[Option[ResultResponse]]
-    Assert.assertTrue(resultRespOpt.isDefined)
-    val resultResp = resultRespOpt.get
-    Assert.assertTrue(resultResp.rptId.isDefined)
-    Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).isDefined)
+      status = Await.result((coordinator ? (StatusRequest(rptResp.jobId))).mapTo[StatusResponse], timeout.duration).jobStatus
+    } while (status == JobStatus.IN_PROGRESS)
+    val r = Await.result((coordinator ? (ResultRequest(rptResp.jobId))).mapTo[ResultResponse], timeout.duration)
+    Assert.assertTrue(r.rptId isDefined)
+    Assert.assertTrue(reportManager.getReport(r.rptId.get) isDefined)
     jobId = rptResp.jobId
   }
 
@@ -183,10 +172,10 @@ class ActorsTest extends TestLogger {
   @Test(dependsOnMethods = Array("canGetResult"))
   def reportEntitiesIncludeAllRequiredMetadata() {
     Assert.assertTrue(jobId > 0L)
-    val rptRespOpt = (coordinator !? (timeout, ReportDetailRequest(jobId))).asInstanceOf[Option[ReportDetailResponse]]
-    Assert.assertTrue(rptRespOpt.isDefined)
-    Assert.assertTrue(rptRespOpt.get.rptEntity.isDefined)
-    val rptEnt = rptRespOpt.get.rptEntity.get
+    val rptRsp = Await.result((coordinator ? (ReportDetailRequest(jobId))).mapTo[ReportDetailResponse], timeout.duration)
+
+    Assert.assertTrue(rptRsp.rptEntity.isDefined)
+    val rptEnt = rptRsp.rptEntity.get
     Assert.assertTrue(rptEnt.getCreatedDate != null)
     Assert.assertTrue(rptEnt.getCreatedUser != null)
     Assert.assertTrue(rptEnt.getFinishDate != null)
@@ -195,61 +184,53 @@ class ActorsTest extends TestLogger {
     Assert.assertTrue(rptEnt.getRptId != null)
     Assert.assertTrue(rptEnt.getSourceDefId != null)
     Assert.assertTrue(rptEnt.getStartDate != null)
+
   }
 
   @TestSpecs(Array(new TestSpec(key = "ERNIE-8")))
   @Test
   def jobWithoutRetentionDateUsesDefault() {
-
-    val rptRespOpt = (coordinator !? (timeout, ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).asInstanceOf[Option[ReportResponse]]
-    Assert.assertTrue(rptRespOpt isDefined)
-    val rptResp = rptRespOpt.get
+    import com.ksmpartners.ernie.engine._
+    val rsp = Await.result((coordinator ? (ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).mapTo[ReportResponse], timeout.duration)
     val defaultRetentionDate = DateTime.now().plusDays(reportManager.getDefaultRetentionDays)
-    var statusRespOpt: Option[StatusResponse] = None
+    var statusRespOp = rsp.jobStatus
     do {
-      statusRespOpt = (coordinator !? (timeout, StatusRequest(rptResp.jobId))).asInstanceOf[Option[StatusResponse]]
-      Assert.assertTrue(statusRespOpt isDefined)
-    } while (statusRespOpt.get.jobStatus != JobStatus.COMPLETE)
-    val resultRespOpt = (coordinator !? (timeout, ResultRequest(rptResp.jobId))).asInstanceOf[Option[ResultResponse]]
-    Assert.assertTrue(resultRespOpt isDefined)
-    val resultResp: ResultResponse = resultRespOpt.get
-    Assert.assertTrue(resultResp.rptId.isDefined)
-    Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).isDefined)
-    Assert.assertTrue(reportManager.getReport(resultResp.rptId.get).get.getRetentionDate.dayOfYear == defaultRetentionDate.dayOfYear)
-
+      statusRespOp = Await.result((coordinator ? (StatusRequest(rsp.jobId))).mapTo[StatusResponse], timeout.duration).jobStatus
+    } while (statusRespOp != JobStatus.COMPLETE)
+    val r = Await.result((coordinator ? (ResultRequest(rsp.jobId))).mapTo[ResultResponse], timeout.duration)
+    Assert.assertTrue(r.rptId.isDefined)
+    Assert.assertTrue(reportManager.getReport(r.rptId.get).isDefined)
+    Assert.assertTrue(reportManager.getReport(r.rptId.get).get.getRetentionDate.dayOfYear == defaultRetentionDate.dayOfYear)
   }
 }
 
 // Stubs used for testing:
 
 trait TestReportGeneratorFactory extends ReportGeneratorFactory {
-
-  def getReportGenerator(reportManager: ReportManager): ReportGenerator = {
-    new TestReportGenerator(reportManager)
+  private var rptGen: Option[TestReportGenerator] = None
+  def getReportGenerator(reportManager: ReportManager): ReportGenerator = rptGen getOrElse {
+    rptGen = Some(new TestReportGenerator(reportManager))
+    rptGen.get
   }
 
 }
 
 class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator {
 
-  private var isStarted = false
+  protected var running = false
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.TestReportGenerator")
 
-  override def startup() {
-    if (isStarted)
-      throw new IllegalStateException("ReportGenerator is already started")
-    isStarted = true
-  }
+  override def startup = if (!running) running = true
 
   override def getAvailableRptDefs: List[String] = {
-    if (!isStarted)
+    if (!running)
       throw new IllegalStateException("ReportGenerator is not started")
     List("test_def")
   }
 
   def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int], userName: String) = runReport(defId, rptId, rptType, retentionDays, Map.empty[String, String], userName)
   def runReport(defId: String, rptId: String, rptType: ReportType, retentionDays: Option[Int], reportParameters: scala.collection.Map[String, String], userName: String) {
-    if (!isStarted)
+    if (!running)
       throw new IllegalStateException("ReportGenerator is not started")
     if (reportManager.getDefinition(defId).get.getUnsupportedReportTypes.contains(rptType))
       throw new UnsupportedFormatException("Unsupported format", Unit)
@@ -267,8 +248,7 @@ class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator 
   }
 
   override def shutdown() {
-    if (!isStarted)
-      throw new IllegalStateException("ReportGenerator is not started")
-    isStarted = false
+    if (running)
+      running = false
   }
 }

@@ -12,7 +12,7 @@
     <description>A JEE aplication resource for generating business reports</description>
     <inceptionYear>2013</inceptionYear>
     <properties>
-        <surefire.reports.version>2.9</surefire.reports.version>
+        <surefire.reports.version>2.15</surefire.reports.version>
         <scala.maven.plugin.version>3.1.0</scala.maven.plugin.version>
     </properties>
 
@@ -20,8 +20,7 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>5.8</version>
-            <classifier>jdk15</classifier>
+            <version>6.8.5</version>
             <scope>test</scope>
             <optional>true</optional>
             <exclusions>
@@ -60,7 +59,7 @@
                 <plugin>
                     <groupId>org.scalariform</groupId>
                     <artifactId>scalariform-maven-plugin</artifactId>
-                    <version>0.0.9</version>
+                    <version>0.1.4</version>
                     <executions>
                         <execution>
                             <phase>process-sources</phase>
@@ -145,7 +144,7 @@
     </build>
     <modules>
         <module>ernie-engine</module>
-        <module>ernie-server</module>
+     <module>ernie-server</module>
         <module>ernie-model</module>
         <module>ernie-util</module>
         <module>ernie-api</module>

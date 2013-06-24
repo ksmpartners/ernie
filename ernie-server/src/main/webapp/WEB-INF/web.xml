@@ -5,7 +5,7 @@ PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
 "http://java.sun.com/dtd/web-app_2_3.dtd">
 
 <web-app>
-    <filter>
+   <filter>
         <filter-name>FilterWrapper</filter-name>
         <display-name>Filter Wrapper</display-name>
         <description>The Filter that wraps delegation to authentication filter(s)</description>

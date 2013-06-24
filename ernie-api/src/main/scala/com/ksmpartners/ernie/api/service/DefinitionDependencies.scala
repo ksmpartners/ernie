@@ -17,6 +17,13 @@ import org.apache.cxf.helpers.IOUtils
 import com.ksmpartners.ernie.api.Definition
 import scala.Some
 import com.ksmpartners.ernie.util.Utility._
+import com.ksmpartners.ernie.engine.DeleteDefinitionResponse
+import akka.actor._
+import ActorDSL._
+import akka.pattern.ask
+import scala.concurrent.Await
+import scala.concurrent.duration.FiniteDuration
+import java.util.concurrent.TimeUnit
 
 /**
  * Dependencies for interacting with report definitions
@@ -96,12 +103,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
 
     def deleteDefinition(defId: String): DeleteStatus = {
       if (defId == null) throw new MissingArgumentException("Definition ID null")
-      val respOpt = (coordinator !? (timeout, engine.DeleteDefinitionRequest(defId))).asInstanceOf[Option[engine.DeleteDefinitionResponse]]
-      if (respOpt.isEmpty) {
-        throw new TimeoutException("Delete request timed out")
-      } else {
-        respOpt.get.deleteStatus
-      }
+      Await.result((coordinator ? (engine.DeleteDefinitionRequest(defId))).mapTo[DeleteDefinitionResponse], timeoutDuration).deleteStatus
     }
   }
 }

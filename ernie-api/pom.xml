@@ -17,7 +17,7 @@
     <description>A Scala API for embedding Ernie</description>
     <inceptionYear>2013</inceptionYear>
     <properties>
-        <scala.version>2.9.1</scala.version>
+        <scala.version>2.10.0</scala.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
     </properties>
@@ -45,6 +45,11 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_2.10</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+        <dependency>
             <groupId>com.ksmpartners.ernie</groupId>
             <artifactId>ernie-util</artifactId>
             <version>1.0-SNAPSHOT</version>
@@ -59,18 +64,18 @@
             <artifactId>cxf-rt-rs-security-xml</artifactId>
             <version>2.7.4</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.9.1</artifactId>
-            <version>1.12.3</version>
+            <artifactId>specs2_2.10</artifactId>
+            <version>1.14</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalacheck</groupId>
-            <artifactId>scalacheck_2.9.1</artifactId>
+            <artifactId>scalacheck_2.10</artifactId>
             <version>1.10.0</version>
             <scope>test</scope>
-        </dependency>
+        </dependency>        !-->
         <dependency>
             <groupId>com.ksmpartners.common</groupId>
             <artifactId>trace-matrix-annotations</artifactId>

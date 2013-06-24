@@ -10,23 +10,32 @@ package com.ksmpartners.ernie.server
 import net.liftweb.common.{ Full, Box }
 import net.liftweb.http._
 import org.slf4j.{ LoggerFactory, Logger }
-import com.ksmpartners.ernie.api.ReportOutputException
+import com.ksmpartners.ernie.api._
 import net.liftweb.common.Full
-import com.ksmpartners.ernie.api.ReportOutputException
 import net.liftweb.common.Full
-import com.ksmpartners.ernie.api.ReportOutputException
 import net.liftweb.common.Full
-import com.ksmpartners.ernie.api.ReportOutputException
 import net.liftweb.http.rest.RestHelper
 import net.liftweb.common.Full
-import com.ksmpartners.ernie.api.ReportOutputException
 import net.liftweb.http.InternalServerErrorResponse
 import net.liftweb.http.ResponseWithReason
 import net.liftweb.http.InMemoryResponse
 import net.liftweb.common.Full
 import net.liftweb.http.MethodNotAllowedResponse
-import com.ksmpartners.ernie.api.ReportOutputException
 import RestGenerator._
+import com.ksmpartners.ernie.server.RestGenerator.Parameter
+import net.liftweb.http.InternalServerErrorResponse
+import com.ksmpartners.ernie.server.RestGenerator.Filter
+import com.ksmpartners.ernie.server.RestGenerator.RequestTemplate
+import net.liftweb.http.ResponseWithReason
+import net.liftweb.http.InMemoryResponse
+import net.liftweb.common.Full
+import net.liftweb.http.MethodNotAllowedResponse
+import com.ksmpartners.ernie.server.RestGenerator.Variable
+import com.ksmpartners.ernie.server.RestGenerator.Action
+import com.ksmpartners.ernie.api.ReportOutputException
+import com.ksmpartners.ernie.server.RestGenerator.Resource
+import com.ksmpartners.ernie.server.RestGenerator.ErnieError
+import com.ksmpartners.ernie.server.RestGenerator.Package
 
 object RestGenerator {
   type restFunc = (() => Box[LiftResponse])
@@ -71,7 +80,7 @@ object RestGenerator {
     }
   } else net.liftweb.common.Empty
 
-  def checkResponse(a: Action, e: com.ksmpartners.ernie.api.ErnieResponse): Box[LiftResponse] = checkResponse(a, e.errorOpt)
+  def checkResponse(a: Action, e: ErnieResponse): Box[LiftResponse] = checkResponse(a, e.errorOpt)
 
   case class RequestTemplate(requestType: RequestType, produces: List[String], filters: List[Filter], action: Action, params: Parameter*)
   case class Resource(path: Either[String, Variable], description: String, isResourceGroup: Boolean, requestTemplates: List[RequestTemplate], children: Resource*) {
@@ -126,28 +135,28 @@ trait RestGenerator extends RestHelper {
         val Path2 = Path.slice(Path.indexOf("") + 1, Path.length)
         leaf.requestTemplates.foreach(requestTemplate => {
           if (leaf isResourceGroup) serve(Path.slice(0, Path.indexOf("")) prefix {
-            case req@Req(variable :: Path2 :: Nil, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
+            case req @ Req(variable :: Path2 :: Nil, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
           })
           serve(Path.slice(0, Path.indexOf("")) prefix {
-            case req@Req(variable :: Path2, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
+            case req @ Req(variable :: Path2, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
           })
 
         })
         serve(Path.slice(0, Path.indexOf("")) prefix {
-          case req@Req(variable :: Path2, _, _) => Full(MethodNotAllowedResponse())
+          case req @ Req(variable :: Path2, _, _) => Full(MethodNotAllowedResponse())
         })
       } else {
         leaf.requestTemplates.foreach(requestTemplate => {
           if (leaf isResourceGroup) serve(Path prefix {
-            case req@Req(Nil, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
+            case req @ Req(Nil, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
           })
           serve {
-            case req@Req(Path, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
+            case req @ Req(Path, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
           }
 
         })
         serve {
-          case req@Req(Path, _, _) => Full(MethodNotAllowedResponse())
+          case req @ Req(Path, _, _) => Full(MethodNotAllowedResponse())
         }
       }
     })

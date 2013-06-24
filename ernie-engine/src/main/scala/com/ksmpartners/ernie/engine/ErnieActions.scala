@@ -11,21 +11,25 @@ import scala.collection.{ JavaConversions, mutable }
 import com.ksmpartners.ernie.model._
 import org.joda.time.DateTime
 import com.ksmpartners.ernie.engine.report.ReportManager
-import scala.actors.OutputChannel
 import Coordinator._
 import com.ksmpartners.ernie.util.Utility._
-import scala.Some
+import akka.actor.ActorDSL._
 
-trait ErnieActions {
-  protected val worker: Worker
+import scala.Some
+import akka.actor._
+import akka.pattern.ask
+import akka.util.Timeout
+
+trait ErnieActions extends ErnieCoordinator {
+  protected def worker: ActorRef
   protected val jobIdToResultMap: mutable.HashMap[Long, JobEntity]
-  protected var timeout: Long
+  implicit val timeout: Timeout
   protected val reportManager: ReportManager
   protected val pathToJobEntities: Option[String]
   protected def generateJobId(): Long
   protected def updateJob(jobId: Long, jobEnt: JobEntity)
 
-  def reportRequest(req: ReportRequest, sender: OutputChannel[Any]) {
+  def reportRequest(req: ReportRequest, sender: ActorRef) {
     val reportParameters = if (req.reportParameters != null) req.reportParameters else Map.empty[String, String]
     val retentionOption = req.retentionPeriod
     val defId = req.defId
@@ -58,7 +62,9 @@ trait ErnieActions {
         else if (retentionDate.isAfter(DateTime.now().plusDays(reportManager.getMaximumRetentionDays))) sender ! ReportResponse(jobId, JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM, req)
         else {
           sender ! ReportResponse(jobId, JobStatus.IN_PROGRESS, req)
-          worker ! JobRequest(defId, rptType, jobId, retentionOption, reportParameters, rptEntity.getCreatedUser)
+          val w = worker
+          val msg = JobRequest(defId, rptType, jobId, retentionOption, reportParameters, rptEntity.getCreatedUser)
+          w ! msg
         }
       })
     } else {
@@ -67,7 +73,7 @@ trait ErnieActions {
     }
   }
 
-  def deleteRequest(req: DeleteRequest, sender: OutputChannel[Any]) {
+  def deleteRequest(req: DeleteRequest, sender: ActorRef) {
     val jobId = req.jobId
     if (jobIdToResultMap.contains(jobId)) {
       if ((jobIdToResultMap.get(jobId).map(je => je.getJobStatus).getOrElse(null) == JobStatus.COMPLETE) &&
@@ -92,7 +98,7 @@ trait ErnieActions {
     } else sender ! DeleteResponse(DeleteStatus.NOT_FOUND, req) //no such job
   }
 
-  def deleteDefinitionRequest(req: DeleteDefinitionRequest, sender: OutputChannel[Any]) {
+  def deleteDefinitionRequest(req: DeleteDefinitionRequest, sender: ActorRef) {
     val defId = req.defId
     if (jobIdToResultMap.find(p => {
       val defIdOpt = if (p._2.getRptEntity != null) Some(p._2.getRptEntity.getSourceDefId)
@@ -107,7 +113,7 @@ trait ErnieActions {
     } catch { case _ => sender ! DeleteDefinitionResponse(DeleteStatus.FAILED, req) }
   }
 
-  def purgeRequest(req: PurgeRequest, sender: OutputChannel[Any]) {
+  def purgeRequest(req: PurgeRequest, sender: ActorRef) {
     var purgedReports: List[String] = Nil
     var deleteStatus = DeleteStatus.SUCCESS
     jobIdToResultMap.foreach(f => if ((f._2 != null)) {
@@ -138,7 +144,7 @@ trait ErnieActions {
     sender ! PurgeResponse(deleteStatus, purgedReports, req)
   }
 
-  def resultRequest(req: ResultRequest, sender: OutputChannel[Any]) {
+  def resultRequest(req: ResultRequest, sender: ActorRef) {
     val jobId = req.jobId
     val rptId = jobIdToResultMap.get(jobId).map(je => je.getRptId) orElse (None)
     sender ! ResultResponse(rptId match {
@@ -150,7 +156,7 @@ trait ErnieActions {
     }, req)
   }
 
-  def jobsCatalogRequest(req: JobsCatalogRequest, sender: OutputChannel[Any]) {
+  def jobsCatalogRequest(req: JobsCatalogRequest, sender: ActorRef) {
     val jobCatalog = req.jobCatalog
     val jobsList: List[JobEntity] = if (jobCatalog.isDefined) jobCatalog.getOrElse(null) match {
       case JobCatalog.FAILED => jobIdToResultMap.filter(f => f._2.getJobStatus match {
@@ -177,7 +183,7 @@ trait ErnieActions {
     sender ! JobsCatalogResponse(jobsList, req)
   }
 
-  def jobResponse(resp: JobResponse, sender: OutputChannel[Any]) = {
+  def jobResponse(resp: JobResponse, sender: ActorRef) = {
     val req = resp.req
     val jobStatus = resp.jobStatus
     val rptId = resp.rptId

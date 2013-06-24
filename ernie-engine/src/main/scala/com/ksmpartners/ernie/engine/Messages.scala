@@ -58,3 +58,5 @@ case class JobDetailResponse(jobEntity: Option[JobEntity], req: JobDetailRequest
 case class JobsCatalogRequest(jobCatalog: Option[JobCatalog])
 /**The response associated with the given ReportDetailRequest*/
 case class JobsCatalogResponse(catalog: List[JobEntity], req: JobsCatalogRequest)
+/**Request a worker added to the Coordinator pool */
+case class NewWorkerRequest()

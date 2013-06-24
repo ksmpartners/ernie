@@ -77,8 +77,7 @@ object Utility {
       tryBlock(closeable)
     } catch {
       case e: Throwable => if (catchBlock.isDefinedAt(e)) catchBlock(e) else throw e
-    }
-    finally {
+    } finally {
       try {
         closeable.close()
       } catch {

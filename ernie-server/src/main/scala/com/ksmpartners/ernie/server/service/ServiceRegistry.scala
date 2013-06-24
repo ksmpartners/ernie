@@ -66,15 +66,16 @@ object ServiceRegistry extends JobDependencies
     val jobDir = properties.get(jobDirProp).toString
     val rptDefsDir = properties.get(rptDefsDirProp).toString
     val outputDir = properties.get(outputDirProp).toString
+    val workerCount = if (properties.stringPropertyNames.contains(workerCountProp)) properties.get(workerCountProp).toString.toInt else 5
     var to = 30 * 1000L
 
     if (properties.contains(requestTimeoutSeconds))
       to = properties.get(requestTimeoutSeconds).asInstanceOf[Long]
 
-    val defaultRetentionDays: Int = try { properties.get(defaultRetentionPeriod).toString.toInt } catch { case e: Exception => 7 }
-    val maximumRetentionDays: Int = try { properties.get(maximumRetentionPeriod).toString.toInt } catch { case e: Exception => 14 }
+    val defaultRetentionDays: Int = try { properties.get(defaultRetentionPeriod).toString.toInt } catch { case e: Exception => 25 }
+    val maximumRetentionDays: Int = try { properties.get(maximumRetentionPeriod).toString.toInt } catch { case e: Exception => 50 }
 
-    ErnieAPI(jobDir, rptDefsDir, outputDir, to, defaultRetentionDays, maximumRetentionDays)
+    ErnieAPI(jobDir, rptDefsDir, outputDir, to, defaultRetentionDays, maximumRetentionDays, workerCount)
 
   }
 

@@ -715,7 +715,7 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
           if (r.isInstanceOf[PlainTextResponse])
             if (DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus != JobStatus.IN_PROGRESS) {
             jobRunning = false
-            Assert.assertTrue(DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus == JobStatus.FAILED_PARAMETER_NULL)
+            Assert.assertEquals(DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[StatusResponse]).getJobStatus, JobStatus.FAILED_PARAMETER_NULL)
           })
       }
     }

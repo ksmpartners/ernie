@@ -8,6 +8,7 @@
 package com.ksmpartners.ernie.api.service
 
 import com.ksmpartners.ernie.engine
+import akka.pattern.ask
 
 /**
  * Trait that contains and maintains the actor(s) for coordinating report creation
@@ -22,7 +23,7 @@ trait ReportActorDependencies extends RequiresCoordinator {
      * Sends a shutdown request to the coordinator
      */
     def shutdown() {
-      coordinator !? (timeout, engine.ShutDownRequest())
+      coordinator ? (engine.ShutDownRequest())
     }
   }
 }

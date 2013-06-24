@@ -109,6 +109,30 @@ class DefinitionTest extends WebSpec(() => {
   (new TestBoot).setUpAndBoot()
 }) {
 
+  val properties: Properties = {
+    val url = Thread.currentThread.getContextClassLoader.getResource("test.props")
+    System.setProperty(propertiesFileNameProp, url.getPath)
+    val propsPath = System.getProperty(propertiesFileNameProp)
+
+    if (null == propsPath) {
+      throw new RuntimeException("System property " + propertiesFileNameProp + " is undefined")
+    }
+
+    val propsFile = new File(propsPath)
+    if (!propsFile.exists) {
+      throw new RuntimeException("Properties file " + propsPath + " does not exist.")
+    }
+
+    if (!propsFile.canRead) {
+      throw new RuntimeException("Properties file " + propsPath + " is not readable; check file privileges.")
+    }
+    val props = new Properties()
+    try_(new FileInputStream(propsFile)) { propsFileStream =>
+      props.load(propsFileStream)
+    }
+    props
+  }
+
   @Test(enabled = false)
   private var outputDir: File = null
 
@@ -481,30 +505,9 @@ class DefinitionTest extends WebSpec(() => {
 
     }
   }
-  val properties: Properties = {
-
-    val propsPath = System.getProperty(propertiesFileNameProp)
-
-    if (null == propsPath) {
-      throw new RuntimeException("System property " + propertiesFileNameProp + " is undefined")
-    }
-
-    val propsFile = new File(propsPath)
-    if (!propsFile.exists) {
-      throw new RuntimeException("Properties file " + propsPath + " does not exist.")
-    }
-
-    if (!propsFile.canRead) {
-      throw new RuntimeException("Properties file " + propsPath + " is not readable; check file privileges.")
-    }
-    val props = new Properties()
-    try_(new FileInputStream(propsFile)) { propsFileStream =>
-      props.load(propsFileStream)
-    }
-    props
-  }
 
 }
+
 class MockReadAuthReq(path: String) extends MockHttpServletRequest(path) {
   override def isUserInRole(role: String) = role match {
     case SAMLConstants.readRole => true

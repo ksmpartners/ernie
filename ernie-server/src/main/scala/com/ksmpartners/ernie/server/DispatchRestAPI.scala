@@ -32,7 +32,7 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
     def toResponse = InMemoryResponse(Array(), headers, cookies, 504)
   }
 
-  def timeoutErnieError(src: String = null): ErnieError = ErnieError(TimeoutResponse(), Some(com.ksmpartners.ernie.api.TimeoutException(if (src != null) src + " timed out" else "Timeout")))
+  def timeoutErnieError(src: String = null): ErnieError = ErnieError(TimeoutResponse(), Some(new akka.pattern.AskTimeoutException(if (src != null) src + " timed out" else "Timeout")))
 
   def shutdown() {
     ServiceRegistry.shutDown

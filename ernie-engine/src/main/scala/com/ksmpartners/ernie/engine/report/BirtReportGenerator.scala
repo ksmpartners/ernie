@@ -31,7 +31,15 @@ import org.joda.time.format.DateTimeFormat
  */
 class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator {
 
-  def startup() { startEngine() }
+  var running = false
+
+  def startup() = {
+    if (!running) {
+      running = true
+      startEngine()
+      running = (engine != null)
+    }
+  }
 
   /**
    * Get the list of available definitions
@@ -139,7 +147,10 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
   /**
    * Method to be called after all the reports have been run.
    */
-  def shutdown() { shutdownEngine() }
+  def shutdown() = if (running) {
+    shutdownEngine()
+    running = false
+  }
 
 }
 
@@ -158,12 +169,11 @@ object BirtReportGenerator {
   protected[report] def startEngine() {
     if (engine != null)
       return
+
     val ec = new EngineConfig
     Platform.startup(ec)
-
     val factory = Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY)
       .asInstanceOf[IReportEngineFactory]
-
     engine = factory.createReportEngine(ec)
     log.debug("BIRT Engine started.")
   }

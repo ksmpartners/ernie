@@ -13,38 +13,32 @@ import com.ksmpartners.ernie.api.service.{ RequiresReportManager, RequiresCoordi
 import com.ksmpartners.ernie.util.Utility._
 import org.testng.annotations._
 import org.testng.Assert
-import scala.actors._
 import java.io.{ ByteArrayInputStream, File }
 import com.ksmpartners.ernie.model.{ DefinitionEntity, DeleteStatus, ReportType }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.engine._
 import com.ksmpartners.ernie.engine.report.BirtReportGeneratorFactory
+import akka.actor.{ ActorSystem, ActorDSL }
+import akka.pattern.AskTimeoutException
+import java.util.concurrent.TimeoutException
 
 class TestCoordinator extends ErnieCoordinator {
-  override def start(): Actor = {
-    this
+
+  override def receive() = {
+    case _ =>
   }
-  def act {
-    loop {
-      react {
-        case _ =>
-      }
-    }
-  }
+
 }
 
 @Test(groups = Array("timeout"))
 class TimeoutTest {
 
   private val ernie = {
-    val e = ErnieAPI(1L, 7, 14)
-    ServiceRegistry.setCoordinator({
-      val coord = new TestCoordinator()
-      coord.start()
-      coord
-    })
+    val e = ErnieAPI(1L, 7, 14, 1)
+    ServiceRegistry.setCoordinator(ActorDSL.actor(ActorSystem("timeout-test-system"))(new TestCoordinator))
     e
   }
+
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.APITest")
 
   @BeforeClass

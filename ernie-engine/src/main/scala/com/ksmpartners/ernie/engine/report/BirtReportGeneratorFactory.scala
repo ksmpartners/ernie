@@ -15,8 +15,10 @@ trait BirtReportGeneratorFactory extends ReportGeneratorFactory {
   /**
    * Return a new BirtReportGenerator with the given reportManager
    */
-  def getReportGenerator(reportManager: ReportManager): ReportGenerator = {
-    new BirtReportGenerator(reportManager)
+  var rptGen: Option[BirtReportGenerator] = None
+  def getReportGenerator(reportManager: ReportManager): ReportGenerator = rptGen getOrElse {
+    rptGen = Some(new BirtReportGenerator(reportManager))
+    rptGen.get
   }
 
 }

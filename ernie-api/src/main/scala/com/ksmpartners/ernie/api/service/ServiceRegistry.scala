@@ -12,6 +12,9 @@ import com.ksmpartners.ernie.engine.{ Coordinator, ErnieCoordinator }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.api.ErnieConfig
 import java.io.File
+import scala.concurrent.duration.{ FiniteDuration, Duration }
+import java.util.concurrent.TimeUnit
+import akka.actor.{ ActorRef, ActorSystem, ActorDSL, Actor }
 
 package object ServiceRegistry extends JobDependencies
     with DefinitionDependencies
@@ -31,14 +34,18 @@ package object ServiceRegistry extends JobDependencies
     throw new RuntimeException("No definitions directory specified")
   }
 
+  protected def workerCount = ernieConfig.map(c => c.workerCount) getOrElse 5
+
   protected def timeout = ernieConfig.map(c => c.timeout) getOrElse 30000L
 
   protected def defaultRetentionDays = ernieConfig.map(c => c.defaultRetentionDays) getOrElse 7
   protected def maxRetentionDays = ernieConfig.map(c => c.defaultRetentionDays) getOrElse 14
   protected def fileReportManager = ernieConfig.map(frm => frm.fileMgr) getOrElse false
 
+  protected val system = ActorSystem("ernie-actor-system")
+
   private var reportManagerOpt: Option[ReportManager] = None
-  private var coordinatorOpt: Option[ErnieCoordinator] = None
+  private var coordinatorOpt: Option[ActorRef] = None
 
   protected def reportManager = reportManagerOpt.getOrElse {
 
@@ -57,14 +64,16 @@ package object ServiceRegistry extends JobDependencies
 
   protected def coordinator = coordinatorOpt getOrElse {
     if (fileReportManager) if (!(new File(jobsDir)).isDirectory) throw new RuntimeException("Jobs path is not a directory")
-    val coord = new Coordinator(if (fileReportManager) Some(jobsDir) else None, reportManager) with BirtReportGeneratorFactory
-    coord.start()
-    coord.setTimeout(timeout)
+    val coord = ActorDSL.actor(system)({
+      val c = new Coordinator(if (fileReportManager) Some(jobsDir) else None, reportManager, Some(FiniteDuration.apply(timeout, TimeUnit.MILLISECONDS)), workerCount) with BirtReportGeneratorFactory
+      c.startReportGenerator
+      c
+    })
     coordinatorOpt = Some(coord)
     coord
   }
 
-  def setCoordinator(c: ErnieCoordinator) { coordinatorOpt = Some(c) }
+  def setCoordinator(c: ActorRef) { coordinatorOpt = Some(c) }
 
   val jobsResource = new JobsResource
   val jobStatusResource = new JobStatusResource
@@ -81,6 +90,10 @@ package object ServiceRegistry extends JobDependencies
     coordinatorOpt = None
     reportManagerOpt = None
     coordinator
+  }
+
+  def spawnWorker() {
+    coordinator ! com.ksmpartners.ernie.engine.NewWorkerRequest()
   }
 
 }

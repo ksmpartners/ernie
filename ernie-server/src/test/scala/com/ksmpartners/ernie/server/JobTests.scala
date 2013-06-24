@@ -23,6 +23,7 @@ import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
 import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
+
 import com.ksmpartners.ernie.util.MapperUtility._
 import net.liftweb.http.StreamingResponse
 import net.liftweb.json.JsonAST.JObject
@@ -488,7 +489,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
       Assert.assertEquals(resp.open_!.toResponse.code, 200)
       val rptDetailResponse: ReportEntity = DispatchRestAPI.deserialize(resp.open_!.asInstanceOf[PlainTextResponse].toResponse.data, classOf[ReportEntity])
       Assert.assertEquals(rptDetailResponse.getRptId, jobToRptId(testJobID))
-      Assert.assertEquals(rptDetailResponse.getCreatedUser, "mockWriteUser")
+      Assert.assertEquals(rptDetailResponse.getCreatedUser, "mockRunUser")
     }
   }
 
