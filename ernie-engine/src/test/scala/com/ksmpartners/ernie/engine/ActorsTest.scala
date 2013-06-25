@@ -19,9 +19,7 @@ import org.slf4j.{ LoggerFactory, Logger }
 import scala.collection.{ JavaConversions, mutable }
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.TestLogger
-import scala.Some
 import org.eclipse.birt.report.engine.api.UnsupportedFormatException
-import com.ksmpartners.ernie.engine.JobsCatalogResponse
 import akka.actor.{ ActorSystem, ActorRef, ActorDSL }
 import akka.pattern.ask
 import akka.util.Timeout
@@ -29,19 +27,7 @@ import concurrent.duration._
 import DurationConversions._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import ExecutionContext.Implicits.global
-import scala.util.Success
-import com.ksmpartners.ernie.engine.StatusRequest
 import scala.Some
-import com.ksmpartners.ernie.engine.JobsListResponse
-import com.ksmpartners.ernie.engine.ReportDetailRequest
-import com.ksmpartners.ernie.engine.ShutDownRequest
-import com.ksmpartners.ernie.engine.DeleteRequest
-import com.ksmpartners.ernie.engine.ReportDetailResponse
-import com.ksmpartners.ernie.engine.ResultRequest
-import com.ksmpartners.ernie.engine.ShutDownResponse
-import com.ksmpartners.ernie.engine.ResultResponse
-import com.ksmpartners.ernie.engine.JobsCatalogRequest
-import com.ksmpartners.ernie.engine.JobsListRequest
 
 class ActorsTest extends TestLogger {
   val system = ActorSystem("actors-test-system")

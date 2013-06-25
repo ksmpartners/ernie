@@ -10,11 +10,13 @@ package com.ksmpartners.ernie.api
 import com.ksmpartners.ernie.api.service.{ JobDependencies, ServiceRegistry }
 import com.ksmpartners.ernie.model
 import scala.xml.NodeSeq
-import java.io.{ ByteArrayOutputStream, ByteArrayInputStream }
+import java.io.{ Closeable, ByteArrayOutputStream, ByteArrayInputStream }
 import scala.collection.immutable
 import org.apache.commons.io.IOUtils
 import com.ksmpartners.ernie.api._
 import com.ksmpartners.ernie.util.Utility._
+import java.util.concurrent.TimeoutException
+import akka.pattern.AskTimeoutException
 
 /**
  * Object containing the
@@ -65,6 +67,8 @@ class ErnieAPI {
           Some(defEnt)
         })
     } catch {
+      case e: TimeoutException => Definition(None, None, Some(e))
+      case e: AskTimeoutException => Definition(None, None, Some(new TimeoutException(e.getMessage)))
       case e: NullPointerException => Definition(None, None, Some(InvalidDefinitionException("Design byte array null")))
       case e: Exception => Definition(None, None, Some(e))
     }
@@ -73,6 +77,8 @@ class ErnieAPI {
     try {
       ServiceRegistry.defsResource.getCatalog()
     } catch {
+      case e: TimeoutException => DefinitionCatalog(Nil, Some(e))
+      case e: AskTimeoutException => DefinitionCatalog(Nil, Some(new TimeoutException(e.getMessage)))
       case e: Exception => DefinitionCatalog(Nil, Some(e))
     }
 
@@ -84,6 +90,8 @@ class ErnieAPI {
       }
       else ServiceRegistry.defsResource.putDefinition(Some(defId), None, definition.defEnt)
     } catch {
+      case e: TimeoutException => Definition(None, None, Some(e))
+      case e: AskTimeoutException => Definition(None, None, Some(new TimeoutException(e.getMessage)))
       case e: Exception => Definition(None, None, Some(e))
     }
   }
@@ -94,6 +102,8 @@ class ErnieAPI {
     else if (definition == null) throw new MissingArgumentException("Definition null")
     updateDefinition(defId, Definition(definition.defEnt, Some(IOUtils.toByteArray(rptDesign)), None))
   } catch {
+    case e: TimeoutException => Definition(None, None, Some(e))
+    case e: AskTimeoutException => Definition(None, None, Some(new TimeoutException(e.getMessage)))
     case e: Exception => Definition(None, None, Some(e))
   }
 
@@ -101,6 +111,8 @@ class ErnieAPI {
     if (defId == null) throw new MissingArgumentException("Null definition ID")
     ServiceRegistry.defsResource.getDefinition(defId)
   } catch {
+    case e: TimeoutException => Definition(None, None, Some(e))
+    case e: AskTimeoutException => Definition(None, None, Some(new TimeoutException(e.getMessage)))
     case e: Exception => Definition(None, None, Some(e))
   }
 
@@ -108,6 +120,8 @@ class ErnieAPI {
     if (defId == null) throw new MissingArgumentException("Null definition ID")
     ServiceRegistry.defsResource.getDefinitionEntity(defId)
   } catch {
+    case e: TimeoutException => Definition(None, None, Some(e))
+    case e: AskTimeoutException => Definition(None, None, Some(new TimeoutException(e.getMessage)))
     case e: Exception => Definition(None, None, Some(e))
   }
 
@@ -115,6 +129,8 @@ class ErnieAPI {
     if (defId == null) throw new MissingArgumentException("Null definition ID")
     ServiceRegistry.defsResource.getDefinitionDesign(defId)
   } catch {
+    case e: TimeoutException => Definition(None, None, Some(e))
+    case e: AskTimeoutException => Definition(None, None, Some(new TimeoutException(e.getMessage)))
     case e: Exception => Definition(None, None, Some(e))
   }
 
@@ -122,12 +138,16 @@ class ErnieAPI {
     if (defId == null) throw new MissingArgumentException("Null definition ID")
     (ServiceRegistry.defsResource.deleteDefinition(defId), None)
   } catch {
+    case e: TimeoutException => (model.DeleteStatus.FAILED, Some(e))
+    case e: AskTimeoutException => (model.DeleteStatus.FAILED, Some(new TimeoutException(e.getMessage)))
     case e: Exception => (model.DeleteStatus.FAILED, Some(e))
   }
 
   def createJob(defId: String, rptType: model.ReportType, retentionPeriod: Option[Int], reportParameters: immutable.Map[String, String], userName: String): JobStatus = try {
     ServiceRegistry.jobsResource.createJob(defId, rptType, retentionPeriod, reportParameters, userName)
   } catch {
+    case e: TimeoutException => JobStatus(-1L, Some(com.ksmpartners.ernie.model.JobStatus.FAILED), Some(e))
+    case e: AskTimeoutException => JobStatus(-1L, Some(com.ksmpartners.ernie.model.JobStatus.FAILED), Some(new TimeoutException(e.getMessage)))
     case e: Exception => JobStatus(-1L, Some(com.ksmpartners.ernie.model.JobStatus.FAILED), Some(e))
   }
 
@@ -135,24 +155,32 @@ class ErnieAPI {
     if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobStatusResource.get(jobId)
   } catch {
+    case e: TimeoutException => JobStatus(jobId, None, Some(e))
+    case e: AskTimeoutException => JobStatus(jobId, None, Some(new TimeoutException(e.getMessage)))
     case e: Exception => JobStatus(jobId, None, Some(e))
   }
 
   def getJobCatalog(catalog: Option[model.JobCatalog]): (List[com.ksmpartners.ernie.model.JobEntity], Option[Exception]) = try {
     (ServiceRegistry.jobCatalogResource.getCatalog(catalog), None)
   } catch {
+    case e: TimeoutException => (Nil, Some(e))
+    case e: AskTimeoutException => (Nil, Some(new TimeoutException(e.getMessage)))
     case e: Exception => (Nil, Some(e))
   }
 
   def getJobList(): (List[String], Option[Exception]) = try {
     (ServiceRegistry.jobsResource.getList, None)
   } catch {
+    case e: TimeoutException => (Nil, Some(e))
+    case e: AskTimeoutException => (Nil, Some(new TimeoutException(e.getMessage)))
     case e: Exception => (Nil, Some(e))
   }
 
   def getDefinitionList(): (List[String], Option[Exception]) = try {
     (ServiceRegistry.defsResource.getList, None)
   } catch {
+    case e: TimeoutException => (Nil, Some(e))
+    case e: AskTimeoutException => (Nil, Some(new TimeoutException(e.getMessage)))
     case e: Exception => (Nil, Some(e))
   }
 
@@ -160,6 +188,8 @@ class ErnieAPI {
     if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobEntityResource.getJobEntity(jobId)
   } catch {
+    case e: TimeoutException => JobEntity(None, Some(e))
+    case e: AskTimeoutException => JobEntity(None, Some(new TimeoutException(e.getMessage)))
     case e: Exception => JobEntity(None, Some(e))
   }
 
@@ -167,6 +197,8 @@ class ErnieAPI {
     if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobResultsResource.getReportEntity(jobId)
   } catch {
+    case e: TimeoutException => ReportEntity(None, Some(e))
+    case e: AskTimeoutException => ReportEntity(None, Some(new TimeoutException(e.getMessage)))
     case e: Exception => ReportEntity(None, Some(e))
   }
 
@@ -174,6 +206,8 @@ class ErnieAPI {
     if (rptId == null) throw new MissingArgumentException("Null report ID")
     ServiceRegistry.jobResultsResource.getReportEntity(com.ksmpartners.ernie.util.Utility.rptToJobId(rptId))
   } catch {
+    case e: TimeoutException => ReportEntity(None, Some(e))
+    case e: AskTimeoutException => ReportEntity(None, Some(new TimeoutException(e.getMessage)))
     case e: Exception => ReportEntity(None, Some(e))
   }
 
@@ -181,6 +215,8 @@ class ErnieAPI {
     if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobResultsResource.get(jobId, false, true)
   } catch {
+    case e: TimeoutException => ReportOutput(None, None, null, Some(e))
+    case e: AskTimeoutException => ReportOutput(None, None, null, Some(new TimeoutException(e.getMessage)))
     case e: Exception => ReportOutput(None, None, null, Some(e))
   }
 
@@ -191,6 +227,8 @@ class ErnieAPI {
       ServiceRegistry.jobResultsResource.get(jobId, true, false)
     }
   } catch {
+    case e: TimeoutException => ReportOutput(None, None, null, Some(e))
+    case e: AskTimeoutException => ReportOutput(None, None, null, Some(new TimeoutException(e.getMessage)))
     case e: Exception => ReportOutput(None, None, null, Some(e))
   }
 
@@ -198,6 +236,8 @@ class ErnieAPI {
     if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     ServiceRegistry.jobResultsResource.get(jobId, fileReportManager, true)
   } catch {
+    case e: TimeoutException => ReportOutput(None, None, null, Some(e))
+    case e: AskTimeoutException => ReportOutput(None, None, null, Some(new TimeoutException(e.getMessage)))
     case e: Exception => ReportOutput(None, None, null, Some(e))
   }
 
@@ -205,12 +245,16 @@ class ErnieAPI {
     if (jobId <= 0) throw new MissingArgumentException("Null job ID")
     (ServiceRegistry.jobResultsResource.del(jobId), None)
   } catch {
+    case e: TimeoutException => (model.DeleteStatus.FAILED, Some(e))
+    case e: AskTimeoutException => (model.DeleteStatus.FAILED, Some(new TimeoutException(e.getMessage)))
     case e: Exception => (model.DeleteStatus.FAILED, Some(e))
   }
 
   def purgeExpiredReports(): PurgeResult = try {
     ServiceRegistry.jobCatalogResource.purge
   } catch {
+    case e: TimeoutException => PurgeResult(model.DeleteStatus.FAILED, Nil, Some(e))
+    case e: AskTimeoutException => PurgeResult(model.DeleteStatus.FAILED, Nil, Some(new TimeoutException(e.getMessage)))
     case e: Exception => PurgeResult(model.DeleteStatus.FAILED, Nil, Some(e))
   }
 
