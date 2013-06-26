@@ -69,7 +69,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       if (!defId.isDefined) {
         val (defEntRes: DefinitionEntity, stream: java.io.OutputStream) = reportManager.putDefinition(defEnt)
         defEnt = defEntRes
-        if (rptDesign.isDefined) IOUtils.copy(rptDesign.get, stream)
+        rptDesign.map(r => { r.reset; IOUtils.copy(r, stream) })
         stream.close
         Definition(Some(defEnt), None, None)
       } else {

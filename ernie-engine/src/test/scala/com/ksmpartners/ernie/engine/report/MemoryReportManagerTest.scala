@@ -15,6 +15,8 @@ import org.joda.time.DateTime
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.TestLogger
+import org.apache.poi.util.IOUtils
+import java.io.{ ByteArrayInputStream, File }
 
 class MemoryReportManagerTest extends TestLogger {
 
@@ -77,6 +79,21 @@ class MemoryReportManagerTest extends TestLogger {
     val definition = reportManager.getDefinition(put._1.getDefId).get
     Assert.assertNotNull(definition.getParamNames)
     Assert.assertNotNull(definition.getCreatedDate)
+
+    val (dE, s) = reportManager.putDefinition(new DefinitionEntity(DateTime.now(), "def_6", "default", null, "", null, null))
+    val file = new File(Thread.currentThread.getContextClassLoader.getResource("test_def.rptdesign").getPath)
+    val xl = scala.xml.XML.loadFile(file)
+    val len = xl.toString.length
+    IOUtils.copy(new ByteArrayInputStream(xl.toString.getBytes), s)
+    s.close()
+    val res = reportManager.getDefinitionContent(dE.getDefId)
+    Assert.assertTrue(res.isDefined)
+    try {
+      val xml = scala.xml.XML.load(res.get)
+      Assert.assertEquals(xml.toString.length, len)
+    } catch {
+      case _ => Assert.assertTrue(false)
+    }
   }
 
   @Test

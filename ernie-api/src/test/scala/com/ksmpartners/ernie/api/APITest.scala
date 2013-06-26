@@ -16,6 +16,8 @@ import org.testng.Assert
 import java.io.{ ByteArrayInputStream, File }
 import com.ksmpartners.ernie.model.{ DefinitionEntity, DeleteStatus, ReportType }
 import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
+import scala.Array
 
 //@Test(dependsOnGroups = Array("timeout"))
 class APITest { //extends TestLogger {
@@ -46,6 +48,7 @@ class APITest { //extends TestLogger {
 
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-184")))
   @Test(groups = Array("setup"), dependsOnMethods = Array("init"))
   def createDefinition() {
     Assert.assertEquals(ernie.createDefinition(Some(Left(null)), "test", "test").error.get.getClass, classOf[InvalidDefinitionException])
@@ -62,6 +65,7 @@ class APITest { //extends TestLogger {
     Assert.assertNotSame(defId, "")
   }
 
+  @TestSpecs(Array(new TestSpec(key = "ERNIE-185"), new TestSpec(key = "ERNIE-186")))
   @Test(dependsOnMethods = Array("createDefinition"), groups = Array("setup"))
   def updateDefinition() {
     Assert.assertEquals(ernie.updateDefinition(null, null, null).error.get.getClass, classOf[MissingArgumentException])

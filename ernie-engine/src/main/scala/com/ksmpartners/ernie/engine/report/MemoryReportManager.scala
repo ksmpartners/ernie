@@ -49,7 +49,7 @@ class MemoryReportManager extends ReportManager {
   }
 
   override def getDefinitionContent(defId: String): Option[InputStream] = {
-    definitions.get(defId).map({ new ByteArrayInputStream(_) })
+    definitions.get(defId).map(b => { new ByteArrayInputStream(b) })
   }
 
   override def getDefinitionContent(definition: Definition): Option[InputStream] = {
@@ -76,8 +76,6 @@ class MemoryReportManager extends ReportManager {
     if ((entity.getCreatedUser == null) || (entity.getCreatedUser.length <= 0))
       throw new IllegalArgumentException("Entity must contain createdUser")
     putDefinition(Right(entity))
-    (entity, null)
-
   }
 
   override def putDefinition(entityEither: Either[Map[String, Any], DefinitionEntity]): (DefinitionEntity, OutputStream) = {
