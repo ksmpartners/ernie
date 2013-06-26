@@ -67,7 +67,9 @@ class SAMLFilterTest extends TestLogger {
 
   @Test
   def encodeRunToken() {
-    new String(encodeToken("run"))
+    log.info(new String(encodeToken("write")))
+    log.info("and read:")
+    log.info(new String(encodeToken("read")))
   }
 
   @Test

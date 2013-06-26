@@ -115,7 +115,7 @@ trait JobDependencies extends RequiresAPI {
           checkResponse(postJobAction, resp) or {
             if (resp.jobStatus.get == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM) retentionDateExceedsMaximum.send
             else if (resp.jobStatus.get == JobStatus.FAILED_RETENTION_DATE_PAST) retentionDateBeforeRequest.send
-            else if (resp.jobStatus.get == JobStatus.FAILED_NO_SUCH_DEFINITION) noSuchDefinition.send
+            else if (resp.jobStatus.get == JobStatus.FAILED_NO_SUCH_DEFINITION) noSuchDefinition.send(Some("No such definition ID: " + req.getDefId))
             else getJsonResponse(new model.ReportResponse(resp.jobId, resp.jobStatus.getOrElse(JobStatus.FAILED)), 201, List(("Location", hostAndPath + "/jobs/" + resp.jobId)))
           }
         }
