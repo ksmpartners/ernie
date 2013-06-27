@@ -73,11 +73,15 @@ class DefinitionTest extends WebSpec(() => {
 
   val outputDir = new File(properties.get("output.dir").toString)
   val jobsDir = new File(properties.get("jobs.dir").toString)
+  val defsDir = new File(properties.get("rpt.def.dir").toString)
   for (file <- outputDir.listFiles()) {
     recDel(file)
   }
   for (file <- jobsDir.listFiles()) {
     recDel(file)
+  }
+  for (file <- defsDir.listFiles()) {
+    if (!file.getName.contains("test_def")) recDel(file)
   }
 
   for (i <- 1 to 4) {
@@ -140,6 +144,9 @@ class DefinitionTest extends WebSpec(() => {
   private var jobsDir: File = null
 
   @Test(enabled = false)
+  private var defsDir: File = null
+
+  @Test(enabled = false)
   private[this] var testDef: String = ""
 
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefinitionTest")
@@ -148,6 +155,7 @@ class DefinitionTest extends WebSpec(() => {
   def setup() {
     outputDir = new File(properties.get("output.dir").toString)
     jobsDir = new File(properties.get("jobs.dir").toString)
+    defsDir = new File(properties.get("rpt.defs.dir").toString)
   }
 
   @AfterClass(groups = Array("REST"))
@@ -164,6 +172,9 @@ class DefinitionTest extends WebSpec(() => {
     }
     for (file <- jobsDir.listFiles()) {
       recDel(file)
+    }
+    for (file <- defsDir.listFiles()) {
+      if (!file.getName.contains("test_def")) recDel(file)
     }
 
     var keep = new File(outputDir, ".keep")

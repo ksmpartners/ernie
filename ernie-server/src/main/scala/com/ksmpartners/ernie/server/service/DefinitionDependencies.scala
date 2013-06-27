@@ -48,7 +48,7 @@ trait DefinitionDependencies extends RequiresAPI {
       }
     }
 
-    val postDefAction = Action("postDefinition", post(_), "Post a DefinitionEntity", "", "byte",
+    val postDefAction = Action("postDefinition", post(_), "Post a DefinitionEntity", "", "DefinitionEntity",
       ErnieError(ResponseWithReason(BadResponse(), "No DefinitionEntity in request body"), None),
       ErnieError(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity"), None),
       unexpectedError,

@@ -37,7 +37,6 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
   def shutdown() {
     ServiceRegistry.shutDown
   }
-
   val reportDetail = Resource(Left("detail"), "Report details", false, List(getReportDetail, headReportDetail))
   val jobResult = Resource(Left("result"), "Job results", false, List(getJobResult, headJobResult, deleteJobResult), reportDetail)
   val jobStatus = Resource(Left("status"), "Job status", false, List(getJobStatus, headJobStatus))
@@ -68,7 +67,7 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
     resourceListing = SwaggerUtils.buildSwaggerResourceListing(api, ".1", "1.1", "http://localhost:8080")
 
     serve {
-      case Req("api" :: Nil, "json", GetRequest) => resourceListing
+      case Req("resources" :: Nil, "json", GetRequest) => resourceListing
       case Req("jobs" :: Nil, "json", GetRequest) => jobsAPI
       case Req("defs" :: Nil, "json", GetRequest) => defsAPI
     }

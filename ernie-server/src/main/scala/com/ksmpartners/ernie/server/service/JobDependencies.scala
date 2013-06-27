@@ -101,7 +101,7 @@ trait JobDependencies extends RequiresAPI {
     val noSuchDefinition = ErnieError(ResponseWithReason(BadResponse(), "No such definition ID"), None)
     val serverError = ErnieError(ResponseWithReason(InternalServerErrorResponse(), "Server error"), None)
     val invalidRequest = ErnieError(BadResponse(), None)
-    val postJobAction = Action("postJob", post(_: Package), "Schedules the submitted job", "", "void",
+    val postJobAction = Action("postJob", post(_: Package), "Schedules the submitted job", "", "ReportResponse",
       DispatchRestAPI.timeoutErnieError("Job creation"),
       ErnieError(BadResponse(), Some(api.MissingArgumentException("No request body"))),
       retentionDateExceedsMaximum, retentionDateBeforeRequest, noSuchDefinition, serverError, invalidRequest)

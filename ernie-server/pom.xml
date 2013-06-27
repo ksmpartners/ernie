@@ -21,6 +21,8 @@
         <jetty.version>6.1.26</jetty.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
+        <swagger.basepath>http://localhost:8080</swagger.basepath>
+        <swagger.resources.json>target/test-classes</swagger.resources.json>
     </properties>
 
     <dependencies>
@@ -68,6 +70,12 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.wordnik</groupId>
+            <artifactId>swagger-codegen_2.10</artifactId>
+            <version>2.0.3-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.1.3</version>
@@ -108,7 +116,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>
@@ -120,6 +127,44 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <jvmArgs>
+                        <jvmArg>-Xms64m</jvmArg>
+                        <jvmArg>-Xmx1024m</jvmArg>
+                    </jvmArgs>
+                    <launchers>
+                        <launcher>
+                            <id>java-codegen</id>
+                            <mainClass>com.ksmpartners.ernie.server.client.JavaErnieApiCodegen</mainClass>
+                           <args>
+                                <arg>${swagger.basepath}</arg>
+                            </args>
+                            <jvmArgs>
+                                <jvmArg>-DfileMap=${swagger.resources.json}</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                        <launcher>
+                            <id>objc-codegen</id>
+                            <mainClass>ObjcPetstoreCodegen</mainClass>
+                            <args>
+                                <arg>http://petstore.swagger.wordnik.com/api/api-docs.json</arg>
+                                <arg>special-key</arg>
+                                <arg></arg>
+                            </args>
+                            <jvmArgs>
+                                <jvmArg>-DfileMap=src/test/resources/</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                    </launchers>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -193,8 +238,8 @@
             <dependencies>
             <dependency>
                     <groupId>reaktor</groupId>
-                    <artifactId>scct</artifactId>
-                    <version>2.9.2</version>
+                    <artifactId>scct_2.10</artifactId>
+                    <version>0.2-RELEASE</version>
                 </dependency>
             </dependencies>
             <build>
@@ -226,8 +271,8 @@
                                     <compilerPlugins>
                                         <compilerPlugin>
                                             <groupId>reaktor</groupId>
-                                            <artifactId>scct</artifactId>
-                                            <version>2.9.2</version>
+                                            <artifactId>scct_2.10</artifactId>
+                                            <version>0.2-RELEASE</version>
                                         </compilerPlugin>
                                     </compilerPlugins>
                                 </configuration>

@@ -17,7 +17,7 @@ import com.ksmpartners.ernie.model._
 import org.testng.Assert
 import net.liftweb.http._
 import java.util.Properties
-import java.io.{ FileInputStream, File }
+import java.io.{ FileOutputStream, FileInputStream, File }
 import com.ksmpartners.ernie.util.Utility._
 import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
@@ -123,6 +123,26 @@ class CleanupTest extends WebSpec(() => Unit) with TestSetupUtilities {
       import JavaConversions._
       Assert.assertTrue(jobCatalogResp.getJobsCatalog.toList.filter(p => p.getJobId == testJobID).length > 0)
     }
+  }
+
+  @Test
+  def canGetApiJSON() {
+    def saveApiJSON(d: String) = {
+      val mockReq = new MockReadAuthReq("/" + d)
+      MockWeb.testReq(mockReq) {
+        req =>
+          val resp = DispatchRestAPI(req)()
+          Assert.assertTrue(resp.isDefined)
+          Assert.assertEquals(resp.open_!.getClass, classOf[JsonResponse])
+          val file = new File(new File(Thread.currentThread.getContextClassLoader.getResource("in").getPath).getParent, d)
+          var fos = new FileOutputStream(file)
+          fos.write(resp.open_!.asInstanceOf[JsonResponse].json.toJsCmd.getBytes)
+          fos.close
+      }
+    }
+    saveApiJSON("resources.json")
+    saveApiJSON("jobs.json")
+    saveApiJSON("defs.json")
   }
 
 }

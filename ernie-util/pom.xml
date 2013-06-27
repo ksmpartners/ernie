@@ -70,8 +70,8 @@
             <dependencies>
                 <dependency>
                     <groupId>reaktor</groupId>
-                    <artifactId>scct</artifactId>
-                    <version>2.9.2</version>
+                    <artifactId>scct_2.10</artifactId>
+                    <version>0.2-RELEASE</version>
                 </dependency>
             </dependencies>
             <build>
@@ -103,8 +103,8 @@
                                     <compilerPlugins>
                                         <compilerPlugin>
                                             <groupId>reaktor</groupId>
-                                            <artifactId>scct</artifactId>
-                                            <version>2.9.2</version>
+                                            <artifactId>scct_2.10</artifactId>
+                                            <version>0.2-RELEASE</version>
                                         </compilerPlugin>
                                     </compilerPlugins>
                                 </configuration>

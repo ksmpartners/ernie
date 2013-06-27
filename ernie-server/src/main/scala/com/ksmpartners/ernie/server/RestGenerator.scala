@@ -91,7 +91,7 @@ object RestGenerator {
   }
 
   def getToHead(r: RequestTemplate): RequestTemplate = RequestTemplate(HeadRequest, r.produces, r.filters, getToHead(r.action))
-  def getToHead(a: Action): Action = Action(a.name + "Head", headFilter(a.func), a.summary, a.notes, a.responseClass, a.errors: _*)
+  def getToHead(a: Action): Action = Action(a.name + "Head", headFilter(a.func), a.summary, a.notes, "void", a.errors: _*)
 
   private def headFilter(f: (Package) => Box[LiftResponse]): (Package) => Box[LiftResponse] = { pck: Package =>
     {

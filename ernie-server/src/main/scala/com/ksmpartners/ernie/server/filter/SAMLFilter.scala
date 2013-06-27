@@ -39,7 +39,8 @@ class SAMLFilter extends Filter {
     (req, res) match {
       case (request: HttpServletRequest, response: HttpServletResponse) => {
         try {
-          if (!req.asInstanceOf[HttpServletRequest].getRequestURI.contains("static")) {
+          val uri = req.asInstanceOf[HttpServletRequest].getRequestURI
+          if (!uri.contains("static") && !uri.contains("resources.json") && !uri.contains("jobs.json") && !uri.contains("defs.json")) {
             val samlRequestWrapper = handleRequest(request, response)
             chain.doFilter(samlRequestWrapper, response)
           } else {
