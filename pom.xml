@@ -30,6 +30,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+               <!--<dependency>
+            <groupId>io.gatling</groupId>
+            <artifactId>gatling-ernie</artifactId>
+            <version>2.0.0-M2</version>
+        </dependency>!-->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback</artifactId>
@@ -56,6 +61,7 @@
     <build>
         <pluginManagement>
             <plugins>
+
                 <plugin>
                     <groupId>org.scalariform</groupId>
                     <artifactId>scalariform-maven-plugin</artifactId>
@@ -148,5 +154,19 @@
         <module>ernie-model</module>
         <module>ernie-util</module>
         <module>ernie-api</module>
+        <module>gatling-ernie</module>
     </modules>
+    <repositories>
+    <repository>
+        <id>gatling</id>
+        <releases>
+            <enabled>true</enabled>
+            <checksumPolicy>ignore</checksumPolicy>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+        <url>file://${project.basedir}/gatling/lib</url>
+    </repository>
+    </repositories>
 </project>

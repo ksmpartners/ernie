@@ -17,7 +17,7 @@
     <description>A JEE web application resource for serving RESTful Ernie Web Services</description>
     <inceptionYear>2013</inceptionYear>
     <properties>
-        <scala.version>2.10.0</scala.version>
+        <scala.version>2.10.1</scala.version>
         <jetty.version>6.1.26</jetty.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>

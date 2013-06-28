@@ -155,7 +155,7 @@ class DefinitionTest extends WebSpec(() => {
   def setup() {
     outputDir = new File(properties.get("output.dir").toString)
     jobsDir = new File(properties.get("jobs.dir").toString)
-    defsDir = new File(properties.get("rpt.defs.dir").toString)
+    defsDir = new File(properties.get("rpt.def.dir").toString)
   }
 
   @AfterClass(groups = Array("REST"))
