@@ -15,10 +15,10 @@ import javax.servlet.http.HttpServletResponse
 import java.io.{ ByteArrayOutputStream, FileOutputStream, FileInputStream, File }
 import com.ksmpartners.ernie.util.Utility._
 import org.apache.cxf.rs.security.saml.DeflateEncoderDecoder
-import com.ksmpartners.commons.util.Base64Util
+import com.ksmpartners.ernie.util.Base64Util
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import org.testng.Assert
-import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
+//import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.filter.SAMLFilter.SAMLHttpServletRequestWrapper
 import com.ksmpartners.ernie.util.TestLogger
@@ -50,9 +50,9 @@ class SAMLFilterTest extends TestLogger {
     Assert.assertEquals(resp.getStatusCode, 200)
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-40"), new TestSpec(key = "ERNIE-86"), new TestSpec(key = "ERNIE-73"),
-    new TestSpec(key = "ERNIE-79"), new TestSpec(key = "ERNIE-64"), new TestSpec(key = "ERNIE-59"),
-    new TestSpec(key = "ERNIE-52"), new TestSpec(key = "ERNIE-46"), new TestSpec(key = "ERNIE-99"), new TestSpec(key = "ERNIE-93"), new TestSpec(key = "ERNIE-138"), new TestSpec(key = "ERNIE-144"), new TestSpec(key = "ERNIE-151")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-40"), new TestSpec(key = "ERNIE-86"), new TestSpec(key = "ERNIE-73"),
+  //  new TestSpec(key = "ERNIE-79"), new TestSpec(key = "ERNIE-64"), new TestSpec(key = "ERNIE-59"),
+  //  new TestSpec(key = "ERNIE-52"), new TestSpec(key = "ERNIE-46"), new TestSpec(key = "ERNIE-99"), new TestSpec(key = "ERNIE-93"), new TestSpec(key = "ERNIE-138"), new TestSpec(key = "ERNIE-144"), new TestSpec(key = "ERNIE-151")))
   @Test
   def noAuthReturns401() {
     val filter = new SAMLFilter

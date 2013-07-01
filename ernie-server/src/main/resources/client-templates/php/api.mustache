@@ -53,9 +53,14 @@ class {{classname}} {
   		{{/queryParams}}
 
       {{#headerParams}}
-  		if(${{paramName}} != null) {
-  		 	$headerParams['{{paramName}}'] = $this->apiClient->toHeaderValue(${{paramName}});
-  		}
+        {{#defaultValue}}
+            $headerParams['{{paramName}}'] = {{defaultValue}};
+        {{/defaultValue}}
+        {{^defaultValue}}
+            if(${{paramName}} != null) {
+                $headerParams['{{paramName}}'] = $this->apiClient->toHeaderValue(${{paramName}});
+            }
+        {{/defaultValue}}
       {{/headerParams}}
 
       {{#pathParams}}

@@ -16,7 +16,9 @@ import java.io.{ FileInputStream, File }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.RequiresProperties
 import scala.Either
-import com.ksmpartners.ernie.api.ErnieAPI
+import com.ksmpartners.ernie.api._
+import ErnieBuilder._
+import java.util.concurrent.TimeUnit
 
 /**
  * Object that registers the services used by the stateless dispatch
@@ -51,7 +53,7 @@ object ServiceRegistry extends JobDependencies
     props
   }
 
-  protected val ernie: ErnieAPI = {
+  protected val ernie = {
 
     if (!properties.stringPropertyNames.contains(rptDefsDirProp)) {
       throw new RuntimeException("Properties file does not contain property " + rptDefsDirProp)
@@ -75,7 +77,12 @@ object ServiceRegistry extends JobDependencies
     val defaultRetentionDays: Int = try { properties.get(defaultRetentionPeriod).toString.toInt } catch { case e: Exception => 25 }
     val maximumRetentionDays: Int = try { properties.get(maximumRetentionPeriod).toString.toInt } catch { case e: Exception => 50 }
 
-    ErnieAPI(jobDir, rptDefsDir, outputDir, to, defaultRetentionDays, maximumRetentionDays, workerCount)
+    ErnieEngine(ernieBuilder withFileReportManager (jobDir, rptDefsDir, outputDir)
+      timeoutAfter (scala.concurrent.duration.FiniteDuration(to, TimeUnit.MILLISECONDS))
+      withDefaultRetentionDays (defaultRetentionDays)
+      withMaxRetentionDays (maximumRetentionDays)
+      withWorkers (workerCount)
+      build ()).start
 
   }
 

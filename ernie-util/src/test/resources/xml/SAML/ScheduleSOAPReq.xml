@@ -1,0 +1,61 @@
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:enc="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<env:Header>
+		<wsse:Security
+			xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+<saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="s272a233dc85ab98698d03500022c09c2647d13d39" IssueInstant="2012-05-24T15:44:11Z" Version="2.0">
+<saml:Issuer>https://dev.ksmpartners.com/idp-int</saml:Issuer><ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<ds:Reference URI="#s272a233dc85ab98698d03500022c09c2647d13d39">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>gDecPJrC1PZ8lVeHGAnxnPT81Uk=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+jG5bm0JPTa/iinJmZlRlPB3uAXRMveKje+MDnslf9VdOVGSiqA8hmOB4JTn8i6UHWTC/OLnrv+Hd
+xigL2+f1acSUUHP5+8NNkmJqNkugWske4UxjjK6iXGKhXWQtBCgo0++0E5/iKXfvQaTAFN0Cq9p3
+nVXSmUnpfXpeSkg8uyY=
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIICQDCCAakCBEeNB0swDQYJKoZIhvcNAQEEBQAwZzELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNh
+bGlmb3JuaWExFDASBgNVBAcTC1NhbnRhIENsYXJhMQwwCgYDVQQKEwNTdW4xEDAOBgNVBAsTB09w
+ZW5TU08xDTALBgNVBAMTBHRlc3QwHhcNMDgwMTE1MTkxOTM5WhcNMTgwMTEyMTkxOTM5WjBnMQsw
+CQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEUMBIGA1UEBxMLU2FudGEgQ2xhcmExDDAK
+BgNVBAoTA1N1bjEQMA4GA1UECxMHT3BlblNTTzENMAsGA1UEAxMEdGVzdDCBnzANBgkqhkiG9w0B
+AQEFAAOBjQAwgYkCgYEArSQc/U75GB2AtKhbGS5piiLkmJzqEsp64rDxbMJ+xDrye0EN/q1U5Of+
+RkDsaN/igkAvV1cuXEgTL6RlafFPcUX7QxDhZBhsYF9pbwtMzi4A4su9hnxIhURebGEmxKW9qJNY
+Js0Vo5+IgjxuEWnjnnVgHTs1+mq5QYTA7E6ZyL8CAwEAATANBgkqhkiG9w0BAQQFAAOBgQB3Pw/U
+QzPKTPTYi9upbFXlrAKMwtFf2OW4yvGWWvlcwcNSZJmTJ8ARvVYOMEVNbsT4OFcfu2/PeYoAdiDA
+cGy/F2Zuj8XJJpuQRSE6PtQqBuDEHjjmOQJ0rV/r8mO1ZCtHRhpZ5zYRjhRC9eCbjx9VrFax0JDC
+/FfwWigmrW0Y0Q==
+</ds:X509Certificate>
+</ds:X509Data>
+</ds:KeyInfo>
+</ds:Signature><saml:Subject>
+<saml:NameID Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" NameQualifier="https://dev.ksmpartners.com/idp-int" SPNameQualifier="http://localhost:8080/stratasl">pYyvCkXK5Oio9//SMas47Pj9PAmd</saml:NameID><saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+<saml:SubjectConfirmationData InResponseTo="s29831037d9270cb3c9467ee9ae11aac1416903758" NotOnOrAfter="2012-05-24T15:54:11Z" Recipient="http://localhost:8080/stratasl/fedletapplication"/></saml:SubjectConfirmation>
+</saml:Subject><saml:Conditions NotBefore="2012-05-24T15:34:11Z" NotOnOrAfter="2012-05-24T15:54:11Z">
+<saml:AudienceRestriction>
+<saml:Audience>http://localhost:8080/stratasl</saml:Audience>
+</saml:AudienceRestriction>
+</saml:Conditions>
+<saml:AuthnStatement AuthnInstant="2012-05-24T15:44:11Z" SessionIndex="s2b763c61e8c9ed92c2587f1fe79ace5df9abdb901"><saml:AuthnContext><saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef></saml:AuthnContext></saml:AuthnStatement><saml:AttributeStatement><saml:Attribute Name="uid"><saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">stratasluser</saml:AttributeValue></saml:Attribute><saml:Attribute Name="sn"><saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">Lastname</saml:AttributeValue></saml:Attribute><saml:Attribute Name="cn"><saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">User</saml:AttributeValue></saml:Attribute><saml:Attribute Name="givenname"><saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">Firstname</saml:AttributeValue></saml:Attribute><saml:Attribute Name="strataslRole"><saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">Statistician</saml:AttributeValue><saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">Approver</saml:AttributeValue></saml:Attribute></saml:AttributeStatement></saml:Assertion>
+		</wsse:Security>
+	</env:Header>
+	<env:Body wsu:Id="se0ffabd98ecfdf194adc0c8ac8fb4edabf65cd3a">
+		<s:schedule-request
+			xmlns:s="http://www.ksmpartners.com/stratasl/schemas/v1.0/schedule">10000</s:schedule-request>
+	</env:Body>
+</env:Envelope>
+ 
+

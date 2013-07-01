@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.server
 
 import org.testng.annotations.Test
 import java.io.{ FileOutputStream, FileInputStream, File }
-import com.ksmpartners.commons.util.Base64Util
+import com.ksmpartners.ernie.util.Base64Util
 import org.apache.cxf.rs.security.saml.DeflateEncoderDecoder
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.TestLogger

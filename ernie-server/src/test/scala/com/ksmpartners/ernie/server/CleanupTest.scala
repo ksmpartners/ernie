@@ -22,7 +22,7 @@ import com.ksmpartners.ernie.util.Utility._
 import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
-import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
+//import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import com.ksmpartners.ernie.util.MapperUtility._
 import net.liftweb.http.StreamingResponse
 import net.liftweb.json.JsonAST.JObject
@@ -58,7 +58,7 @@ class CleanupTest extends WebSpec(() => Unit) with TestSetupUtilities {
     log.debug("BEGIN test:" + result.getName)
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-69")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-69")))
   @Test(dependsOnMethods = Array("canDeleteReportResults"))
   def jobStatusReturns410ForDeletedReports() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
@@ -72,7 +72,7 @@ class CleanupTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-70")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-70")))
   @Test(dependsOnMethods = Array("canDeleteReportResults"))
   def downloadServiceReturns410ForDeletedReports() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
@@ -88,7 +88,7 @@ class CleanupTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-74")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-74")))
   @Test
   def canDeleteReportResults() {
     completeJob
@@ -107,7 +107,7 @@ class CleanupTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-156")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-156")))
   @Test(dependsOnMethods = Array("canDeleteReportResults"))
   def canGetDeletedJobsCatalog() {
     val mockReq = new MockReadAuthReq("/jobs/deleted")

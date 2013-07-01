@@ -102,7 +102,7 @@ package object ErnieFilters {
       Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_FULL))
     }
   }
-  val jsonFilter = Filter("JSON Content Type Filter", ctypeFilter(_: Req)_, Some(Parameter("Accept", "header", "string")), ErnieError(ResponseWithReason(NotAcceptableResponse(), "Resource only serves " + ModelObject.TYPE_FULL), None))
+  val jsonFilter = Filter("JSON Content Type Filter", ctypeFilter(_: Req)_, Some(Parameter("Accept", "header", "string", ModelObject.TYPE_FULL)), ErnieError(ResponseWithReason(NotAcceptableResponse(), "Resource only serves " + ModelObject.TYPE_FULL), None))
 
   val idFilter = Filter("ID is long filter", idIsLongFilter(_: Req)_, None, ErnieError(ResponseWithReason(BadResponse(), "Job ID provided is not a number"), None))
   private def idIsLongFilter(req: Req)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = try {

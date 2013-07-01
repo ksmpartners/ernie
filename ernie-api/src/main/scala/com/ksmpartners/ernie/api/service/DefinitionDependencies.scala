@@ -9,12 +9,11 @@ package com.ksmpartners.ernie.api.service
 
 import com.ksmpartners.ernie.{ engine, model }
 import com.ksmpartners.ernie.model.{ ParameterEntity, DeleteStatus, DefinitionEntity }
-import java.io.ByteArrayInputStream
+import java.io.{ InputStream, ByteArrayInputStream }
 import com.ksmpartners.ernie.engine.report.{ BirtReportGenerator }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.api._
-import org.apache.cxf.helpers.IOUtils
-import com.ksmpartners.ernie.api.Definition
+import org.apache.cxf.helpers.{ FileUtils, IOUtils }
 import scala.Some
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.engine.DeleteDefinitionResponse
@@ -36,7 +35,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
   class DefsResource {
     private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefsResource")
 
-    def putDefinition(defId: Option[String], rptDesign: Option[ByteArrayInputStream], definitionEntity: Option[DefinitionEntity]): Definition = {
+    def putDefinition(defId: Option[String], rptDesign: Option[ByteArrayInputStream], definitionEntity: Option[DefinitionEntity]): DefinitionEntity = {
       defId.map(f => if (!reportManager.getDefinition(f).isDefined) throw new NotFoundException(f + " not found"))
       if (!(definitionEntity.isDefined || rptDesign.isDefined)) throw new MissingArgumentException("Must specify at least a definition entity or design")
       var defEnt = definitionEntity.getOrElse(new DefinitionEntity)
@@ -71,35 +70,35 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
         defEnt = defEntRes
         rptDesign.map(r => { r.reset; IOUtils.copy(r, stream) })
         stream.close
-        Definition(Some(defEnt), None, None)
+        defEnt
       } else {
         defEnt.setDefId(defId.get)
         val result = reportManager.updateDefinition(defId.get, defEnt)
         rptDesign.map(r => { r.reset; IOUtils.copy(r, result) })
         result.close
-        Definition(Some(defEnt), None, None)
+        defEnt
       }
     }
 
     def getList(): List[String] = reportManager.getAllDefinitionIds
 
-    def getCatalog(): DefinitionCatalog = {
-      DefinitionCatalog(reportManager.getAllDefinitionIds.foldLeft[List[DefinitionEntity]](Nil)((list, dId) =>
-        list ::: (reportManager.getDefinition(dId).map(f => f.getEntity).toList)), None)
+    def getCatalog() = {
+      reportManager.getAllDefinitionIds.foldLeft[List[DefinitionEntity]](Nil)((list, dId) =>
+        list ::: (reportManager.getDefinition(dId).map(f => f.getEntity).toList))
     }
 
-    def getDefinition(defId: String): Definition = getDefinition(defId, true, true)
-    def getDefinitionEntity(defId: String): Definition = getDefinition(defId, true, false)
-    def getDefinitionDesign(defId: String): Definition = getDefinition(defId, false, true)
+    def getDefinition(defId: String): Option[DefinitionEntity] = reportManager.getDefinition(defId).map(de => de.getEntity)
+    def getDefinitionEntity(defId: String): Option[DefinitionEntity] = reportManager.getDefinition(defId).map(de => de.getEntity)
+    def getDefinitionDesign(defId: String): Option[InputStream] = reportManager.getDefinitionContent(defId)
 
-    private def getDefinition(defId: String, entity: Boolean, design: Boolean): Definition = {
+    /* private def getDefinition(defId: String, entity: Boolean, design: Boolean): Definition = {
       if (defId == null) throw new MissingArgumentException("Definition ID null")
       else {
         Definition(if (entity) reportManager.getDefinition(defId).map(f => f.getEntity) else None,
           if (design) reportManager.getDefinitionContent(defId).map(f => org.apache.commons.io.IOUtils.toByteArray(f)) else None,
           None)
       }
-    }
+    }     */
 
     def deleteDefinition(defId: String): DeleteStatus = {
       if (defId == null) throw new MissingArgumentException("Definition ID null")

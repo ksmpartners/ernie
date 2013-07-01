@@ -69,12 +69,12 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.1.3</version>
         </dependency>
-        <dependency>
+      <!--  <dependency>
             <groupId>com.ksmpartners.common</groupId>
             <artifactId>trace-matrix-annotations</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>test</scope>
-        </dependency>
+        </dependency>    !-->
     </dependencies>
 
     <build>

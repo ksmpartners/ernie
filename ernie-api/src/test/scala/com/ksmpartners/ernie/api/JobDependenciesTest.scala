@@ -20,13 +20,11 @@ import org.testng.Assert
 import collection.mutable
 import org.joda.time.DateTime
 import org.slf4j.{ LoggerFactory, Logger }
-import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import scala.Array
 
 import akka.pattern.ask
 import scala.concurrent.duration._
 import com.ksmpartners.ernie.model.DeleteStatus
-import com.ksmpartners.ernie.api.JobStatus
 import scala.Some
 import akka.actor.{ ActorRef, ActorDSL, ActorSystem }
 
@@ -38,6 +36,8 @@ class JobDependenciesTest extends JobDependencies with RequiresCoordinator with 
   private val tempJobDir = createTempDirectory
 
   protected def workerCount: Int = 5
+
+  def timeoutDuration = (5 minutes)
 
   protected val system: ActorSystem = ActorSystem("job-dependencies-test")
 
@@ -120,10 +120,10 @@ class JobDependenciesTest extends JobDependencies with RequiresCoordinator with 
   @Test(groups = Array("jDCleanUp"), dependsOnGroups = Array("main"))
   def purgeTest() {
     val purgeResp = (new JobCatalogResource).purge //(coordinator !? PurgeRequest()).asInstanceOf[PurgeResponse]
-    Assert.assertTrue(purgeResp.purgedIds.contains("REPORT_2"))
-    Assert.assertTrue(purgeResp.purgedIds.contains("REPORT_4"))
-    Assert.assertFalse(purgeResp.purgedIds.contains("REPORT_1"))
-    Assert.assertFalse(purgeResp.purgedIds.contains("REPORT_3"))
+    Assert.assertTrue(purgeResp._2.contains("REPORT_2"))
+    Assert.assertTrue(purgeResp._2.contains("REPORT_4"))
+    Assert.assertFalse(purgeResp._2.contains("REPORT_1"))
+    Assert.assertFalse(purgeResp._2.contains("REPORT_3"))
   }
 
   @Test(groups = Array("main"))
@@ -137,32 +137,31 @@ class JobDependenciesTest extends JobDependencies with RequiresCoordinator with 
   @Test(groups = Array("main"), dependsOnGroups = Array("timeout"))
   def canPostNewJob() {
     val jobsResource = new JobsResource
-    val resp: JobStatus = jobsResource.createJob(testDef, model.ReportType.PDF, Some(5), Map.empty[String, String], "testUser")
-    jobId = resp.jobId
-    Assert.assertTrue(resp.jobId > 0)
-    Assert.assertEquals(resp.jobStatus.get, model.JobStatus.IN_PROGRESS)
+    val (id, status) = jobsResource.createJob(testDef, model.ReportType.PDF, Some(5), Map.empty[String, String], "testUser")
+    Assert.assertTrue(id > 0)
+    jobId = id
+    Assert.assertEquals(status, model.JobStatus.IN_PROGRESS)
   }
 
   @Test(dependsOnMethods = Array("canPostNewJob"), groups = Array("main"))
   def canGetJobEntity() {
     val jobEntityResource = new JobEntityResource
     val resp = jobEntityResource.getJobEntity(jobId)
-    Assert.assertTrue(resp.jobEntity.isDefined)
+    Assert.assertTrue(resp.isDefined)
   }
 
   @Test(dependsOnMethods = Array("canPostNewJob"), groups = Array("main"))
   def canGetJobStatus() {
     val jobStatusResource = new JobStatusResource
     val resp = jobStatusResource.get(jobId)
-
-    Assert.assertTrue(resp.jobStatus.isDefined)
+    Assert.assertTrue(resp != null)
   }
 
   @Test(dependsOnMethods = Array("canGetJobResults"), groups = Array("main"))
   def canGetRptEntity() {
     val jobStatusResource = new JobResultsResource
     val resp = jobStatusResource.getReportEntity(jobId)
-    Assert.assertTrue(resp.rptEntity.isDefined)
+    Assert.assertTrue(resp.isDefined)
   }
 
   @Test(dependsOnMethods = Array("canPostNewJob"), groups = Array("main"))
@@ -178,13 +177,23 @@ class JobDependenciesTest extends JobDependencies with RequiresCoordinator with 
     val jobResultsResource = new JobResultsResource
     val jobsResource = new JobsResource
     val statusResource = new JobStatusResource
+    ApiTestUtil.testException(() => jobResultsResource.get(1L, false, false), classOf[NothingToReturnException])
     val end = System.currentTimeMillis() + 5000L
-    var statusResp = statusResource.get(jobId).jobStatus
-    while ((statusResp.isDefined) && (statusResp.get != model.JobStatus.COMPLETE) && (System.currentTimeMillis() < end)) {
-      statusResp = statusResource.get(jobId).jobStatus
+    var statusResp = statusResource.get(jobId)
+    while ((statusResp != model.JobStatus.COMPLETE) && (System.currentTimeMillis() < end)) {
+      statusResp = statusResource.get(jobId)
     }
     val resultRespBox = jobResultsResource.get(jobId, false, true)
-    Assert.assertTrue(resultRespBox.stream.isDefined)
+    Assert.assertTrue(resultRespBox.isDefined)
+  }
+
+  @Test
+  def canCompareOutputExceptions() {
+    val one = ReportOutputException(Some(model.JobStatus.FAILED_INVALID_PARAMETER_VALUES), "")
+    val two: Exception = ReportOutputException(Some(model.JobStatus.FAILED), "")
+    Assert.assertFalse(one.compare(two))
+    val three: Exception = ReportOutputException(None, "")
+    Assert.assertTrue(one.compare(three))
   }
 
   private def createTempDirectory(): File = {

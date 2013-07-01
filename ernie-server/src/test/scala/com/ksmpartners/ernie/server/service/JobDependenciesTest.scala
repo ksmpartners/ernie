@@ -23,7 +23,7 @@ import org.joda.time.DateTime
 import com.ksmpartners.ernie.server.{ DispatchRestAPI, JsonTranslator, service }
 import service.ServiceRegistry._
 import org.slf4j.{ LoggerFactory, Logger }
-//import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
+////import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import scala.Array
 
 import net.liftweb.http.StreamingResponse
@@ -33,7 +33,6 @@ import net.liftweb.common.Full
 import com.ksmpartners.ernie.engine.PurgeResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
 import com.ksmpartners.ernie.util.TestLogger
-import com.ksmpartners.ernie.api.ErnieAPI
 
 class JobDependenciesTest extends TestLogger {
 

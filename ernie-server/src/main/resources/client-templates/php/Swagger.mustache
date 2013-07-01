@@ -63,7 +63,7 @@ class APIClient {
 			}
 		}
 		if (! $added_api_key) {
-		    $headers[] = "api_key: " . $this->apiKey;
+		    $headers[] = "Authorization: SAML " . $this->apiKey;
 		}
 
 		if (is_object($postData) or is_array($postData)) {

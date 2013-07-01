@@ -154,7 +154,7 @@
         <module>ernie-model</module>
         <module>ernie-util</module>
         <module>ernie-api</module>
-        <module>gatling-ernie</module>
+       <!-- <module>gatling-ernie</module>!-->
     </modules>
     <repositories>
     <repository>

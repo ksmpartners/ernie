@@ -9,7 +9,8 @@
 package com.ksmpartners.ernie.api
 
 import com.ksmpartners.ernie.util.TestLogger
-import com.ksmpartners.ernie.api.service.{ RequiresReportManager, RequiresCoordinator, DefinitionDependencies, ServiceRegistry }
+import com.ksmpartners.ernie.api.service.{ RequiresReportManager, RequiresCoordinator, DefinitionDependencies }
+import scala.concurrent.duration._
 import com.ksmpartners.ernie.util.Utility._
 import org.testng.annotations._
 import org.testng.Assert
@@ -21,6 +22,7 @@ import com.ksmpartners.ernie.engine.report.BirtReportGeneratorFactory
 import akka.actor.{ ActorSystem, ActorDSL }
 import akka.pattern.AskTimeoutException
 import java.util.concurrent.TimeoutException
+import com.ksmpartners.ernie.api.ErnieBuilder._
 
 class TestCoordinator extends ErnieCoordinator {
 
@@ -34,8 +36,8 @@ class TestCoordinator extends ErnieCoordinator {
 class TimeoutTest {
 
   private val ernie = {
-    val e = ErnieAPI(1L, 7, 14, 1)
-    ServiceRegistry.setCoordinator(ActorDSL.actor(ActorSystem("timeout-test-system"))(new TestCoordinator))
+    val e = ErnieEngine(ernieBuilder withMemoryReportManager () timeoutAfter (1 nanosecond) build ()).start
+    e.setCoordinator(ActorDSL.actor(ActorSystem("timeout-test-system"))(new TestCoordinator))
     e
   }
 
@@ -53,11 +55,17 @@ class TimeoutTest {
   private var defId = ""
   private var jobId = -1L
 
-  @Test(enabled = false)
-  def checkTimeout(e: Option[Exception]) {
-    Assert.assertTrue(e.isDefined)
-    Assert.assertEquals(e.get.getClass, classOf[TimeoutException])
+  @Test
+  def checkTimeout() {
+    try {
+      ernie.getJobStatus(5L)
+      Assert.assertTrue(false)
+    } catch {
+      case t: Throwable => Assert.assertEquals(t.getClass, classOf[TimeoutException])
+    }
   }
+
+  /*
 
   @Test(groups = Array("tTSetup"))
   def createJob() {
@@ -114,6 +122,6 @@ class TimeoutTest {
   @Test(dependsOnGroups = Array("tTCompleted"), groups = Array("tTCleanUp"))
   def purge() {
     checkTimeout(ernie.purgeExpiredReports().error)
-  }
+  }        */
 
 }

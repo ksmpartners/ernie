@@ -22,7 +22,7 @@ import com.ksmpartners.ernie.util.Utility._
 import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
-import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
+//import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import com.ksmpartners.ernie.util.MapperUtility._
 import net.liftweb.http.StreamingResponse
 import net.liftweb.json.JsonAST.JObject
@@ -207,7 +207,7 @@ class DefinitionTest extends WebSpec(() => {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-129")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-129")))
   @Test(dependsOnMethods = Array("downloadServiceReturn410ForExpiredReports"))
   def canPurgeJobs() {
     val mockReq = new MockWriteAuthReq("/jobs/expired")
@@ -246,7 +246,7 @@ class DefinitionTest extends WebSpec(() => {
 
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-160")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-160")))
   @Test
   def jobsInProgressOnShutDownAreRestarted() {
     var jobRunning = true
@@ -273,7 +273,7 @@ class DefinitionTest extends WebSpec(() => {
     Assert.assertTrue(job2Complete)
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-41")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-41")))
   @Test
   def canGetDefs() {
     val mockReq = new MockReadAuthReq("/defs")
@@ -288,7 +288,7 @@ class DefinitionTest extends WebSpec(() => {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-42")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-42")))
   @Test
   def getDefsReturnsJSON() {
     val mockReq = new MockReadAuthReq("/defs")
@@ -325,7 +325,7 @@ class DefinitionTest extends WebSpec(() => {
     }
   } */
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-120")))
+  ////@TestSpecs(Array(new TestSpec(key = "ERNIE-120")))
   //@Test(dependsOnMethods = Array("canPostJob"))
   @Test(enabled = false)
   def cantDeleteInUseDef() {
@@ -341,7 +341,7 @@ class DefinitionTest extends WebSpec(() => {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-80")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-80")))
   @Test
   def canGetDefDetails() {
     val mockReq = new MockReadAuthReq("/defs/test_def")
@@ -358,7 +358,7 @@ class DefinitionTest extends WebSpec(() => {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-81")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-81")))
   @Test
   def defDetailServiceReturnsJSON() {
     val mockReq = new MockReadAuthReq("/defs/test_def")
@@ -370,7 +370,7 @@ class DefinitionTest extends WebSpec(() => {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-96")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-96")))
   @Test
   def cantGetDefDetailForNonExistentReportDef() {
     val mockReq = new MockReadAuthReq("/defs/invalid_def")
@@ -383,7 +383,7 @@ class DefinitionTest extends WebSpec(() => {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-47"), new TestSpec(key = "ERNIE-49"), new TestSpec(key = "ERNIE-162")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-47"), new TestSpec(key = "ERNIE-49"), new TestSpec(key = "ERNIE-162")))
   @Test //(dependsOnMethods = Array("canDeleteDefs"))
   def canPostDefs() {
     val mockReq = new MockWriteAuthReq("/defs")
@@ -413,7 +413,7 @@ class DefinitionTest extends WebSpec(() => {
 
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-92"), new TestSpec(key = "ERNIE-95")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-92"), new TestSpec(key = "ERNIE-95")))
   @Test(dependsOnMethods = Array("canPostDefs"))
   def canDeleteDefs() {
     val mockReq = new MockWriteAuthReq("/defs/" + testDef)
@@ -431,7 +431,7 @@ class DefinitionTest extends WebSpec(() => {
     canPostDefs
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-48"), new TestSpec(key = "ERNIE-100"), new TestSpec(key = "ERNIE-101")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-48"), new TestSpec(key = "ERNIE-100"), new TestSpec(key = "ERNIE-101")))
   @Test(dependsOnMethods = Array("canDeleteDefs"))
   def canPutDefs() {
     val mockReq = new MockWriteAuthReq("/defs/" + testDef + "/rptdesign")
@@ -459,7 +459,7 @@ class DefinitionTest extends WebSpec(() => {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-135")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-135")))
   @Test(dependsOnMethods = Array("canPutDefs"))
   def canPutDefsWithParams() {
     val mockReq = new MockWriteAuthReq("/defs/" + testDef + "/rptdesign")
@@ -494,7 +494,7 @@ class DefinitionTest extends WebSpec(() => {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-56"), new TestSpec(key = "ERNIE-103")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-56"), new TestSpec(key = "ERNIE-103")))
   @Test(dependsOnMethods = Array("canPostDefs"))
   def invalidDefinitionPutReturns400() {
     val mockReq = new MockWriteAuthReq("/defs/" + testDef + "/rptdesign")

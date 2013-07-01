@@ -9,7 +9,7 @@ package com.ksmpartners.ernie.api.service
 
 import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.engine
-import java.io.{ File, ByteArrayOutputStream, IOException }
+import java.io._
 import java.util
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.model._
@@ -17,11 +17,14 @@ import scala.Some
 import com.ksmpartners.ernie.engine.{ ReportResponse, PurgeResponse, PurgeRequest }
 import scala.collection.immutable
 import com.ksmpartners.ernie.api
-import com.ksmpartners.ernie.api.{ NothingToReturnException, JobStatus }
 import akka.actor._
 import ActorDSL._
 import akka.pattern.ask
 import scala.concurrent.Await
+import com.ksmpartners.ernie.engine.PurgeRequest
+import scala.Some
+import com.ksmpartners.ernie.api.NothingToReturnException
+import com.ksmpartners.ernie.engine.PurgeResponse
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports
@@ -32,10 +35,10 @@ trait JobDependencies extends RequiresCoordinator
   class JobsResource {
     private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.service.JobDependencies")
 
-    def createJob(defId: String, rptType: ReportType, retentionPeriod: Option[Int], reportParameters: immutable.Map[String, String], userName: String): JobStatus = {
+    def createJob(defId: String, rptType: ReportType, retentionPeriod: Option[Int], reportParameters: immutable.Map[String, String], userName: String): (Long, model.JobStatus) = {
       val respOpt = Await.result((coordinator ? (engine.ReportRequest(defId, rptType, retentionPeriod,
         reportParameters, userName))).mapTo[engine.ReportResponse], timeoutDuration)
-      JobStatus(respOpt.jobId, Some(respOpt.jobStatus), None)
+      (respOpt.jobId, respOpt.jobStatus)
     }
 
     def getList(): List[String] = {
@@ -49,56 +52,44 @@ trait JobDependencies extends RequiresCoordinator
       Await.result((coordinator ? (engine.JobsCatalogRequest(catalog))).mapTo[engine.JobsCatalogResponse], timeoutDuration).catalog
     }
 
-    def purge(): api.PurgeResult = {
+    def purge(): (model.DeleteStatus, List[String]) = {
       val respOpt = Await.result((coordinator ? (PurgeRequest())).mapTo[PurgeResponse], timeoutDuration)
-      api.PurgeResult(respOpt.deleteStatus, respOpt.purgedRptIds, None)
+      (respOpt.deleteStatus, respOpt.purgedRptIds)
     }
   }
 
   class JobStatusResource {
     private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.service.JobDependencies")
 
-    def get(jobId: Long): api.JobStatus = {
-      JobStatus(jobId,
-        Some(Await.result((coordinator ? (engine.StatusRequest(jobId))).mapTo[engine.StatusResponse], timeoutDuration).jobStatus), None)
+    def get(jobId: Long): model.JobStatus = {
+      Await.result((coordinator ? (engine.StatusRequest(jobId))).mapTo[engine.StatusResponse], timeoutDuration).jobStatus
     }
   }
 
   class JobEntityResource {
-    def getJobEntity(jobId: Long): api.JobEntity = {
-      val respOpt = Await.result((coordinator ? (engine.JobDetailRequest(jobId))).mapTo[engine.JobDetailResponse], timeoutDuration)
-      if (respOpt.jobEntity.isEmpty) api.JobEntity(None, Some(new api.NotFoundException("Job ID not found")))
-      else api.JobEntity(respOpt.jobEntity, None)
-    }
+    def getJobEntity(jobId: Long): Option[model.JobEntity] =
+      Await.result((coordinator ? (engine.JobDetailRequest(jobId))).mapTo[engine.JobDetailResponse], timeoutDuration).jobEntity
   }
 
   class JobResultsResource {
 
-    def get(jobId: Long, file: Boolean, stream: Boolean): api.ReportOutput = {
+    def get(jobId: Long, file: Boolean, stream: Boolean): Option[InputStream] = {
       if (!file && !stream) throw new NothingToReturnException("Must request a file and/or stream of output")
       val statusResponse = Await.result((coordinator ? (engine.StatusRequest(jobId))).mapTo[engine.StatusResponse], timeoutDuration)
-      if (statusResponse.jobStatus != model.JobStatus.COMPLETE) {
-        if (statusResponse.jobStatus == model.JobStatus.NO_SUCH_JOB) throw new api.NotFoundException("Job " + jobId + " not found")
+      if (statusResponse.jobStatus == model.JobStatus.NO_SUCH_JOB) None
+      else if (statusResponse.jobStatus != model.JobStatus.COMPLETE) {
         throw new api.ReportOutputException(Some(statusResponse.jobStatus), "Failure to retrieve job output")
       } else {
         val response = Await.result((coordinator ? (engine.ResultRequest(jobId.toLong))).mapTo[engine.ResultResponse], timeoutDuration)
         if (response.rptId.isDefined) {
-          val rptId = response.rptId.get
-          var error: Option[Exception] = None
-          var bAOS: Option[java.io.InputStream] = None
-          if (stream) bAOS = try {
-            reportManager.getReportContent(rptId)
-          } catch {
-            case e: Exception => { error = Some(e); None }
-          }
-          api.ReportOutput(bAOS, if (file) Some(new java.io.File(outputDir, rptId + ".entity")) else None, reportManager.getReport(rptId).get.getEntity, error)
-        } else throw new api.NotFoundException("Report output not found")
+          reportManager.getReportContent(response.rptId.get)
+        } else None
       }
 
     }
 
-    def getReportEntity(jobId: Long): api.ReportEntity = {
-      api.ReportEntity(Await.result((coordinator ? (engine.ReportDetailRequest(jobId))).mapTo[engine.ReportDetailResponse], timeoutDuration).rptEntity, None)
+    def getReportEntity(jobId: Long): Option[model.ReportEntity] = {
+      Await.result((coordinator ? (engine.ReportDetailRequest(jobId))).mapTo[engine.ReportDetailResponse], timeoutDuration).rptEntity
     }
 
     def del(jobId: Long): DeleteStatus = {

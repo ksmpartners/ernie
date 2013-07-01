@@ -42,7 +42,7 @@ object RestGenerator {
   type restFilter = (restFunc => () => Box[LiftResponse])
 
   val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.RestGenerator")
-  case class Parameter(param: String, paramType: String, dataType: String)
+  case class Parameter(param: String, paramType: String, dataType: String, defaultValue: String*)
   case class Filter(name: String, filter: (Req => restFunc => restFunc), param: Option[Parameter], error: ErnieError)
   case class Variable(data: Any)
   case class Package(req: Req, params: Variable*)
@@ -59,6 +59,13 @@ object RestGenerator {
   }
 
   case class Action(name: String, func: (Package) => Box[LiftResponse], summary: String, notes: String, responseClass: String, errors: ErnieError*)
+
+  def apiCall[B](a: Action, call: Any => B, then: B => Box[LiftResponse]): Box[LiftResponse] = try {
+    val res = call.apply()
+    then(res)
+  } catch {
+    case e: Exception => checkResponse(a, Some(e))
+  }
 
   def checkResponse(a: Action, e: Option[Exception]): Box[LiftResponse] = if (e.isDefined) {
     val errors = a.errors
@@ -80,7 +87,7 @@ object RestGenerator {
     }
   } else net.liftweb.common.Empty
 
-  def checkResponse(a: Action, e: ErnieResponse): Box[LiftResponse] = checkResponse(a, e.errorOpt)
+  //def checkResponse(a: Action, e: ErnieResponse): Box[LiftResponse] = checkResponse(a, e.errorOpt)
 
   case class RequestTemplate(requestType: RequestType, produces: List[String], filters: List[Filter], action: Action, params: Parameter*)
   case class Resource(path: Either[String, Variable], description: String, isResourceGroup: Boolean, requestTemplates: List[RequestTemplate], children: Resource*) {

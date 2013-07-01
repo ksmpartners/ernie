@@ -14,7 +14,7 @@ import java.net.URL
 import org.testng.Assert
 import com.ksmpartners.ernie.model._
 import org.joda.time.DateTime
-import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
+//import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import org.slf4j.{ LoggerFactory, Logger }
 import scala.collection.{ JavaConversions, mutable }
 import com.ksmpartners.ernie.util.Utility._
@@ -115,7 +115,7 @@ class PurgeTest extends TestLogger {
     Assert.assertTrue(reportManager.hasReport("REPORT_4"))
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-68")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-68")))
   @Test(dependsOnMethods = Array("hasReports"))
   def canPurgeExpiredJobs() {
     import com.ksmpartners.ernie.engine.StatusResponse

@@ -22,7 +22,6 @@ import com.ksmpartners.ernie.server.service.ServiceRegistry._
 import net.liftweb.mocks.MockHttpServletRequest
 import com.ksmpartners.ernie.server.filter.SAMLConstants
 import java.io.{ FileInputStream, File }
-import com.ksmpartners.ernie.api.ErnieAPI
 
 class DefinitionDependenciesTest extends TestLogger { // extends DefinitionDependencies with TestLogger with RequiresAPI {
 

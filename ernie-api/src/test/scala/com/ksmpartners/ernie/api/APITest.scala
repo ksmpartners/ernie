@@ -12,18 +12,29 @@ import com.ksmpartners.ernie.util.TestLogger
 import com.ksmpartners.ernie.api.service.{ RequiresReportManager, RequiresCoordinator, DefinitionDependencies }
 import com.ksmpartners.ernie.util.Utility._
 import org.testng.annotations._
+import scala.concurrent.duration._
 import org.testng.Assert
 import java.io.{ ByteArrayInputStream, File }
 import com.ksmpartners.ernie.model.{ DefinitionEntity, DeleteStatus, ReportType }
 import org.slf4j.{ LoggerFactory, Logger }
-import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import scala.Array
+import ErnieBuilder._
+import ApiTestUtil._
+
+object ApiTestUtil {
+  def testException[B <: Exception](func: () => Unit, ex: Class[B]) = try {
+    func()
+    Assert.assertTrue(false)
+  } catch {
+    case t: Throwable => Assert.assertEquals(t.getClass, ex)
+  }
+}
 
 //@Test(dependsOnGroups = Array("timeout"))
 class APITest { //extends TestLogger {
 
   @BeforeClass
-  private var ernie: ErnieAPI = null
+  private var ernie: ErnieControl = null
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.APITest")
 
   @BeforeClass(dependsOnGroups = Array("tTCleanUp"))
@@ -32,7 +43,7 @@ class APITest { //extends TestLogger {
 
   @AfterClass
   def shutdown() {
-
+    ernie.shutDown
   }
 
   @BeforeClass
@@ -44,123 +55,124 @@ class APITest { //extends TestLogger {
   @Test(dependsOnGroups = Array("timeout"))
   def init() {
     log.info("Beginning APITest")
-    ernie = ErnieAPI(createTempDirectory.getAbsolutePath, createTempDirectory().getAbsolutePath, createTempDirectory.getAbsolutePath, 1000L * 300, 7, 14)
-
+    ernie = ErnieEngine(
+      ernieBuilder
+        withFileReportManager (createTempDirectory.getAbsolutePath, createTempDirectory().getAbsolutePath, createTempDirectory.getAbsolutePath)
+        withDefaultRetentionDays (5)
+        withMaxRetentionDays (10)
+        timeoutAfter (5 minutes)
+        withWorkers (5)
+        build ()).start
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-184")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-184")))
   @Test(groups = Array("setup"), dependsOnMethods = Array("init"))
   def createDefinition() {
-    Assert.assertEquals(ernie.createDefinition(Some(Left(null)), "test", "test").error.get.getClass, classOf[InvalidDefinitionException])
-    Assert.assertEquals(ernie.createDefinition(Some(Right(null)), "test", "test").error.get.getClass, classOf[InvalidDefinitionException])
-    Assert.assertEquals(ernie.createDefinition(None, null, null).error.get.getClass, classOf[IllegalArgumentException])
+    testException(() => ernie.createDefinition(Some(null), "test", "test"), classOf[InvalidDefinitionException])
+    testException(() => ernie.createDefinition(None, null, null), classOf[IllegalArgumentException])
+
+    // Assert.assertEquals(ernie.createDefinition(Some(Right(null)), "test", "test").error.get.getClass, classOf[InvalidDefinitionException])
+    // Assert.assertEquals(ernie.createDefinition(None, null, null).error.get.getClass, classOf[IllegalArgumentException])
     val xml = scala.xml.XML.loadFile(new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath))
     try_(new ByteArrayInputStream(xml.toString.getBytes)) { bAIS =>
       {
-        val resp = ernie.createDefinition(Some(Left(bAIS)), "test", "test")
-        Assert.assertEquals(resp.error, None)
-        defId = resp.defEnt.get.getDefId
+        val resp = ernie.createDefinition(Some(bAIS), "test", "test")
+        defId = resp.getDefId
       }
     }
     Assert.assertNotSame(defId, "")
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-185"), new TestSpec(key = "ERNIE-186")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-185"), new TestSpec(key = "ERNIE-186")))
   @Test(dependsOnMethods = Array("createDefinition"), groups = Array("setup"))
   def updateDefinition() {
-    Assert.assertEquals(ernie.updateDefinition(null, null, null).error.get.getClass, classOf[MissingArgumentException])
-    Assert.assertEquals(ernie.updateDefinition(defId, null, null).error.get.getClass, classOf[MissingArgumentException])
-    Assert.assertEquals(ernie.updateDefinition(defId, new ByteArrayInputStream(Array()), null).error.get.getClass, classOf[MissingArgumentException])
-    Assert.assertEquals(ernie.updateDefinition(null, null).error.get.getClass, classOf[MissingArgumentException])
-    val resp = ernie.updateDefinition(defId, Definition(Some(ernie.getDefinitionEntity(defId).defEnt.get), None, None))
-    Assert.assertTrue(resp.error.isEmpty)
+    testException(() => ernie.updateDefinition(null, None, None), classOf[MissingArgumentException])
+    testException(() => ernie.updateDefinition(defId, None, None), classOf[MissingArgumentException])
+    val resp = ernie.updateDefinition(defId, Some(ernie.getDefinitionEntity(defId)), None)
+    Assert.assertEquals(resp.getDefId, defId)
     try_(new ByteArrayInputStream(<break/>.toString.getBytes)) { bAIS =>
-      {
-        val resp = ernie.updateDefinition(defId, bAIS, ernie.getDefinition(defId))
-        Assert.assertTrue(resp.error.isDefined)
-        Assert.assertEquals(resp.error.get.getClass, classOf[InvalidDefinitionException])
-      }
+      testException(() => ernie.updateDefinition(defId, None, Some(bAIS)), classOf[InvalidDefinitionException])
     }
     val xml = scala.xml.XML.loadFile(new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def_params.rptdesign").getPath))
     try_(new ByteArrayInputStream(xml.toString.getBytes)) { bAIS =>
-      {
-        val resp = ernie.updateDefinition(defId, bAIS, ernie.getDefinition(defId))
-        Assert.assertEquals(resp.error, None)
-        Assert.assertTrue(resp.defEnt.get.getParams.size > 0)
-      }
+      Assert.assertTrue(ernie.updateDefinition(defId, None, Some(bAIS)).getParams.size > 0)
     }
   }
 
   @Test(dependsOnMethods = Array("updateDefinition"), groups = Array("setup"))
   def createJob() {
-    var resp = ernie.createJob("test", ReportType.PDF, None, null, "test")
-    Assert.assertTrue(resp.jobStatus.isDefined)
-    Assert.assertEquals(resp.jobStatus.get, com.ksmpartners.ernie.model.JobStatus.FAILED_NO_SUCH_DEFINITION)
-
-    resp = ernie.createJob(defId, ReportType.PDF, None, null, "test")
-    jobId = resp.jobId
+    var (id, status) = ernie.createJob("test", ReportType.PDF, None, null, "test")
+    Assert.assertEquals(status, com.ksmpartners.ernie.model.JobStatus.FAILED_NO_SUCH_DEFINITION)
+    jobId = ernie.createJob(defId, ReportType.PDF, None, null, "test")._1
     Assert.assertTrue(jobId > 0)
-    Assert.assertTrue(resp.error.isEmpty)
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getDefinitionsCatalog() {
-    Assert.assertTrue(ernie.getDefinitionsCatalog.catalog.size > 0)
+    Assert.assertTrue(ernie.getDefinitionsCatalog.size > 0)
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getDefList() {
-    Assert.assertTrue(ernie.getDefinitionList._1.size > 0)
+    Assert.assertTrue(ernie.getDefinitionList.size > 0)
   }
 
-  @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
+  /*  @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getDefinition() {
     Assert.assertEquals(ernie.getDefinition(null).error.get.getClass, classOf[MissingArgumentException])
     Assert.assertTrue(ernie.getDefinition(defId).defEnt.isDefined)
-  }
+  }    */
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getDefinitionEntity() {
-    Assert.assertEquals(ernie.getDefinitionEntity(null).error.get.getClass, classOf[MissingArgumentException])
-    Assert.assertTrue(ernie.getDefinitionEntity(defId).defEnt.isDefined)
+    testException(() => ernie.getDefinitionEntity(null), classOf[MissingArgumentException])
+    testException(() => ernie.getDefinitionEntity("test"), classOf[NotFoundException])
+    Assert.assertEquals(ernie.getDefinitionEntity(defId).getDefId, defId)
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getDefinitionDesign() {
-    Assert.assertEquals(ernie.getDefinitionDesign(null).error.get.getClass, classOf[MissingArgumentException])
-    Assert.assertTrue(ernie.getDefinitionDesign(defId).rptDesign.isDefined)
+    testException(() => ernie.getDefinitionDesign(null)(b => b), classOf[MissingArgumentException])
+    ernie.getDefinitionDesign(defId)(b => Assert.assertTrue(scala.xml.XML.load(b).toString.length > 10))
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
-  def getStatus(): Option[com.ksmpartners.ernie.model.JobStatus] = {
-    Assert.assertEquals(ernie.getJobStatus(-1L).error.get.getClass, classOf[MissingArgumentException])
-    val resp = ernie.getJobStatus(jobId).jobStatus
-    Assert.assertTrue(resp isDefined)
-    resp
+  def getDefinitionDesignOpt() {
+    testException(() => ernie.getDefinitionDesignOpt(null)(b => b), classOf[MissingArgumentException])
+    ernie.getDefinitionDesignOpt(defId)(b => {
+      Assert.assertTrue(b.isDefined);
+      Assert.assertTrue(scala.xml.XML.load(b.get).toString.length > 10)
+    })
+  }
+
+  @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
+  def getStatus(): com.ksmpartners.ernie.model.JobStatus = {
+    testException(() => ernie.getJobStatus(-1L), classOf[MissingArgumentException])
+    ernie.getJobStatus(jobId)
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getJobEntity() {
-    Assert.assertEquals(ernie.getJobEntity(-1L).error.get.getClass, classOf[MissingArgumentException])
-    Assert.assertTrue(ernie.getJobEntity(jobId).jobEntity.isDefined)
+    testException(() => ernie.getJobEntity(-1L), classOf[MissingArgumentException])
+    Assert.assertTrue(ernie.getJobEntity(jobId).isDefined)
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getJobCatalog() {
-    Assert.assertTrue(ernie.getJobCatalog(None)._1.size > 0)
+    Assert.assertTrue(ernie.getJobCatalog(None).size > 0)
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getJobList() {
-    Assert.assertTrue(ernie.getJobList._1.size > 0)
+    Assert.assertTrue(ernie.getJobList.size > 0)
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def completeJob() {
     var ticks = 0
     var inProgress = true
-    while ((ticks < ernie.timeout) && inProgress) {
-      getStatus.map(f => if (f == com.ksmpartners.ernie.model.JobStatus.COMPLETE) inProgress = false)
+    while ((ticks < ernie.timeoutDuration.toMillis) && inProgress) {
+      if (getStatus == com.ksmpartners.ernie.model.JobStatus.COMPLETE) inProgress = false
       ticks += 1
     }
     Assert.assertFalse(inProgress)
@@ -168,22 +180,22 @@ class APITest { //extends TestLogger {
 
   @Test(dependsOnGroups = Array("main"), groups = Array("completed"))
   def getRptEnt() {
-    Assert.assertEquals(ernie.getReportEntity(-1L).error.get.getClass, classOf[MissingArgumentException])
-    var resp = ernie.getReportEntity(jobId).rptEntity
+    testException(() => ernie.getReportEntity(-1L), classOf[MissingArgumentException])
+    var resp = ernie.getReportEntity(jobId)
     Assert.assertTrue(resp.isDefined)
-    resp = ernie.getReportEntity(jobToRptId(jobId)).rptEntity
+    resp = ernie.getReportEntity(jobToRptId(jobId))
     Assert.assertTrue(resp.isDefined)
     Assert.assertTrue(resp.get.getStartDate.isBeforeNow)
   }
 
   @Test(dependsOnGroups = Array("main"), groups = Array("completed"))
   def getOutputStream() {
-    Assert.assertEquals(ernie.getReportOutputStream(-1L).error.get.getClass, classOf[MissingArgumentException])
-    val resp = ernie.getReportOutputStream(jobId)
-    Assert.assertTrue(resp.stream.isDefined)
+    testException(() => ernie.getReportOutput(-1L), classOf[MissingArgumentException])
+    val resp = ernie.getReportOutput(jobId)
+    Assert.assertTrue(resp.isDefined)
   }
 
-  @Test(dependsOnGroups = Array("main"), groups = Array("completed"))
+  /*@Test(dependsOnGroups = Array("main"), groups = Array("completed"))
   def getOutputFile() {
     Assert.assertEquals(ernie.getReportOutputFile(-1L).error.get.getClass, classOf[MissingArgumentException])
     val resp = ernie.getReportOutputFile(jobId)
@@ -200,24 +212,24 @@ class APITest { //extends TestLogger {
     Assert.assertTrue(resp.file.isDefined)
     Assert.assertTrue(resp.file.get.isFile)
     Assert.assertEquals(resp.file.get.getParent, ernie.outputDir)
-  }
+  }      */
 
   @Test(dependsOnGroups = Array("completed"), groups = Array("aTCleanUp"))
   def deleteOutput() {
     val resp = ernie.deleteReportOutput(jobId)
-    Assert.assertEquals(resp._1, DeleteStatus.SUCCESS)
+    Assert.assertEquals(resp, DeleteStatus.SUCCESS)
   }
 
   @Test(dependsOnGroups = Array("completed"), groups = Array("aTCleanUp"))
   def deleteDef() {
     val resp = ernie.deleteDefinition(defId)
-    Assert.assertEquals(resp._1, DeleteStatus.SUCCESS)
+    Assert.assertEquals(resp, DeleteStatus.SUCCESS)
   }
 
   @Test(dependsOnGroups = Array("completed"), groups = Array("aTCleanUp"))
   def purge() {
     val resp = ernie.purgeExpiredReports()
-    Assert.assertEquals(resp.deleteStatus, DeleteStatus.SUCCESS)
+    Assert.assertEquals(resp._1, DeleteStatus.SUCCESS)
   }
 
 }

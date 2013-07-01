@@ -37,42 +37,35 @@ trait DefinitionDependencies extends RequiresAPI {
     val getDefsAction: Action = Action("getDefinition", get(_: Package), "Retrieve a mapping of definition IDs to URIs", "", "ReportDefinitionMapResponse",
       DispatchRestAPI.timeoutErnieError("Defs list"))
     def get(p: Package): Box[LiftResponse] = get("/defs")
-    def get(uriPrefix: String) = {
-      val (list, error) = ernie.getDefinitionList
-      checkResponse(getDefsAction, error) or {
+    def get(uriPrefix: String) =
+      apiCall[List[String]](getDefsAction, _ => ernie.getDefinitionList(), (list) => {
         val defMap: util.Map[String, String] = new util.HashMap
         list.foreach({ defId =>
           defMap.put(defId, uriPrefix + "/" + defId)
         })
         getJsonResponse(new model.ReportDefinitionMapResponse(defMap))
-      }
-    }
+      })
 
+    val noDefEntInBody = ErnieError(ResponseWithReason(BadResponse(), "No DefinitionEntity in request body"), None)
+    val malformedDefEnt = ErnieError(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity"), None)
     val postDefAction = Action("postDefinition", post(_), "Post a DefinitionEntity", "", "DefinitionEntity",
-      ErnieError(ResponseWithReason(BadResponse(), "No DefinitionEntity in request body"), None),
-      ErnieError(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity"), None),
+      noDefEntInBody,
+      malformedDefEnt,
       unexpectedError,
       DispatchRestAPI.timeoutErnieError("Definition creation"))
     def post(p: Package): Box[LiftResponse] = post(p.req)
     def post(req: net.liftweb.http.Req): Box[LiftResponse] = {
       if (req.body.isEmpty) {
-        log.debug("Response: Bad Response. Reason: No DefinitionEntity in request body")
-        Full(ResponseWithReason(BadResponse(), "No DefinitionEntity in request body"))
+        noDefEntInBody.send
       } else try {
-        var defEnt: DefinitionEntity = deserialize(req.body.open_!, classOf[DefinitionEntity]).asInstanceOf[DefinitionEntity]
-        val resp = ernie.createDefinition(None, defEnt.getDefDescription, AuthUtil.getUserName(req))
-        checkResponse(postDefAction, resp) or {
-          if (resp.defEnt.isDefined)
-            getJsonResponse(resp.defEnt.get, 201, List(("Location", req.hostAndPath + "/defs/" + resp.defEnt.get.getDefId)))
-          else unexpectedError.send(Some("Error retrieving definition entity"))
-        }
+        var defEnt: DefinitionEntity = deserialize(req.body.open_!, classOf[DefinitionEntity])
+        apiCall[DefinitionEntity](postDefAction, _ => ernie.createDefinition(None, defEnt.getDefDescription, AuthUtil.getUserName(req)), defEnt =>
+          getJsonResponse(defEnt, 201, List(("Location", req.hostAndPath + "/defs/" + defEnt.getDefId))))
       } catch {
         case e: Exception => {
           log.debug("Caught exception while posting definition: {}", e.getMessage + "\n" + e.getStackTraceString)
-          log.debug("Response: Bad Response. Reason: Malformed DefinitionEntity")
-          Full(ResponseWithReason(BadResponse(), "Malformed DefinitionEntity"))
+          malformedDefEnt.send
         }
-
       }
     }
   }
@@ -87,13 +80,9 @@ trait DefinitionDependencies extends RequiresAPI {
     val getDefDetailAction: Action = Action("getDefinitionDetail", get(_), "Retrieve the DefinitionEntity for a specific Definition ID", "", "DefinitionEntity",
       defNotFound,
       DispatchRestAPI.timeoutErnieError("Get definition"))
-    def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid def id")) else get(p.params(0).data.toString)
+    def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) defNotFound.send else get(p.params(0).data.toString)
     def get(defId: String) = {
-      val definition = ernie.getDefinitionEntity(defId)
-      checkResponse(getDefDetailAction, definition) or {
-        if (definition.defEnt.isDefined) getJsonResponse(definition.defEnt.get)
-        else defNotFound.send
-      }
+      apiCall[DefinitionEntity](getDefDetailAction, _ => ernie.getDefinitionEntity(defId), defEnt => getJsonResponse(defEnt))
     }
 
     val defInUse = ErnieError(ResponseWithReason(ConflictResponse(), "Definition in use"), None)
@@ -104,24 +93,22 @@ trait DefinitionDependencies extends RequiresAPI {
       defInUse,
       deleteDefFailed)
     def del(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else del(p.params(0).data.toString)
-    def del(defId: String) = {
-      val (delete, error) = ernie.deleteDefinition(defId)
-      checkResponse(deleteDefAction, error) or {
+    def del(defId: String) =
+      apiCall[DeleteStatus](deleteDefAction, _ => ernie.deleteDefinition(defId), delete =>
         if (delete == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteDefinitionResponse(delete))
         else if (delete == DeleteStatus.NOT_FOUND) defNotFound.send
         else if (delete == DeleteStatus.FAILED_IN_USE) defInUse.send
-        else deleteDefFailed.send
-      }
-    }
+        else deleteDefFailed.send)
 
     val unacceptable = ErnieError(ResponseWithReason(BadResponse(), "Unacceptable Content-Type"), None)
     val noRptDesign = ErnieError(ResponseWithReason(BadResponse(), "No report design in request body"), Some(MissingArgumentException("No report design in request body")))
     val unexpectedError = ErnieError(InternalServerErrorResponse(), None)
+    val malformedDesign = ErnieError(BadResponse(), Some(com.ksmpartners.ernie.api.InvalidDefinitionException("Unable to validate report design")))
     val putDefAction: Action = Action("putDefinition", put(_), "Put definition rptdesign", "", "DefinitionEntity",
       unacceptable,
       noRptDesign,
-      ErnieError(NotFoundResponse(), Some(com.ksmpartners.ernie.api.NotFoundException("Definition not found"))),
-      ErnieError(BadResponse(), Some(com.ksmpartners.ernie.api.InvalidDefinitionException("Unable to validate report design"))),
+      defNotFound,
+      malformedDesign,
       unexpectedError)
     def put(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else put(p.params(0).data.toString, p.req)
 
@@ -129,11 +116,8 @@ trait DefinitionDependencies extends RequiresAPI {
       if (!Utility.checkContentType(req.headers, ModelObject.TYPE_RPTDESIGN_FULL)) unacceptable.send
       else if (req.body.isEmpty) noRptDesign.send
       else {
-        val resp = ernie.updateDefinition(defId, api.Definition(None, Some(req.body.open_!), None))
-        checkResponse(putDefAction, resp) or {
-          if (resp.defEnt.isEmpty) unexpectedError.send(Some("Error retrieving definition entity"))
-          else getJsonResponse(resp.defEnt.get, 201)
-        }
+        apiCall[DefinitionEntity](putDefAction, _ => Utility.fTry_(new ByteArrayInputStream(req.body.open_!))(bAIS => ernie.updateDefinition(defId, None, Some(bAIS))), defEnt =>
+          getJsonResponse(defEnt, 201))
       }
     }
   }

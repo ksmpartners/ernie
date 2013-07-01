@@ -19,11 +19,11 @@ import akka.util.Timeout
  */
 trait RequiresCoordinator {
   protected def coordinator: ActorRef
-  protected def timeout: Long
-  protected def timeoutDuration = FiniteDuration.apply(timeout, TimeUnit.MILLISECONDS)
+  //protected def timeout: Long
+  def timeoutDuration: FiniteDuration
   implicit def timeoutAkka = Timeout(timeoutDuration)
-  protected def workerCount: Int
-  protected def jobsDir: String
+  //protected def workerCount: Int
+  //protected def jobsDir: String
   protected val system: ActorSystem
 }
 
@@ -32,6 +32,6 @@ trait RequiresCoordinator {
  */
 trait RequiresReportManager {
   protected def reportManager: ReportManager
-  protected def outputDir: String
-  protected def defDir: String
+  //protected def outputDir: String
+  //protected def defDir: String
 }

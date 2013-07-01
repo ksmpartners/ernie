@@ -10,8 +10,8 @@ package com.ksmpartners.ernie.server.filter
 import javax.servlet._
 import http.{ HttpServletRequestWrapper, HttpServletResponse, HttpServletRequest }
 import org.slf4j.{ Logger, LoggerFactory }
-import com.ksmpartners.commons.security.SAML2.{ SAMLProcessor, SAMLParseException }
-import com.ksmpartners.commons.util.Base64Util
+import com.ksmpartners.ernie.util.{ SAMLParseException, SAMLProcessor }
+import com.ksmpartners.ernie.util.Base64Util
 import org.apache.cxf.rs.security.saml.DeflateEncoderDecoder
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.server.filter.SAMLConstants._

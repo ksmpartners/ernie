@@ -22,7 +22,7 @@ import com.ksmpartners.ernie.util.Utility._
 import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
-import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
+//import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 
 import com.ksmpartners.ernie.util.MapperUtility._
 import net.liftweb.http.StreamingResponse
@@ -65,7 +65,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
 
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-87")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-87")))
   @Test
   def canGetJobs() {
     val mockReq = new MockReadAuthReq("/jobs")
@@ -83,7 +83,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-88")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-88")))
   @Test
   def jobsListServiceReturnsJSON() {
     val mockReq = new MockReadAuthReq("/jobs")
@@ -95,7 +95,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-104")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-104")))
   @Test
   def canPostJob() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -118,7 +118,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-148")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-148")))
   @Test
   def canPostJobAsRunUser() {
     val mockReq = new MockRunAuthReq("/jobs")
@@ -142,7 +142,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-53")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-53")))
   @Test
   def canPostJobHTML() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -166,7 +166,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-66")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-53"), new TestSpec(key = "ERNIE-66")))
   @Test
   def canPostJobCSV() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -190,7 +190,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-54")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-54")))
   @Test
   def reportsServiceReturnsJSON() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -209,7 +209,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-120")))
+  ////@TestSpecs(Array(new TestSpec(key = "ERNIE-120")))
   //@Test(dependsOnMethods = Array( "canPostJob"))
   def cantDeleteInUseDef() {
     val mockReq = new MockWriteAuthReq("/defs/" + testDef)
@@ -223,7 +223,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
       Assert.assertTrue(resp.open_!.isInstanceOf[ConflictResponse])
     }
   }
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-120")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-120")))
   @Test(dependsOnMethods = Array("canPostJob"))
   def canCompleteJob() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
@@ -290,7 +290,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
 
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def canGetOutputDownload() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
@@ -308,7 +308,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
   @Test(dependsOnMethods = Array("canCompleteJobHTML"))
   def canGetHTMLOutputDownload() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobHTMLID + "/result")
@@ -326,7 +326,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-65"), new TestSpec(key = "ERNIE-66")))
   @Test(dependsOnMethods = Array("canCompleteJobCSV"))
   def canGetCSVOutputDownload() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobCSVID + "/result")
@@ -344,7 +344,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def cantGetPDFOutputDownloadWithCSVAcceptHeader() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
@@ -357,7 +357,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def cantGetPDFOutputDownloadWithHTMLAcceptHeader() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result")
@@ -370,7 +370,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-60")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-60")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def canGetJobStatus() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
@@ -388,7 +388,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-61")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-61")))
   @Test(dependsOnMethods = Array("canPostJob"))
   def jobStatusServiceReturnsJSON() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/status")
@@ -400,7 +400,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-75")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-75")))
   @Test(dependsOnMethods = Array("canGetHTMLOutputDownload"))
   def deleteReportResultsReturnsJSON() {
     val mockReq = new MockWriteAuthReq("/jobs/" + testJobHTMLID + "/result")
@@ -413,7 +413,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-91")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-91")))
   @Test
   def jobStatusReportsFailureForUnsupportedOutput() {
     var mockReq: MockHttpServletRequest = new MockWriteAuthReq("/jobs")
@@ -447,7 +447,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-134")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-134")))
   @Test
   def canPostJobWithParams() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -475,7 +475,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-145"), new TestSpec(key = "ERNIE-146"), new TestSpec(key = "ERNIE-159")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-145"), new TestSpec(key = "ERNIE-146"), new TestSpec(key = "ERNIE-159")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def canGetReportDetail() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID + "/result/detail")
@@ -493,7 +493,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-139"), new TestSpec(key = "ERNIE-140")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-139"), new TestSpec(key = "ERNIE-140")))
   @Test(dependsOnMethods = Array("canCompleteJob"))
   def canGetJobDetail() {
     val mockReq = new MockReadAuthReq("/jobs/" + testJobID)
@@ -510,7 +510,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-152"), new TestSpec(key = "ERNIE-153")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-152"), new TestSpec(key = "ERNIE-153")))
   @Test(dependsOnMethods = Array("canGetCSVOutputDownload"))
   def canGetJobsCatalog() {
     val mockReq = new MockReadAuthReq("/jobs/catalog")
@@ -530,7 +530,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-155")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-155")))
   @Test(dependsOnMethods = Array("canGetCSVOutputDownload"))
   def canGetCompleteJobsCatalog() {
     val mockReq = new MockReadAuthReq("/jobs/complete")
@@ -547,7 +547,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-157")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-157")))
   @Test(dependsOnMethods = Array("canGetCSVOutputDownload"))
   def canGetExpiredJobsCatalog() {
     val mockReq = new MockReadAuthReq("/jobs/expired")
@@ -564,7 +564,7 @@ class JobTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  @TestSpecs(Array(new TestSpec(key = "ERNIE-158")))
+  //@TestSpecs(Array(new TestSpec(key = "ERNIE-158")))
   @Test(dependsOnMethods = Array("canGetCSVOutputDownload"))
   def canGetFailedJobsCatalog() {
     val mockReq = new MockReadAuthReq("/jobs/failed")

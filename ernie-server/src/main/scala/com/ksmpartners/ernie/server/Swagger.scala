@@ -11,8 +11,11 @@ import net.liftweb.json._
 import net.liftweb.json.JsonDSL._
 import com.ksmpartners.ernie.server.RestGenerator.{ Parameter, Variable, RequestTemplate, Resource }
 import net.liftweb.http._
+import org.slf4j.{ LoggerFactory, Logger }
 
 package object SwaggerUtils {
+
+  val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.SwaggerUtils")
 
   def toSwaggerPath(path: Either[String, Variable]) = "/" + {
     if (path.isLeft) path.left.get
@@ -43,11 +46,14 @@ package object SwaggerUtils {
     case _ => ""
   }
 
-  def buildSwaggerParam(p: Parameter): JObject = buildSwaggerParam(p.param, p.paramType)
+  def buildSwaggerParam(p: Parameter): JObject = {
+    buildSwaggerParam(p.param, p.paramType, p.defaultValue.headOption)
+  }
   def buildSwaggerParam(v: Variable): JObject = buildSwaggerParam(v.data.toString, "path")
-  def buildSwaggerParam(name: String, pT: String = "path"): JObject = buildSwaggerParam(name, pT, "string")
-  def buildSwaggerParam(name: String, pT: String, dataType: String): JObject =
-    (("paramType" -> pT) ~ ("name" -> name) ~ ("description" -> name) ~ ("dataType" -> dataType) ~ ("required" -> false) ~ ("allowMultiple" -> false))
+  def buildSwaggerParam(name: String, pT: String = "path"): JObject = buildSwaggerParam(name, pT, "string", None)
+  def buildSwaggerParam(name: String, pT: String, default: Option[String]): JObject = buildSwaggerParam(name, pT, "string", None)
+  def buildSwaggerParam(name: String, pT: String, dataType: String, default: Option[String]): JObject =
+    (("paramType" -> pT) ~ ("name" -> name) ~ ("description" -> name) ~ ("dataType" -> dataType) ~ ("required" -> false) ~ ("allowMultiple" -> false) ~ ("defaultValue" -> (default getOrElse null)))
   def buildSwaggerParam(s: String): JObject = buildSwaggerParam(s, "path")
   def buildSwaggerApi(version: String, swaggerVersion: String, basePath: String, r: Resource) = {
     var tree: List[List[Resource]] = Nil

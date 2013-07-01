@@ -14,10 +14,10 @@ import javax.servlet._
 import java.io.{ ByteArrayOutputStream, FileInputStream, File }
 import com.ksmpartners.ernie.util.Utility._
 import org.apache.cxf.rs.security.saml.DeflateEncoderDecoder
-import com.ksmpartners.commons.util.Base64Util
+import com.ksmpartners.ernie.util.Base64Util
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import org.testng.Assert
-import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
+//import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.server.filter.SAMLFilter.SAMLHttpServletRequestWrapper
 import com.ksmpartners.ernie.util.TestLogger

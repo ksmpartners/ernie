@@ -20,13 +20,11 @@ import org.testng.Assert
 import collection.mutable
 import org.joda.time.DateTime
 import org.slf4j.{ LoggerFactory, Logger }
-import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import scala.Array
 
 import com.ksmpartners.ernie.engine.PurgeResponse
 import com.ksmpartners.ernie.engine.PurgeRequest
 import com.ksmpartners.ernie.util.TestLogger
-import com.ksmpartners.ernie.api.ErnieAPI
 import com.ksmpartners.ernie.model.{ DefinitionEntity, DeleteStatus }
 import org.apache.cxf.helpers.FileUtils
 import akka.actor.{ ActorSystem, ActorRef, ActorDSL }
@@ -39,6 +37,8 @@ class DefinitionDependenciesTest extends DefinitionDependencies with RequiresCoo
   private val tempInputDir = createTempDirectory
   private val tempOutputDir = createTempDirectory
   private val tempJobDir = createTempDirectory
+
+  def timeoutDuration = (5 minutes)
 
   protected def workerCount: Int = 5
 
@@ -95,28 +95,26 @@ class DefinitionDependenciesTest extends DefinitionDependencies with RequiresCoo
       dE.setDefDescription("Test def    ")
       dE
     }))
-    defId = resp.defEnt.get.getDefId
-    Assert.assertEquals(resp.defEnt.get.getDefDescription, "Test def")
+    defId = resp.getDefId
+    Assert.assertEquals(resp.getDefDescription, "Test def")
   }
 
   @Test(dependsOnMethods = Array("createDefinition"))
   def updateDefinition() {
     val defsRes = new DefsResource
-    var res: Option[com.ksmpartners.ernie.api.Definition] = None
+    var res: Option[model.DefinitionEntity] = None
     val xml = scala.xml.XML.loadFile(new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def_params.rptdesign").getPath))
     try_(new ByteArrayInputStream(xml.toString.getBytes)) { bAIS =>
-      res = Some(defsRes.putDefinition(Some(defId), Some(bAIS), defsRes.getDefinition(defId).defEnt))
+      res = Some(defsRes.putDefinition(Some(defId), Some(bAIS), defsRes.getDefinition(defId)))
     }
     Assert.assertTrue(res.isDefined)
-    Assert.assertTrue(res.get.error.isEmpty)
-    Assert.assertTrue(res.get.defEnt.isDefined)
-    Assert.assertTrue(res.get.defEnt.get.getParams.size > 0)
+    Assert.assertTrue(res.get.getParams.size > 0)
   }
 
   @Test(groups = Array("getGroup"), dependsOnMethods = Array("updateDefinition"))
   def getCatalog() {
     val defsRes = new DefsResource
-    Assert.assertTrue(defsRes.getCatalog().catalog.find(p => p.getDefDescription == "Test def").isDefined)
+    Assert.assertTrue(defsRes.getCatalog().find(p => p.getDefDescription == "Test def").isDefined)
   }
 
   @Test(groups = Array("getGroup"), dependsOnMethods = Array("updateDefinition"))
@@ -128,7 +126,7 @@ class DefinitionDependenciesTest extends DefinitionDependencies with RequiresCoo
   @Test(groups = Array("ddTestFinish"), dependsOnGroups = Array("getGroup"))
   def get() {
     val defsRes = new DefsResource
-    Assert.assertTrue(defsRes.getDefinition(defId).defEnt.isDefined)
+    Assert.assertTrue(defsRes.getDefinition(defId).isDefined)
   }
 
   @Test(groups = Array("ddTestFinish"), dependsOnMethods = Array("get"))

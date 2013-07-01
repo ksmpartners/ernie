@@ -50,16 +50,15 @@ trait JobDependencies extends RequiresAPI {
       DispatchRestAPI.timeoutErnieError("Jobs list"))
     def getMap(p: Package): Box[LiftResponse] = getMap
     def getMap(): Box[LiftResponse] = getMap("/jobs")
-    def getMap(uriPrefix: String): Box[LiftResponse] = {
-      val (list, error) = ernie.getJobList
-      checkResponse(getJobsListAction, error) or {
-        val jobsMap: util.Map[String, String] = new util.HashMap
-        list.foreach({ jobId =>
-          jobsMap.put(jobId, uriPrefix + "/" + jobId)
+    def getMap(uriPrefix: String): Box[LiftResponse] =
+      apiCall(getJobsListAction, _ => ernie.getJobList, (list: List[String]) =>
+        {
+          val jobsMap: util.Map[String, String] = new util.HashMap
+          list.foreach({ jobId =>
+            jobsMap.put(jobId, uriPrefix + "/" + jobId)
+          })
+          getJsonResponse(new model.JobsMapResponse(jobsMap))
         })
-        getJsonResponse(new model.JobsMapResponse(jobsMap))
-      }
-    }
 
     /**
      * Return a Box[ListResponse] containing a catalog of all JobEntities
@@ -73,22 +72,18 @@ trait JobDependencies extends RequiresAPI {
     def getCatalog(p: Package)(catalog: Option[String]): Box[LiftResponse] = getCatalog(catalog)
     def getCatalog(): Box[LiftResponse] = getCatalog(None)
     def getCatalog(cat: Option[String]): Box[LiftResponse] = {
-
-      val (catalog: List[JobEntity], error: Option[Exception]) = cat.getOrElse("").toLowerCase match {
-        case "failed" => ernie.getJobCatalog(Some(JobCatalog.FAILED))
-        case "complete" => ernie.getJobCatalog(Some(JobCatalog.COMPLETE))
-        case "expired" => ernie.getJobCatalog(Some(JobCatalog.EXPIRED))
-        case "deleted" => ernie.getJobCatalog(Some(JobCatalog.DELETED))
-        case _ => ernie.getJobCatalog(None)
-      }
-
-      checkResponse(getJobsCatalogAction, error) or {
-
+      apiCall(getJobsCatalogAction, _ =>
+        cat.getOrElse("").toLowerCase match {
+          case "failed" => ernie.getJobCatalog(Some(JobCatalog.FAILED))
+          case "complete" => ernie.getJobCatalog(Some(JobCatalog.COMPLETE))
+          case "expired" => ernie.getJobCatalog(Some(JobCatalog.EXPIRED))
+          case "deleted" => ernie.getJobCatalog(Some(JobCatalog.DELETED))
+          case _ => ernie.getJobCatalog(None)
+        }, (catalog: List[JobEntity]) => {
         val jobsCatalog: util.ArrayList[JobEntity] = new util.ArrayList
         catalog.foreach(f => jobsCatalog.add(f))
         getJsonResponse(new JobsCatalogResponse(jobsCatalog))
-
-      }
+      })
     }
 
     /**
@@ -111,13 +106,13 @@ trait JobDependencies extends RequiresAPI {
         if (body.isEmpty) invalidRequest.send(Some("No request body"))
         else {
           val req = deserialize(body.open_!, classOf[model.ReportRequest])
-          val resp = ernie.createJob(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays), if (req.getReportParameters == null) collection.immutable.Map.empty[String, String] else scala.collection.immutable.Map(req.getReportParameters.toList: _*), userName)
-          checkResponse(postJobAction, resp) or {
-            if (resp.jobStatus.get == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM) retentionDateExceedsMaximum.send
-            else if (resp.jobStatus.get == JobStatus.FAILED_RETENTION_DATE_PAST) retentionDateBeforeRequest.send
-            else if (resp.jobStatus.get == JobStatus.FAILED_NO_SUCH_DEFINITION) noSuchDefinition.send(Some("No such definition ID: " + req.getDefId))
-            else getJsonResponse(new model.ReportResponse(resp.jobId, resp.jobStatus.getOrElse(JobStatus.FAILED)), 201, List(("Location", hostAndPath + "/jobs/" + resp.jobId)))
-          }
+          apiCall[(Long, JobStatus)](postJobAction, _ => ernie.createJob(req.getDefId, req.getRptType, if (req.getRetentionDays == 0) None else Some(req.getRetentionDays), if (req.getReportParameters == null) collection.immutable.Map.empty[String, String] else scala.collection.immutable.Map(req.getReportParameters.toList: _*), userName),
+            resp => {
+              if (resp._2 == JobStatus.FAILED_RETENTION_DATE_EXCEEDS_MAXIMUM) retentionDateExceedsMaximum.send
+              else if (resp._2 == JobStatus.FAILED_RETENTION_DATE_PAST) retentionDateBeforeRequest.send
+              else if (resp._2 == JobStatus.FAILED_NO_SUCH_DEFINITION) noSuchDefinition.send(Some("No such definition ID: " + req.getDefId))
+              else getJsonResponse(new model.ReportResponse(resp._1, resp._2), 201, List(("Location", hostAndPath + "/jobs/" + resp._1)))
+            })
         }
       } catch {
         case e: IOException => {
@@ -138,15 +133,12 @@ trait JobDependencies extends RequiresAPI {
     val purgeAction = Action("purgeExpired", purge(_: Package), "Purges expired jobs", "", "void", DispatchRestAPI.timeoutErnieError("Purge"), unexpectedErrorWithException)
     def purge(p: Package): Box[LiftResponse] = purge
     def purge(): Box[LiftResponse] = {
-      val purgeResp = ernie.purgeExpiredReports
-      checkResponse(purgeAction, purgeResp) or {
-        if (purgeResp.deleteStatus == DeleteStatus.SUCCESS) {
+      apiCall[DeleteStatus](purgeAction, _ => ernie.purgeExpiredReports._1, purgeResp =>
+        if (purgeResp == DeleteStatus.SUCCESS) {
           log.debug("Response: Ok Response.")
           Full(OkResponse())
-        } else unexpectedErrorWithException.send
-      }
+        } else unexpectedErrorWithException.send)
     }
-
   }
 
   class JobEntityResource extends JsonTranslator {
@@ -159,12 +151,10 @@ trait JobDependencies extends RequiresAPI {
 
     def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job ID")) else get(p.params(0).data.toString)
     def get(jobId: String): Box[LiftResponse] = {
-      val jobEnt: api.JobEntity = ernie.getJobEntity(jobId.toLong)
-      checkResponse(getJobDetailAction, jobEnt) or {
-        if (jobEnt.jobEntity isDefined)
-          getJsonResponse(jobEnt.jobEntity.get)
-        else jobNotFound.send
-      }
+      apiCall[Option[JobEntity]](getJobDetailAction, _ => ernie.getJobEntity(jobId.toLong), jobEnt =>
+        if (jobEnt isDefined)
+          getJsonResponse(jobEnt.get)
+        else jobNotFound.send)
     }
   }
 
@@ -182,11 +172,9 @@ trait JobDependencies extends RequiresAPI {
     def get(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job ID")) else get(p.params(0).data.toString)
 
     def get(jobId: String): Box[LiftResponse] = {
-      val jobStatus = ernie.getJobStatus(jobId.toLong)
-      checkResponse(getJobStatusAction, jobStatus) or {
-        if (jobStatus.jobStatus.isEmpty || (jobStatus.jobStatus.get == JobStatus.DELETED)) jobGone.send
-        else jobStatus.jobStatus.map(js => getJsonResponse(new model.StatusResponse(js))) getOrElse unexpectedError.send
-      }
+      apiCall[JobStatus](getJobStatusAction, _ => ernie.getJobStatus(jobId.toLong), jobStatus =>
+        if (jobStatus == JobStatus.DELETED) jobGone.send
+        else getJsonResponse(new model.StatusResponse(jobStatus)))
     }
   }
 
@@ -198,12 +186,13 @@ trait JobDependencies extends RequiresAPI {
     /**
      * Return a Box[StreamingResponse] containing the result content for the given jobId
      */
+    val jobNotFound = ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found")))
     val notAcceptable = ErnieError(ResponseWithReason(NotAcceptableResponse(), "Resource does not serve specified Accept type"), None)
     val unexpectedError = ErnieError(InternalServerErrorResponse(), None)
     val getJobResultAction = Action("getJobResult", get(_), "Returns a stream containing the result content for the given Job ID", "", "byte",
       DispatchRestAPI.timeoutErnieError("Job result"),
       ErnieError(GoneResponse(), Some(api.ReportOutputException(Some(JobStatus.DELETED), "Job deleted"))),
-      ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found"))),
+      jobNotFound,
       ErnieError(GoneResponse(), Some(api.ReportOutputException(Some(JobStatus.EXPIRED), "Report expired"))),
       ErnieError(BadResponse(), Some(api.ReportOutputException(None, "Job incomplete"))),
       notAcceptable, unexpectedError)
@@ -214,27 +203,28 @@ trait JobDependencies extends RequiresAPI {
      * Overloaded function to include the web service request details to ensure correct Accept
      */
     def get(jobId: String, req: Box[Req]): Box[LiftResponse] = {
-      val rptOutput = ernie.getReportOutputStream(jobId.toLong)
-      checkResponse(getJobResultAction, rptOutput) or {
-        if (rptOutput.stream.isDefined) {
-          val fileStream = rptOutput.stream.get
-          val header: List[(String, String)] =
-            ("Content-Type" -> ("application/" + rptOutput.rptEnt.getReportType.toString.toLowerCase)) ::
-              ("Content-Length" -> fileStream.available.toString) ::
-              ("Content-Disposition" -> ("attachment; filename=\"" + rptOutput.rptEnt.getRptId + "." + rptOutput.rptEnt.getReportType.toString.toLowerCase + "\"")) :: Nil
-          if (!req.isEmpty && !req.open_!.headers.contains(("Accept", header(0)._2))) {
-            fileStream.close
-            notAcceptable.send(Some("Resource only serves " + rptOutput.rptEnt.getReportType.toString.toLowerCase))
-          } else {
-            log.debug("Response: Streaming Response.")
-            Full(StreamingResponse(
-              fileStream,
-              () => { fileStream.close() }, // On end method.
-              fileStream.available,
-              header, Nil, 200))
-          }
-        } else unexpectedError.send
-      }
+      apiCall[(Option[java.io.InputStream], Option[ReportEntity])](getJobResultAction, _ => (ernie.getReportOutput(jobId.toLong), ernie.getReportEntity(jobId.toLong)), rptOutput =>
+        {
+          if (rptOutput._1.isDefined && rptOutput._2.isDefined) {
+            val fileStream = rptOutput._1.get
+            val rptEnt = rptOutput._2.get
+            val header: List[(String, String)] =
+              ("Content-Type" -> ("application/" + rptEnt.getReportType.toString.toLowerCase)) ::
+                ("Content-Length" -> fileStream.available.toString) ::
+                ("Content-Disposition" -> ("attachment; filename=\"" + rptEnt.getRptId + "." + rptEnt.getReportType.toString.toLowerCase + "\"")) :: Nil
+            if (!req.isEmpty && !req.open_!.headers.contains(("Accept", header(0)._2))) {
+              fileStream.close
+              notAcceptable.send(Some("Resource only serves " + rptEnt.getReportType.toString.toLowerCase))
+            } else {
+              log.debug("Response: Streaming Response.")
+              Full(StreamingResponse(
+                fileStream,
+                () => { fileStream.close() }, // On end method.
+                fileStream.available,
+                header, Nil, 200))
+            }
+          } else jobNotFound.send
+        })
     }
 
     /**
@@ -248,19 +238,16 @@ trait JobDependencies extends RequiresAPI {
       invalidId)
     def getDetail(p: Package): Box[LiftResponse] = if (p.params.length != 1) invalidId.send(Some("Job ID Invalid")) else getDetail(p.params(0).data.toString, Full(p.req))
     def getDetail(jobId: String, req: Box[Req]): Box[LiftResponse] = {
-      val resp = ernie.getReportEntity(jobId.toLong)
-      checkResponse(getDetailAction, resp) or {
-        if (resp.rptEntity.isDefined) {
+      apiCall[Option[ReportEntity]](getDetailAction, _ => ernie.getReportEntity(jobId.toLong), rptEnt =>
+        if (rptEnt.isDefined) {
           log.debug("Response: Report Entity")
-          getJsonResponse(resp.rptEntity.get)
-        } else unexpectedError.send
-      }
+          getJsonResponse(rptEnt.get)
+        } else unexpectedError.send)
     }
 
     /**
      * Purges the report output for a given jobId
      */
-    val jobNotFound = ErnieError(NotFoundResponse(), Some(api.NotFoundException("Job ID not found")))
     val jobInUse = ErnieError(ResponseWithReason(ConflictResponse(), "Job result in use"), None)
     val deleteFailed = ErnieError(ResponseWithReason(InternalServerErrorResponse(), "Job deletion failed"), None)
     val deleteReportAction = Action("deleteReport", del(_), "Purges report output for a given Job ID", "", "DeleteResponse",
@@ -268,13 +255,11 @@ trait JobDependencies extends RequiresAPI {
       jobNotFound, jobInUse, deleteFailed)
     def del(p: Package): Box[LiftResponse] = if (p.params.length != 1) Full(ResponseWithReason(BadResponse(), "Invalid job id")) else del(p.params(0).data.toString)
     def del(jobId: String): Box[LiftResponse] = {
-      val (deleteStatus, error) = ernie.deleteReportOutput(jobId.toLong)
-      checkResponse(deleteReportAction, error) or {
+      apiCall[DeleteStatus](deleteReportAction, _ => ernie.deleteReportOutput(jobId.toLong), deleteStatus =>
         if (deleteStatus == DeleteStatus.SUCCESS) getJsonResponse(new model.DeleteResponse(deleteStatus))
         else if (deleteStatus == DeleteStatus.NOT_FOUND) jobNotFound.send
         else if (deleteStatus == DeleteStatus.FAILED_IN_USE) jobInUse.send
-        else deleteFailed.send
-      }
+        else deleteFailed.send)
     }
   }
 
