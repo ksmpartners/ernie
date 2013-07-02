@@ -109,6 +109,8 @@ object SAMLFilter {
       extends HttpServletRequestWrapper(req) {
     override def isUserInRole(role: String): Boolean = roles.contains(role)
     override def getAuthType: String = "SAML"
-    override def getRemoteUser: String = userName
+    override def getRemoteUser: String = {
+      userName
+    }
   }
 }

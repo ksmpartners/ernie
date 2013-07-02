@@ -10,6 +10,7 @@ package com.ksmpartners.ernie.server.filter
 import javax.servlet._
 import javax.servlet.http.{ HttpServletResponse, HttpServletRequest, HttpServletRequestWrapper }
 import com.ksmpartners.ernie.server.PropertyNames._
+import net.liftweb.http.LiftRules
 
 /**
  * Filter that delegates filtering based on the value of authentication.mode variable

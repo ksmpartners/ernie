@@ -37,6 +37,9 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
   def shutdown() {
     ServiceRegistry.shutDown
   }
+
+  var basicAuthentication: PartialFunction[(String, String, Req), Boolean] = PartialFunction.empty[(String, String, Req), Boolean]
+
   val reportDetail = Resource(Left("detail"), "Report details", false, List(getReportDetail, headReportDetail))
   val jobResult = Resource(Left("result"), "Job results", false, List(getJobResult, headJobResult, deleteJobResult), reportDetail)
   val jobStatus = Resource(Left("status"), "Job status", false, List(getJobStatus, headJobStatus))

@@ -22,6 +22,8 @@ import com.ksmpartners.ernie.util.Utility._
 import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
+import net.liftweb.http.auth.{ AuthRole, userRoles }
+
 //import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import com.ksmpartners.ernie.util.MapperUtility._
 import net.liftweb.http.StreamingResponse
@@ -110,6 +112,7 @@ class DefinitionTest extends WebSpec(() => {
       case e: Exception => log.info("Caught exception while generating test entities: {}", e.getMessage + "\n" + e.getStackTraceString)
     }
   }
+
   (new TestBoot).setUpAndBoot()
 }) {
 
@@ -525,6 +528,7 @@ class MockReadAuthReq(path: String) extends MockHttpServletRequest(path) {
     case _ => false
   }
   override def getRemoteUser: String = "mockReadUser"
+  addBasicAuth(getRemoteUser, "pass")
 }
 
 class MockWriteAuthReq(path: String) extends MockHttpServletRequest(path) {
@@ -533,6 +537,7 @@ class MockWriteAuthReq(path: String) extends MockHttpServletRequest(path) {
     case _ => false
   }
   override def getRemoteUser: String = "mockWriteUser"
+  addBasicAuth(getRemoteUser, "pass")
 
 }
 
@@ -542,13 +547,14 @@ class MockRunAuthReq(path: String) extends MockHttpServletRequest(path) {
     case _ => false
   }
   override def getRemoteUser: String = "mockRunUser"
+  addBasicAuth(getRemoteUser, "pass")
 
 }
 
 class MockNoAuthReq(path: String) extends MockHttpServletRequest(path) {
   override def isUserInRole(role: String) = false
   override def getRemoteUser: String = "mockNoAuthUser"
-
+  addBasicAuth(getRemoteUser, "pass")
 }
 
 class TestBoot extends Boot {

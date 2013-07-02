@@ -10,7 +10,11 @@ package bootstrap.liftweb
 import _root_.net.liftweb.http
 import net.liftweb.http.{ Req, LiftRules }
 import net.liftweb.http.provider.{ HTTPParam, HTTPRequest }
-import com.ksmpartners.ernie.server.DispatchRestAPI
+import com.ksmpartners.ernie.server.{ PropertyNames, DispatchRestAPI }
+import net.liftweb.http.auth.{ AuthRole, userRoles }
+import com.ksmpartners.ernie.server.filter.SAMLConstants
+import org.slf4j.{ LoggerFactory, Logger }
+import net.liftweb.common.Full
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -25,6 +29,11 @@ class Boot {
     DispatchRestAPI.init()
 
     LiftRules.statelessDispatch.prepend(DispatchRestAPI)
+
+    if (System.getProperty(PropertyNames.authModeProp) == "BASIC") {
+      LiftRules.authentication = net.liftweb.http.auth.HttpBasicAuthentication("Ernie Server")(DispatchRestAPI.basicAuthentication)
+      LiftRules.httpAuthProtectedResource.prepend(DispatchRestAPI.protectedResources)
+    }
 
     LiftRules.supplimentalHeaders = s => s.addHeaders(
       List(HTTPParam("X-Lift-Version", LiftRules.liftVersion),

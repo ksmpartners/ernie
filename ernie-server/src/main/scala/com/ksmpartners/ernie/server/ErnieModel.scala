@@ -81,10 +81,11 @@ package object ErnieFilters {
       Full(ForbiddenResponse("User is not authorized to perform that action"))
     }
   }
-  val readAuthFilter = Filter("Read Authorization Filter", authFilter(_: Req, readRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None))
-  val writeAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, writeRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None))
-  val writeRunAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, runRole, writeRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None))
-
+  val readAuthFilter = Filter("Read Authorization Filter", authFilter(_: Req, readRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), readRole)
+  val writeAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, writeRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), writeRole)
+  val writeRunAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, runRole, writeRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), writeRole, runRole)
+  //case class AuthFilter(n: String, f: (Req => restFunc => restFunc), p: Option[Parameter], e: ErnieError, role: String*) extends Filter(n, f, p, e)
+  val authFilters: List[Filter] = List(readAuthFilter, writeAuthFilter, writeRunAuthFilter)
   /**
    * Return true if the given request accepts an ernie response as defined in ModelObject
    */

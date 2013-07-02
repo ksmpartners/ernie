@@ -8,3 +8,4 @@ jobs.dir=./ernie-engine/src/main/resources/jobs
 retention.period.default=7
 retention.period.maximum=14
 worker.count=100
+authentication.mode=SAML

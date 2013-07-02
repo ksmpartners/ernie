@@ -154,7 +154,7 @@
         <module>ernie-model</module>
         <module>ernie-util</module>
         <module>ernie-api</module>
-       <!-- <module>gatling-ernie</module>!-->
+        <module>ernie-gatling</module>
     </modules>
     <repositories>
     <repository>
@@ -166,7 +166,7 @@
         <snapshots>
             <enabled>true</enabled>
         </snapshots>
-        <url>file://${project.basedir}/gatling/lib</url>
+        <url>file://${project.basedir}/ernie-gatling/lib</url>
     </repository>
     </repositories>
 </project>

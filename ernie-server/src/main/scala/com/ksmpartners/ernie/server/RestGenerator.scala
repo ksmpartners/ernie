@@ -36,6 +36,8 @@ import com.ksmpartners.ernie.api.ReportOutputException
 import com.ksmpartners.ernie.server.RestGenerator.Resource
 import com.ksmpartners.ernie.server.RestGenerator.ErnieError
 import com.ksmpartners.ernie.server.RestGenerator.Package
+import net.liftweb.http
+import net.liftweb.http.auth.AuthRole
 
 object RestGenerator {
   type restFunc = (() => Box[LiftResponse])
@@ -43,7 +45,7 @@ object RestGenerator {
 
   val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.RestGenerator")
   case class Parameter(param: String, paramType: String, dataType: String, defaultValue: String*)
-  case class Filter(name: String, filter: (Req => restFunc => restFunc), param: Option[Parameter], error: ErnieError)
+  case class Filter(name: String, filter: (Req => restFunc => restFunc), param: Option[Parameter], error: ErnieError, values: String*)
   case class Variable(data: Any)
   case class Package(req: Req, params: Variable*)
   case class ErnieError(resp: LiftResponse, exception: Option[Exception]) {
@@ -133,6 +135,17 @@ trait RestGenerator extends RestHelper {
 
   private def foldFilters(req: Req, filterClasses: List[Filter]): restFilter =
     filterClasses.map(f => f.filter).foldLeft[restFilter](baseFilter(req) _)((all: restFilter, one: (Req => restFilter)) => all andThen one(req))
+
+  private var protect: List[net.liftweb.http.LiftRules.HttpAuthProtectedResourcePF] = Nil
+
+  def protectedResources: net.liftweb.http.LiftRules.HttpAuthProtectedResourcePF = {
+    serveApi()
+    protect.foreach(f => log.info(f + " -- "))
+    protect.foldLeft(PartialFunction.empty[Req, Box[net.liftweb.http.auth.Role]]) { (f: PartialFunction[Req, Box[net.liftweb.http.auth.Role]], d: LiftRules.HttpAuthProtectedResourcePF) =>
+      f orElse d
+    }
+  }
+
   def serveApi() {
     api.map(res => traverse(res, Nil))
     tree.foreach(path => if (path.length > 0) {
@@ -147,7 +160,13 @@ trait RestGenerator extends RestHelper {
           serve(Path.slice(0, Path.indexOf("")) prefix {
             case req @ Req(variable :: Path2, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
           })
-
+          ErnieFilters.authFilters.foreach(f => if (requestTemplate.filters.contains(f)) protect.::=({
+            case req @ Req(variable :: Path2, _, requestTemplate.requestType) => {
+              Full(AuthRole(f.values.foldLeft("")((s: String, d: String) => s + "," + d), f.values.map(n => new net.liftweb.http.auth.Role {
+                def name = n
+              }).toList: _*))
+            }
+          }))
         })
         serve(Path.slice(0, Path.indexOf("")) prefix {
           case req @ Req(variable :: Path2, _, _) => Full(MethodNotAllowedResponse())
@@ -160,7 +179,15 @@ trait RestGenerator extends RestHelper {
           serve {
             case req @ Req(Path, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
           }
-
+          ErnieFilters.authFilters.foreach(f => if (requestTemplate.filters.contains(f)) {
+            protect.::=({
+              case req @ Req(Path, _, requestTemplate.requestType) => {
+                Full(AuthRole(f.values.foldLeft("")((s: String, d: String) => s + "," + d), f.values.map(n => new net.liftweb.http.auth.Role {
+                  def name = n
+                }).toList: _*))
+              }
+            })
+          })
         })
         serve {
           case req @ Req(Path, _, _) => Full(MethodNotAllowedResponse())

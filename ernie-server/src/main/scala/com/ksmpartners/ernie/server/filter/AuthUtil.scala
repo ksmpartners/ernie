@@ -12,16 +12,20 @@ import net.liftweb.http.provider.HTTPRequest
 import net.liftweb.http.provider.servlet.HTTPRequestServlet
 import javax.servlet.http.HttpServletRequest
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
+import org.slf4j.{ LoggerFactory, Logger }
 
 /**
  * Utility object with methods for handling authorization
  */
 object AuthUtil {
+  private val logd: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.filter.AuthUtil")
 
   /**
    * Determines if requesting user is in the provided role
    */
-  def isUserInRole(req: Req, role: String): Boolean = reqToHSR(req).isUserInRole(role)
+  def isUserInRole(req: Req, role: String): Boolean = {
+    reqToHSR(req).isUserInRole(role)
+  }
 
   /**
    * Return a list of roles the requesting user has
@@ -37,7 +41,9 @@ object AuthUtil {
   /**
    * Returns a userName for the requesting user
    */
-  def getUserName(req: Req) = reqToHSR(req).getRemoteUser
+  def getUserName(req: Req) = {
+    reqToHSR(req).getRemoteUser
+  }
 
   def reqToHSR(req: Req): HttpServletRequest = {
     val httpRequest: HTTPRequest = req.request
