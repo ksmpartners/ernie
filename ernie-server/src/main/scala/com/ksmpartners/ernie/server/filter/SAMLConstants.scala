@@ -18,4 +18,5 @@ object SAMLConstants {
   val readRole = "read"
   val writeRole = "write"
   val runRole = "run"
+  val allRoles = List(readRole, writeRole, runRole)
 }

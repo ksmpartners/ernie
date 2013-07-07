@@ -177,13 +177,12 @@ class JobDependenciesTest extends JobDependencies with RequiresCoordinator with 
     val jobResultsResource = new JobResultsResource
     val jobsResource = new JobsResource
     val statusResource = new JobStatusResource
-    ApiTestUtil.testException(() => jobResultsResource.get(1L, false, false), classOf[NothingToReturnException])
     val end = System.currentTimeMillis() + 5000L
     var statusResp = statusResource.get(jobId)
     while ((statusResp != model.JobStatus.COMPLETE) && (System.currentTimeMillis() < end)) {
       statusResp = statusResource.get(jobId)
     }
-    val resultRespBox = jobResultsResource.get(jobId, false, true)
+    val resultRespBox = jobResultsResource.get(jobId)
     Assert.assertTrue(resultRespBox.isDefined)
   }
 

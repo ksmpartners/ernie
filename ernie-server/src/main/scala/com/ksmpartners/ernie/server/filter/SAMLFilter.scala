@@ -40,12 +40,12 @@ class SAMLFilter extends Filter {
       case (request: HttpServletRequest, response: HttpServletResponse) => {
         try {
           val uri = req.asInstanceOf[HttpServletRequest].getRequestURI
-          if (!uri.contains("static") && !uri.contains("resources.json") && !uri.contains("jobs.json") && !uri.contains("defs.json")) {
-            val samlRequestWrapper = handleRequest(request, response)
-            chain.doFilter(samlRequestWrapper, response)
-          } else {
-            chain.doFilter(request, response)
-          }
+          //  if (!uri.contains("static") && !uri.contains("resources.json") && !uri.contains("jobs.json") && !uri.contains("defs.json")) {
+          val samlRequestWrapper = handleRequest(request, response)
+          chain.doFilter(samlRequestWrapper, response)
+          // } else {
+          //   chain.doFilter(request, response)
+          // }
         } catch {
           case e: Exception => {
             log.debug("Caught exception while handling request. Return 401. Exception: {}", e.getMessage)

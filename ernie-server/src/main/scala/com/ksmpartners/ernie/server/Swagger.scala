@@ -28,7 +28,7 @@ package object SwaggerUtils {
     val filters = rT.filters
     val action = rT.action
     val params = rT.params
-    ("httpMethod" -> requestTypeToSwagger(requestType)) ~ ("nickname" -> action.name) ~ ("produces" -> produces) ~
+    ("httpMethod" -> requestTypeToSwagger(requestType)) ~ ("nickname" -> action.name) ~ ("produces" -> produces.toList.map(f => f.accept)) ~
       ("responseClass" -> action.responseClass) ~ ("parameters" -> {
         filters.filter(p => p.param.isDefined).map(f => {
           buildSwaggerParam(f.param.get)
@@ -85,6 +85,6 @@ package object SwaggerUtils {
   def buildSwaggerResourceListing(api: List[Resource], version: String, swaggerVersion: String, basePath: String) = {
     ("apiVersion" -> version) ~ ("swaggerVersion" -> swaggerVersion) ~ ("basePath" -> basePath) ~
       ("apis" -> api.map[JObject, List[JObject]](f =>
-        (("path" -> (SwaggerUtils.toSwaggerPath(f.path) + ".json")) ~ ("description" -> f.description))))
+        (("path" -> (SwaggerUtils.toSwaggerPath(f.path) + "api.json")) ~ ("description" -> f.description))))
   }
 }

@@ -129,10 +129,12 @@ class CleanupTest extends WebSpec(() => Unit) with TestSetupUtilities {
   def canGetApiJSON() {
     def saveApiJSON(d: String) = {
       val mockReq = new MockReadAuthReq("/" + d)
+      mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
       MockWeb.testReq(mockReq) {
         req =>
           val resp = DispatchRestAPI(req)()
           Assert.assertTrue(resp.isDefined)
+          if (resp.open_!.isInstanceOf[PlainTextResponse]) log.info(resp.open_!.asInstanceOf[PlainTextResponse].text + "")
           Assert.assertEquals(resp.open_!.getClass, classOf[JsonResponse])
           val file = new File(new File(Thread.currentThread.getContextClassLoader.getResource("in").getPath).getParent, d)
           var fos = new FileOutputStream(file)
@@ -141,8 +143,8 @@ class CleanupTest extends WebSpec(() => Unit) with TestSetupUtilities {
       }
     }
     saveApiJSON("resources.json")
-    saveApiJSON("jobs.json")
-    saveApiJSON("defs.json")
+    saveApiJSON("defsapi.json")
+    saveApiJSON("jobsapi.json")
   }
 
 }

@@ -19,34 +19,36 @@
 
 package com.ksmpartners.ernie.api.service
 
-import com.ksmpartners.ernie.{ engine, model }
+import com.ksmpartners.ernie.engine
 import com.ksmpartners.ernie.model.{ ParameterEntity, DeleteStatus, DefinitionEntity }
 import java.io.{ InputStream, ByteArrayInputStream }
-import com.ksmpartners.ernie.engine.report.{ BirtReportGenerator }
-import org.slf4j.{ LoggerFactory, Logger }
+import com.ksmpartners.ernie.engine.report.BirtReportGenerator
 import com.ksmpartners.ernie.api._
-import org.apache.cxf.helpers.{ FileUtils, IOUtils }
-import scala.Some
-import com.ksmpartners.ernie.util.Utility._
+import org.apache.cxf.helpers.IOUtils
 import com.ksmpartners.ernie.engine.DeleteDefinitionResponse
-import akka.actor._
-import ActorDSL._
 import akka.pattern.ask
 import scala.concurrent.Await
-import scala.concurrent.duration.FiniteDuration
-import java.util.concurrent.TimeUnit
 
 /**
- * Dependencies for interacting with report definitions
+ * Dependencies for interacting with report definitions.
  */
 trait DefinitionDependencies extends RequiresReportManager with RequiresCoordinator {
 
   /**
-   * Resource for handling HTTP requests at /defs
+   * Provides definitions operations used by API.
    */
   class DefsResource {
-    private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefsResource")
 
+    /**
+     *  Create or update a definition.
+     *  @param defId existing definition to update
+     * @param rptDesign BIRT report design XML as byte array input stream
+     * @param definitionEntity definition metadata
+     * @throws NotFoundException if defId is not found
+     * @throws MissingArgumentException if neither report design nor DefinitionEntity is provided
+     * @throws InvalidDefinitionException if rptDesign is null or contains malformed XML
+     * @return updated definition metadata.
+     */
     def putDefinition(defId: Option[String], rptDesign: Option[ByteArrayInputStream], definitionEntity: Option[DefinitionEntity]): DefinitionEntity = {
       defId.map(f => if (!reportManager.getDefinition(f).isDefined) throw new NotFoundException(f + " not found"))
       if (!(definitionEntity.isDefined || rptDesign.isDefined)) throw new MissingArgumentException("Must specify at least a definition entity or design")
@@ -92,26 +94,39 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       }
     }
 
+    /**
+     * Return all existing definition IDs.
+     */
     def getList(): List[String] = reportManager.getAllDefinitionIds
 
+    /**
+     * Return DefinitionEntities for all definitions.
+     */
     def getCatalog() = {
       reportManager.getAllDefinitionIds.foldLeft[List[DefinitionEntity]](Nil)((list, dId) =>
         list ::: (reportManager.getDefinition(dId).map(f => f.getEntity).toList))
     }
 
-    def getDefinition(defId: String): Option[DefinitionEntity] = reportManager.getDefinition(defId).map(de => de.getEntity)
+    /**
+     * Get definition metadata.
+     * @param defId definition to interrogate
+     * @return DefinitionEntity if defId is found; otherwise, [[scala.None]].
+     */
     def getDefinitionEntity(defId: String): Option[DefinitionEntity] = reportManager.getDefinition(defId).map(de => de.getEntity)
+
+    /**
+     * Get definition design as input stream.
+     * @param defId definition to interrogate
+     * @return InputStream if defId is found; otherwise, [[scala.None]].
+     */
     def getDefinitionDesign(defId: String): Option[InputStream] = reportManager.getDefinitionContent(defId)
 
-    /* private def getDefinition(defId: String, entity: Boolean, design: Boolean): Definition = {
-      if (defId == null) throw new MissingArgumentException("Definition ID null")
-      else {
-        Definition(if (entity) reportManager.getDefinition(defId).map(f => f.getEntity) else None,
-          if (design) reportManager.getDefinitionContent(defId).map(f => org.apache.commons.io.IOUtils.toByteArray(f)) else None,
-          None)
-      }
-    }     */
-
+    /**
+     * Delete a definition. Completely remove the report design and DefinitionEntity from the report manager and filesystem (if applicable).
+     * @param defId definition to delete
+     * @throws MissingArgumentException if defId is null
+     * @return a DeleteStatus indicating the result of deletion.
+     */
     def deleteDefinition(defId: String): DeleteStatus = {
       if (defId == null) throw new MissingArgumentException("Definition ID null")
       Await.result((coordinator ? (engine.DeleteDefinitionRequest(defId))).mapTo[DeleteDefinitionResponse], timeoutDuration).deleteStatus

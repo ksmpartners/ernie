@@ -22,71 +22,109 @@ package com.ksmpartners.ernie.api.service
 import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.engine
 import java.io._
-import java.util
-import org.slf4j.{ LoggerFactory, Logger }
 import com.ksmpartners.ernie.model._
-import scala.Some
-import com.ksmpartners.ernie.engine.{ ReportResponse, PurgeResponse, PurgeRequest }
 import scala.collection.immutable
 import com.ksmpartners.ernie.api
-import akka.actor._
-import ActorDSL._
 import akka.pattern.ask
 import scala.concurrent.Await
 import com.ksmpartners.ernie.engine.PurgeRequest
 import scala.Some
-import com.ksmpartners.ernie.api.NothingToReturnException
 import com.ksmpartners.ernie.engine.PurgeResponse
 
 /**
- * Dependencies for starting and interacting with jobs for the creation of reports
+ * Dependencies for starting and interacting with jobs for the creation of reports.
  */
 trait JobDependencies extends RequiresCoordinator
     with RequiresReportManager {
 
+  /**
+   * Provides job creation and retrieval of jobs list.
+   */
   class JobsResource {
-    private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.service.JobDependencies")
 
+    /**
+     * Create and start a report generation job.
+     * @param defId an existing report definition/design
+     * @param rptType the report output format
+     * @param retentionPeriod optional override for default number of days to retain report output
+     * @param reportParameters a set of BIRT Report Parameters corresponding to the parameters specified in the report definition.
+     * @param userName username of the user creating the job
+     * @return the generated job ID and a [[com.ksmpartners.ernie.model.JobStatus]]
+     */
     def createJob(defId: String, rptType: ReportType, retentionPeriod: Option[Int], reportParameters: immutable.Map[String, String], userName: String): (Long, model.JobStatus) = {
       val respOpt = Await.result((coordinator ? (engine.ReportRequest(defId, rptType, retentionPeriod,
         reportParameters, userName))).mapTo[engine.ReportResponse], timeoutDuration)
       (respOpt.jobId, respOpt.jobStatus)
     }
 
+    /**
+     * Get a list of all job IDs as strings.
+     */
     def getList(): List[String] = {
       Await.result((coordinator ? (engine.JobsListRequest())).mapTo[engine.JobsListResponse], timeoutDuration).jobsList.toList
     }
 
   }
 
+  /**
+   * Provides job catalog operations.
+   */
   class JobCatalogResource {
+    /**
+     * Get a catalog of jobs.
+     * @param catalog optionally specify a subset of jobs to retrieve
+     * @return a list of [[com.ksmpartners.ernie.model.JobEntity]] constituting the catalog.
+     */
     def getCatalog(catalog: Option[JobCatalog]): List[JobEntity] = {
       Await.result((coordinator ? (engine.JobsCatalogRequest(catalog))).mapTo[engine.JobsCatalogResponse], timeoutDuration).catalog
     }
 
+    /**
+     * Purge jobs in expired catalog.
+     * @return the status of the batch deletion and a list of purged report IDs.
+     */
     def purge(): (model.DeleteStatus, List[String]) = {
       val respOpt = Await.result((coordinator ? (PurgeRequest())).mapTo[PurgeResponse], timeoutDuration)
       (respOpt.deleteStatus, respOpt.purgedRptIds)
     }
   }
 
+  /**
+   * Provides job status interrogation.
+   */
   class JobStatusResource {
-    private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.service.JobDependencies")
-
+    /**
+     * Get the status of a given job ID.
+     */
     def get(jobId: Long): model.JobStatus = {
       Await.result((coordinator ? (engine.StatusRequest(jobId))).mapTo[engine.StatusResponse], timeoutDuration).jobStatus
     }
   }
 
+  /**
+   * Provides job metadata interrogation.
+   */
   class JobEntityResource {
+    /**
+     * Retrieve job metadata.
+     * @param jobId the ID of the job to interrogate.
+     * @return a JobEntity if the jobId is found; otherwise, [[scala.None]]
+     */
     def getJobEntity(jobId: Long): Option[model.JobEntity] =
       Await.result((coordinator ? (engine.JobDetailRequest(jobId))).mapTo[engine.JobDetailResponse], timeoutDuration).jobEntity
   }
 
+  /**
+   * Provides job results operations.
+   */
   class JobResultsResource {
 
-    def get(jobId: Long, file: Boolean, stream: Boolean): Option[InputStream] = {
-      if (!file && !stream) throw new NothingToReturnException("Must request a file and/or stream of output")
+    /**
+     * Retrieve job output.
+     * @param jobId the jobId whose output is to be retrieved
+     * @return a [[java.io.InputStream]] if the report output is available; otherwise, [[scala.None]]
+     */
+    def get(jobId: Long): Option[InputStream] = {
       val statusResponse = Await.result((coordinator ? (engine.StatusRequest(jobId))).mapTo[engine.StatusResponse], timeoutDuration)
       if (statusResponse.jobStatus == model.JobStatus.NO_SUCH_JOB) None
       else if (statusResponse.jobStatus != model.JobStatus.COMPLETE) {
@@ -100,18 +138,24 @@ trait JobDependencies extends RequiresCoordinator
 
     }
 
+    /**
+     * Retrieve report output metadata.
+     * @param jobId the job whose report output metadata is to be interrogated
+     * @return a [[com.ksmpartners.ernie.model.ReportEntity]] if the job ID is found.
+     */
     def getReportEntity(jobId: Long): Option[model.ReportEntity] = {
       Await.result((coordinator ? (engine.ReportDetailRequest(jobId))).mapTo[engine.ReportDetailResponse], timeoutDuration).rptEntity
     }
 
+    /**
+     * Delete a job's output and any associated metadata
+     * @param jobId the job whose output and metadata is to be deleted
+     * @return the status of the deletion
+     */
     def del(jobId: Long): DeleteStatus = {
       Await.result((coordinator ? (engine.DeleteRequest(jobId))).mapTo[engine.DeleteResponse], timeoutDuration).deleteStatus
     }
   }
 
-}
-
-object JobDependencies {
-  private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.service.JobDependencies")
 }
 

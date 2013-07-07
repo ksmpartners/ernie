@@ -10,11 +10,13 @@ package bootstrap.liftweb
 import _root_.net.liftweb.http
 import net.liftweb.http.{ Req, LiftRules }
 import net.liftweb.http.provider.{ HTTPParam, HTTPRequest }
-import com.ksmpartners.ernie.server.{ PropertyNames, DispatchRestAPI }
+import com.ksmpartners.ernie.server.{ basicUserReqVar, PropertyNames, DispatchRestAPI }
 import net.liftweb.http.auth.{ AuthRole, userRoles }
 import com.ksmpartners.ernie.server.filter.SAMLConstants
 import org.slf4j.{ LoggerFactory, Logger }
 import net.liftweb.common.Full
+import net.liftweb.mockweb.MockWeb
+import javax.servlet.http.HttpServletRequest
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -39,7 +41,7 @@ class Boot {
       List(HTTPParam("X-Lift-Version", LiftRules.liftVersion),
         HTTPParam("Access-Control-Allow-Origin", "*"),
         HTTPParam("Access-Control-Allow-Credentials", "true"),
-        HTTPParam("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS"),
+        HTTPParam("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, HEAD, OPTIONS"),
         HTTPParam("Access-Control-Allow-Headers", "Authorization,WWW-Authenticate,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type"),
         HTTPParam("Access-Control-Request-Headers", "Authorization,WWW-Authenticate,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type")))
 
@@ -48,8 +50,8 @@ class Boot {
     LiftRules.liftRequest.append {
 
       case Req("static" :: _, _, _) => false
-
     }
+
   }
 
   /**

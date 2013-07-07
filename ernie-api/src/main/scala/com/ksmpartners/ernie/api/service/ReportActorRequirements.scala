@@ -19,11 +19,9 @@
 
 package com.ksmpartners.ernie.api.service
 
-import com.ksmpartners.ernie.engine.ErnieCoordinator
 import com.ksmpartners.ernie.engine.report.ReportManager
 import akka.actor.{ ActorRef, ActorSystem }
 import scala.concurrent.duration.FiniteDuration
-import java.util.concurrent.TimeUnit
 import akka.util.Timeout
 
 /**
@@ -31,11 +29,8 @@ import akka.util.Timeout
  */
 trait RequiresCoordinator {
   protected def coordinator: ActorRef
-  //protected def timeout: Long
   def timeoutDuration: FiniteDuration
   implicit def timeoutAkka = Timeout(timeoutDuration)
-  //protected def workerCount: Int
-  //protected def jobsDir: String
   protected val system: ActorSystem
 }
 
@@ -44,6 +39,4 @@ trait RequiresCoordinator {
  */
 trait RequiresReportManager {
   protected def reportManager: ReportManager
-  //protected def outputDir: String
-  //protected def defDir: String
 }

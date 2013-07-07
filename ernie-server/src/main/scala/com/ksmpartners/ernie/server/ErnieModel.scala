@@ -66,6 +66,10 @@ import scala.Some
 import net.liftweb.http.BadResponse
 import com.ksmpartners.ernie.server.RestGenerator.ErnieError
 import ErnieFilters._
+import net.liftweb.http.auth.Role
+import net.liftweb.json.JsonAST.JValue
+
+object basicUserReqVar extends RequestVar[List[String]](Nil)
 
 package object ErnieFilters {
   /**
@@ -76,7 +80,12 @@ package object ErnieFilters {
    * @return the function f, or a ForbiddenResponse if the user is not in the specified role
    */
   private def authFilter(req: Req, role: String*)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = {
-    if (role.foldLeft(false)((b, s) => b || isUserInRole(req, s))) f else () => {
+    if (role.foldLeft(false)((b, s) => b || isUserInRole(req, s)) ||
+      (if (basicUserReqVar.size > 0) {
+        log.info(basicUserReqVar + "\t" + role.toList + "\t" + req)
+        role.foldLeft(true)((r: Boolean, theRole: String) => r && (basicUserReqVar.contains(theRole) || basicUserReqVar.foldLeft(true)((res: Boolean, userRole: String) => res && (userRole == theRole))))
+      } else false)) f
+    else () => {
       log.debug("Response: Forbidden Response. Reason: User is not authorized to perform that action")
       Full(ForbiddenResponse("User is not authorized to perform that action"))
     }
@@ -171,8 +180,9 @@ package object ErnieModels {
 package object ErnieRequestTemplates {
   import DispatchRestAPI._
 
-  val justJSON = List(ModelObject.TYPE_FULL)
-  val anything = List("*")
+  val justJSON = Some(Product(ModelObject.TYPE_FULL, ""))
+  val anything = None
+  val jsonFile = Some(Product("json", "json"))
 
   val getJobsList = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter), ServiceRegistry.jobsResource.getJobsListAction)
   val headJobsList = getToHead(getJobsList)
@@ -197,6 +207,10 @@ package object ErnieRequestTemplates {
   val deleteJobResult = RequestTemplate(DeleteRequest, justJSON, List(writeAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobResultsResource.deleteReportAction)
   val getReportDetail = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobResultsResource.getDetailAction)
   val headReportDetail = getToHead(getReportDetail)
+
+  val resourcesJSON = RequestTemplate(GetRequest, jsonFile, Nil, Action("Get Swagger Resources JSON", (_: Package) => Full(JsonResponse(DispatchRestAPI.resourceListing)), "", "", "byte"))
+  val jobsJSON = RequestTemplate(GetRequest, jsonFile, Nil, Action("Get Swagger Jobs JSON", (_: Package) => Full(JsonResponse(DispatchRestAPI.jobsAPI)), "", "", "byte"))
+  val defsJSON = RequestTemplate(GetRequest, jsonFile, Nil, Action("Get Swagger Defs JSON", (_: Package) => Full(JsonResponse(DispatchRestAPI.defsAPI)), "", "", "byte"))
 
   val getDefs = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter), ServiceRegistry.defsResource.getDefsAction)
   val headDefs = getToHead(getDefs)

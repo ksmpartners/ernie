@@ -105,7 +105,7 @@ class DefinitionDependenciesTest extends DefinitionDependencies with RequiresCoo
     var res: Option[model.DefinitionEntity] = None
     val xml = scala.xml.XML.loadFile(new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def_params.rptdesign").getPath))
     try_(new ByteArrayInputStream(xml.toString.getBytes)) { bAIS =>
-      res = Some(defsRes.putDefinition(Some(defId), Some(bAIS), defsRes.getDefinition(defId)))
+      res = Some(defsRes.putDefinition(Some(defId), Some(bAIS), defsRes.getDefinitionEntity(defId)))
     }
     Assert.assertTrue(res.isDefined)
     Assert.assertTrue(res.get.getParams.size > 0)
@@ -126,7 +126,7 @@ class DefinitionDependenciesTest extends DefinitionDependencies with RequiresCoo
   @Test(groups = Array("ddTestFinish"), dependsOnGroups = Array("getGroup"))
   def get() {
     val defsRes = new DefsResource
-    Assert.assertTrue(defsRes.getDefinition(defId).isDefined)
+    Assert.assertTrue(defsRes.getDefinitionEntity(defId).isDefined)
   }
 
   @Test(groups = Array("ddTestFinish"), dependsOnMethods = Array("get"))

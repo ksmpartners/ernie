@@ -21,6 +21,9 @@ import ErnieRequestTemplates._
 import net.liftweb.json._
 import com.ksmpartners.ernie.api.ReportOutputException
 import net.liftweb.json.JsonDSL._
+import net.liftweb.http.auth.{ AuthRole, userRoles }
+import com.ksmpartners.ernie.server.filter.SAMLConstants
+
 /**
  * Object containing the stateless dispatch definition for an ernie server
  */
@@ -49,13 +52,17 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
   val deletedCatalog = Resource(Left("deleted"), "Deleted catalog", false, List(getDeletedCatalog, headDeletedCatalog))
   val completeCatalog = Resource(Left("complete"), "Complete catalog", false, List(getCompleteCatalog, headCompleteCatalog))
   val jobsCatalog = Resource(Left("catalog"), "Full catalog", false, List(getCatalog, headCatalog))
+  val jobsSwagger = Resource(Left("jobsapi"), "Jobs JSON", false, jobsJSON :: Nil)
   val jobs = Resource(Left("jobs"), "Jobs api", true, List(getJobsList, headJobsList, postJob), job, jobsCatalog, completeCatalog, expiredCatalog, failedCatalog, deletedCatalog)
 
   val design = Resource(Left("rptdesign"), "Definition rptdesign", false, List(putDesign))
   val defi = Resource(Right(Variable("def_id")), "Definition resource", false, List(getDef, headDef, deleteDef), design)
+  val defsSwagger = Resource(Left("defsapi"), "Defs JSON", false, defsJSON :: Nil)
   val defs = Resource(Left("defs"), "Definitions api", true, List(getDefs, headDefs, postDef), defi)
 
-  protected val api = jobs :: defs :: Nil
+  val swagger = Resource(Left("resources"), "Resources JSON", false, resourcesJSON :: Nil)
+
+  protected val api = jobs :: defs :: swagger :: jobsSwagger :: defsSwagger :: Nil
 
   var jobsAPI: JObject = null
   var defsAPI: JObject = null
@@ -67,14 +74,15 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
 
     jobsAPI = SwaggerUtils.buildSwaggerApi(".1", "1.1", "http://localhost:8080", jobs)
     defsAPI = SwaggerUtils.buildSwaggerApi(".1", "1.1", "http://localhost:8080", defs)
-    resourceListing = SwaggerUtils.buildSwaggerResourceListing(api, ".1", "1.1", "http://localhost:8080")
+    resourceListing = SwaggerUtils.buildSwaggerResourceListing(List(jobs, defs), ".1", "1.1", "http://localhost:8080")
 
-    serve {
+    super.serveApi()
+
+    /* serve {
       case Req("resources" :: Nil, "json", GetRequest) => resourceListing
       case Req("jobs" :: Nil, "json", GetRequest) => jobsAPI
       case Req("defs" :: Nil, "json", GetRequest) => defsAPI
-    }
-    super.serveApi()
+    }*/
 
   }
 

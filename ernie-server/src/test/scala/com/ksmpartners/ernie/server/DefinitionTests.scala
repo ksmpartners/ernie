@@ -22,7 +22,9 @@ import com.ksmpartners.ernie.util.Utility._
 import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
-import net.liftweb.http.auth.{ AuthRole, userRoles }
+import net.liftweb.http.auth.{ AuthRole }
+import net.liftweb.mockweb.MockWeb.useLiftRules
+import net.liftweb.util.NamedPF
 
 //import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import com.ksmpartners.ernie.util.MapperUtility._
@@ -44,7 +46,7 @@ import org.joda.time.DateTime
 import com.ksmpartners.ernie.server.service.ServiceRegistry._
 import net.liftweb.http.ResponseWithReason
 import com.ksmpartners.ernie.server.service.ConflictResponse
-import net.liftweb.common.Box
+import net.liftweb.common.{ Full, Box }
 
 class DefinitionTest extends WebSpec(() => {
   val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefinitionTest")
@@ -154,11 +156,48 @@ class DefinitionTest extends WebSpec(() => {
 
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefinitionTest")
 
+  @Test(enabled = false)
+  val liftRules = new LiftRules()
+
+  object userRoles {
+    private var r: List[net.liftweb.http.auth.Role] = Nil
+    def set(roles: List[net.liftweb.http.auth.Role]) {
+      r = roles
+    }
+    def get = r
+  }
+
   @BeforeSuite
   def setup() {
     outputDir = new File(properties.get("output.dir").toString)
     jobsDir = new File(properties.get("jobs.dir").toString)
     defsDir = new File(properties.get("rpt.def.dir").toString)
+
+    System.setProperty(PropertyNames.authModeProp, "BASIC")
+
+    LiftRulesMocker.devTestLiftRulesInstance.doWith(liftRules) {
+
+      DispatchRestAPI.basicAuthentication = {
+        case (u: String, p: String, req) => {
+          userRoles.set(Nil)
+          if (u == "") false
+          else {
+            if (u == "mockReadUser") userRoles.set(AuthRole(SAMLConstants.readRole) :: Nil)
+            if (u == "mockWriteUser") userRoles.set(AuthRole(SAMLConstants.writeRole) :: Nil)
+            if (u == "mockRunUser") userRoles.set(AuthRole(SAMLConstants.runRole) :: Nil)
+            true
+          }
+        }
+      }
+
+      LiftRules.statelessDispatch.prepend(DispatchRestAPI)
+
+      if (System.getProperty(PropertyNames.authModeProp) == "BASIC") {
+        LiftRules.authentication = net.liftweb.http.auth.HttpBasicAuthentication("Ernie Server")(DispatchRestAPI.basicAuthentication)
+        LiftRules.httpAuthProtectedResource.prepend(DispatchRestAPI.protectedResources)
+      }
+    }
+
   }
 
   @AfterClass(groups = Array("REST"))
@@ -170,20 +209,85 @@ class DefinitionTest extends WebSpec(() => {
   def shutdown() {
 
     DispatchRestAPI.shutdown()
+
     for (file <- outputDir.listFiles()) {
       recDel(file)
     }
+
     for (file <- jobsDir.listFiles()) {
       recDel(file)
     }
+
     for (file <- defsDir.listFiles()) {
       if (!file.getName.contains("test_def")) recDel(file)
     }
 
     var keep = new File(outputDir, ".keep")
+
     keep.createNewFile()
+
     keep = new File(jobsDir, ".keep")
+
     keep.createNewFile()
+
+  }
+
+  @Test
+  def basicAuthGetJobs() {
+    val read = new MockReadAuthReq("/jobs")
+    read.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    basicAuthentication(read, Some(200))
+
+    val noauth = new MockNoAuthReq("/jobs")
+    noauth.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    basicAuthentication(noauth, None)
+
+    val nocred = new MockNoCredReq("/jobs")
+    nocred.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
+    basicAuthentication(nocred, None)
+  }
+
+  def basicAuthentication(request: MockHttpServletRequest, successful: Option[Int]) { //This method imitates the functionality in LiftServlet that authenticates requests
+    LiftRulesMocker.devTestLiftRulesInstance.doWith(liftRules) {
+      useLiftRules.doWith(true) {
+        MockWeb.testReq(request) {
+          req =>
+            {
+              val roleForReq = NamedPF.applyBox(req, LiftRules.httpAuthProtectedResource.toList)
+
+              def checkUserRolesInResourceRoles(resRole: net.liftweb.http.auth.Role, userRoles: List[net.liftweb.http.auth.Role]): Boolean = {
+                val result = userRoles.foldLeft(false)((s: Boolean, d: net.liftweb.http.auth.Role) => {
+                  val res = s || (d.name == resRole.name) || resRole.isParentOf(d.name)
+                  res
+                })
+                result
+              }
+
+              val auth = roleForReq.map {
+                case Full(r) => LiftRules.authentication.verified_?(req) match {
+                  case true => {
+                    checkUserRolesInResourceRoles(r, userRoles.get)
+                  }
+                  case _ => false
+                }
+                case _ => LiftRules.authentication.verified_?(req)
+              } openOr true
+
+              if (successful.isDefined) Assert.assertTrue(auth)
+              else Assert.assertFalse(auth)
+
+              LiftRules.statelessDispatch.toList.foreach(f => {
+                val resp = f.apply(req)()
+                Assert.assertTrue(resp.isDefined)
+                successful match {
+                  case Some(i: Int) => Assert.assertEquals(resp.open_!.toResponse.code, i)
+                  case None => Assert.assertEquals(resp.open_!.toResponse.code, ForbiddenResponse().toResponse.code)
+                }
+              })
+            }
+        }
+      }
+    }
   }
 
   @AfterMethod
@@ -555,6 +659,12 @@ class MockNoAuthReq(path: String) extends MockHttpServletRequest(path) {
   override def isUserInRole(role: String) = false
   override def getRemoteUser: String = "mockNoAuthUser"
   addBasicAuth(getRemoteUser, "pass")
+}
+
+class MockNoCredReq(path: String) extends MockHttpServletRequest(path) {
+  override def isUserInRole(role: String) = false
+  override def getRemoteUser: String = ""
+  addBasicAuth(getRemoteUser, "")
 }
 
 class TestBoot extends Boot {

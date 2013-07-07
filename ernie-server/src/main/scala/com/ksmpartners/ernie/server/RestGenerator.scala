@@ -47,6 +47,9 @@ object RestGenerator {
   case class Parameter(param: String, paramType: String, dataType: String, defaultValue: String*)
   case class Filter(name: String, filter: (Req => restFunc => restFunc), param: Option[Parameter], error: ErnieError, values: String*)
   case class Variable(data: Any)
+  case class Product(accept: String, suffix: String) {
+    override def toString: String = accept
+  }
   case class Package(req: Req, params: Variable*)
   case class ErnieError(resp: LiftResponse, exception: Option[Exception]) {
     def toResponse(reason: Option[String]): ResponseWithReason =
@@ -91,7 +94,7 @@ object RestGenerator {
 
   //def checkResponse(a: Action, e: ErnieResponse): Box[LiftResponse] = checkResponse(a, e.errorOpt)
 
-  case class RequestTemplate(requestType: RequestType, produces: List[String], filters: List[Filter], action: Action, params: Parameter*)
+  case class RequestTemplate(requestType: RequestType, produces: Option[Product], filters: List[Filter], action: Action, params: Parameter*)
   case class Resource(path: Either[String, Variable], description: String, isResourceGroup: Boolean, requestTemplates: List[RequestTemplate], children: Resource*) {
     def swaggerPath = "/" + {
       if (path.isLeft) path.left.get
@@ -140,7 +143,6 @@ trait RestGenerator extends RestHelper {
 
   def protectedResources: net.liftweb.http.LiftRules.HttpAuthProtectedResourcePF = {
     serveApi()
-    protect.foreach(f => log.info(f + " -- "))
     protect.foldLeft(PartialFunction.empty[Req, Box[net.liftweb.http.auth.Role]]) { (f: PartialFunction[Req, Box[net.liftweb.http.auth.Role]], d: LiftRules.HttpAuthProtectedResourcePF) =>
       f orElse d
     }
@@ -152,45 +154,80 @@ trait RestGenerator extends RestHelper {
       val leaf = path(path.length - 1)
       val Path = path.map(f => if (f.path.isLeft) f.path.left.get else "")
       if (Path.contains("")) {
+        val Path1 = Path.slice(0, Path.indexOf(""))
         val Path2 = Path.slice(Path.indexOf("") + 1, Path.length)
+        //if (leaf.requestTemplates.isEmpty) serve
         leaf.requestTemplates.foreach(requestTemplate => {
+          object Suffix {
+            def unapply(in: String) = if (requestTemplate.produces.isEmpty) Some(in) else {
+              if (requestTemplate.produces.get.suffix == in) Some(in)
+              else None
+            }
+          }
           if (leaf isResourceGroup) serve(Path.slice(0, Path.indexOf("")) prefix {
-            case req @ Req(variable :: Path2 :: Nil, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
+            case req @ Req(variable :: Path2 :: Nil, Suffix(x), requestTemplate.requestType) => {
+              foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
+            }
           })
           serve(Path.slice(0, Path.indexOf("")) prefix {
-            case req @ Req(variable :: Path2, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
+            case req @ Req(variable :: Path2, Suffix(x), requestTemplate.requestType) => {
+              foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
+            }
           })
           ErnieFilters.authFilters.foreach(f => if (requestTemplate.filters.contains(f)) protect.::=({
-            case req @ Req(variable :: Path2, _, requestTemplate.requestType) => {
-              Full(AuthRole(f.values.foldLeft("")((s: String, d: String) => s + "," + d), f.values.map(n => new net.liftweb.http.auth.Role {
-                def name = n
-              }).toList: _*))
+            case req @ Req(Path1 :: variable :: Path2, Suffix(x), requestTemplate.requestType) => {
+              if (f.values.size > 1)
+                Full(AuthRole(f.values.foldLeft("")((s: String, d: String) => if (s == "") d else s + "," + d), f.values.map(n => new net.liftweb.http.auth.Role {
+                  def name = n
+                }).toList: _*))
+              else if (f.values.size == 1) Full(net.liftweb.http.auth.AuthRole(f.values(0)))
+              else net.liftweb.common.Empty
             }
           }))
         })
         serve(Path.slice(0, Path.indexOf("")) prefix {
-          case req @ Req(variable :: Path2, _, _) => Full(MethodNotAllowedResponse())
+          case req @ Req(variable :: Path2, _, _) => {
+            Full(MethodNotAllowedResponse())
+          }
         })
       } else {
         leaf.requestTemplates.foreach(requestTemplate => {
+          object Suffix {
+            def unapply(in: String) = {
+              if (requestTemplate.produces.isEmpty) Some(in) else {
+                if (requestTemplate.produces.get.suffix == in) Some(in)
+                else None
+              }
+            }
+          }
           if (leaf isResourceGroup) serve(Path prefix {
-            case req @ Req(Nil, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
+            case req @ Req(Nil, Suffix(x), requestTemplate.requestType) =>
+              {
+                foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
+              }
           })
           serve {
-            case req @ Req(Path, _, requestTemplate.requestType) => foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
+            case req @ Req(Path, Suffix(x), requestTemplate.requestType) => {
+              foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
+            }
           }
           ErnieFilters.authFilters.foreach(f => if (requestTemplate.filters.contains(f)) {
             protect.::=({
-              case req @ Req(Path, _, requestTemplate.requestType) => {
-                Full(AuthRole(f.values.foldLeft("")((s: String, d: String) => s + "," + d), f.values.map(n => new net.liftweb.http.auth.Role {
-                  def name = n
-                }).toList: _*))
+              case req @ Req(Path, Suffix(x), requestTemplate.requestType) => {
+                if (f.values.size > 1)
+                  Full(AuthRole(f.values.foldLeft("")((s: String, d: String) => if (s == "") d else s + "," + d), f.values.map(n => new net.liftweb.http.auth.Role {
+                    def name = n
+                  }).toList: _*))
+                else if (f.values.size == 1) Full(net.liftweb.http.auth.AuthRole(f.values(0)))
+                else net.liftweb.common.Empty
               }
             })
           })
         })
         serve {
-          case req @ Req(Path, _, _) => Full(MethodNotAllowedResponse())
+          case req @ Req(Path, suffix, _) => {
+            Full(MethodNotAllowedResponse())
+          }
         }
       }
     })

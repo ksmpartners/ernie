@@ -35,8 +35,10 @@ class FilterWrapper extends Filter {
     res.asInstanceOf[HttpServletResponse].addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
     res.asInstanceOf[HttpServletResponse].addHeader("Access-Control-Request-Headers", "Authorization,WWW-Authenticate,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type")
     res.asInstanceOf[HttpServletResponse].addHeader("Access-Control-Allow-Headers", "Authorization,WWW-Authenticate,Keep-Alive,User-Agent,X-Requested-With,Cache-Control,Content-Type")
-
-    wrappedFilter.doFilter(req, res, chain)
+    val uri = req.asInstanceOf[HttpServletRequest].getRequestURI
+    if (uri.contains("static") || uri.contains("resources.json") || uri.contains("jobs.json") || uri.contains("defs.json")) {
+      (new PassThroughFilter).doFilter(new SAMLFilter.SAMLHttpServletRequestWrapper(req.asInstanceOf[HttpServletRequest], "staticUser", SAMLConstants.allRoles.toSet), res, chain)
+    } else wrappedFilter.doFilter(req, res, chain)
   }
 
   def destroy() { wrappedFilter.destroy() }
