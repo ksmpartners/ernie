@@ -31,7 +31,7 @@ trait ReportActorDependencies extends RequiresCoordinator {
      * Sends a shutdown request to the coordinator
      */
     def shutdown() {
-      coordinator ? (engine.ShutDownRequest())
+      coordinator ! (engine.ShutDownRequest())
     }
   }
 }
