@@ -1,25 +1,35 @@
 /**
- * This source code file is the intellectual property of KSM Technology Partners LLC.
- * The contents of this file may not be reproduced, published, or distributed in any
- * form, except as allowed in a license agreement between KSM Technology Partners LLC
- * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
  */
 
 package com.ksmpartners.ernie.engine
 
 import scala.collection.{ JavaConversions, mutable }
-import com.ksmpartners.ernie.model._
+import com.ksmpartners.ernie.model.{ JobEntity, ReportEntity, JobStatus, DeleteStatus, JobCatalog }
 import org.joda.time.DateTime
 import com.ksmpartners.ernie.engine.report.ReportManager
 import Coordinator._
 import com.ksmpartners.ernie.util.Utility._
-import akka.actor.ActorDSL._
 
 import scala.Some
 import akka.actor._
-import akka.pattern.ask
 import akka.util.Timeout
 
+/**
+ * Template for a [[com.ksmpartners.ernie.engine.ErnieCoordinator]] that can perform various integral operations
+ */
 trait ErnieActions extends ErnieCoordinator {
   protected def worker: ActorRef
   protected val jobIdToResultMap: mutable.HashMap[Long, JobEntity]
@@ -29,6 +39,10 @@ trait ErnieActions extends ErnieCoordinator {
   protected def generateJobId(): Long
   protected def updateJob(jobId: Long, jobEnt: JobEntity)
 
+  /**
+   * Process a request for report generation, initiate a job if possible, and respond to sender.
+   * Response: [[com.ksmpartners.ernie.engine.ReportResponse]]
+   */
   def reportRequest(req: ReportRequest, sender: ActorRef) {
     val reportParameters = if (req.reportParameters != null) req.reportParameters else Map.empty[String, String]
     val retentionOption = req.retentionPeriod
@@ -73,6 +87,10 @@ trait ErnieActions extends ErnieCoordinator {
     }
   }
 
+  /**
+   * Process a request for report output deletion, perform the deletion, and respond to sender.
+   * Response: [[com.ksmpartners.ernie.engine.DeleteResponse]]
+   */
   def deleteRequest(req: DeleteRequest, sender: ActorRef) {
     val jobId = req.jobId
     if (jobIdToResultMap.contains(jobId)) {
@@ -98,6 +116,10 @@ trait ErnieActions extends ErnieCoordinator {
     } else sender ! DeleteResponse(DeleteStatus.NOT_FOUND, req) //no such job
   }
 
+  /**
+   * Process a request to delete a report definition, perform the deletion, and respond to sender.
+   * Response: [[com.ksmpartners.ernie.engine.DeleteDefinitionResponse]]
+   */
   def deleteDefinitionRequest(req: DeleteDefinitionRequest, sender: ActorRef) {
     val defId = req.defId
     if (jobIdToResultMap.find(p => {
@@ -113,6 +135,10 @@ trait ErnieActions extends ErnieCoordinator {
     } catch { case _ => sender ! DeleteDefinitionResponse(DeleteStatus.FAILED, req) }
   }
 
+  /**
+   * Process a request for purge of expired reports, perform the purge if possible, then respond to sender.
+   * Response: [[com.ksmpartners.ernie.engine.PurgeResponse]]
+   */
   def purgeRequest(req: PurgeRequest, sender: ActorRef) {
     var purgedReports: List[String] = Nil
     var deleteStatus = DeleteStatus.SUCCESS
@@ -144,6 +170,10 @@ trait ErnieActions extends ErnieCoordinator {
     sender ! PurgeResponse(deleteStatus, purgedReports, req)
   }
 
+  /**
+   * Process a request to retrieve report output.
+   * Response: [[com.ksmpartners.ernie.engine.ResultResponse]]
+   */
   def resultRequest(req: ResultRequest, sender: ActorRef) {
     val jobId = req.jobId
     val rptId = jobIdToResultMap.get(jobId).map(je => je.getRptId) orElse (None)
@@ -156,6 +186,10 @@ trait ErnieActions extends ErnieCoordinator {
     }, req)
   }
 
+  /**
+   * Process a request to retrieve a job catalog.
+   * Response: [[com.ksmpartners.ernie.engine.JobsCatalogResponse]]
+   */
   def jobsCatalogRequest(req: JobsCatalogRequest, sender: ActorRef) {
     val jobCatalog = req.jobCatalog
     val jobsList: List[JobEntity] = if (jobCatalog.isDefined) jobCatalog.getOrElse(null) match {
@@ -183,6 +217,10 @@ trait ErnieActions extends ErnieCoordinator {
     sender ! JobsCatalogResponse(jobsList, req)
   }
 
+  /**
+   * Process a message from a [[com.ksmpartners.ernie.engine.Worker]] that has completed a report generation job.
+   * @return the status of the job.
+   */
   def jobResponse(resp: JobResponse, sender: ActorRef) = {
     val req = resp.req
     val jobStatus = resp.jobStatus

@@ -1,8 +1,15 @@
 /**
- * This source code file is the intellectual property of KSM Technology Partners LLC.
- * The contents of this file may not be reproduced, published, or distributed in any
- * form, except as allowed in a license agreement between KSM Technology Partners LLC
- * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.ksmpartners.ernie.server
@@ -11,52 +18,11 @@ import com.ksmpartners.ernie.model.ModelObject
 import com.ksmpartners.ernie.server.RestGenerator._
 import net.liftweb.http._
 import com.ksmpartners.ernie.server.service.ServiceRegistry
-import com.ksmpartners.ernie.server.RestGenerator.Parameter
-import com.ksmpartners.ernie.server.RestGenerator.RequestTemplate
 import net.liftweb.json._
 import JsonDSL._
-import com.ksmpartners.ernie.server.RestGenerator.Parameter
-import com.ksmpartners.ernie.server.RestGenerator.Filter
-import com.ksmpartners.ernie.server.RestGenerator.RequestTemplate
-import scala.Some
-import com.ksmpartners.ernie.server.RestGenerator.ErnieError
-import net.liftweb.common.{ Full, Box }
-import com.ksmpartners.ernie.server.RestGenerator.Parameter
-import com.ksmpartners.ernie.server.RestGenerator.Filter
-import com.ksmpartners.ernie.server.RestGenerator.RequestTemplate
-import scala.Some
-import com.ksmpartners.ernie.server.RestGenerator.ErnieError
+import net.liftweb.common.Box
 import com.ksmpartners.ernie.server.filter.AuthUtil._
-import com.ksmpartners.ernie.server.RestGenerator.Parameter
-import com.ksmpartners.ernie.server.RestGenerator.Filter
-import com.ksmpartners.ernie.server.RestGenerator.RequestTemplate
-import scala.Some
-import com.ksmpartners.ernie.server.RestGenerator.ErnieError
-import com.ksmpartners.ernie.server.RestGenerator.Parameter
-import com.ksmpartners.ernie.server.RestGenerator.Filter
-import com.ksmpartners.ernie.server.RestGenerator.RequestTemplate
-import net.liftweb.common.Full
-import scala.Some
-import com.ksmpartners.ernie.server.RestGenerator.ErnieError
 import com.ksmpartners.ernie.server.filter.SAMLConstants._
-import com.ksmpartners.ernie.server.RestGenerator.Parameter
-import com.ksmpartners.ernie.server.RestGenerator.Filter
-import com.ksmpartners.ernie.server.RestGenerator.RequestTemplate
-import net.liftweb.common.Full
-import scala.Some
-import com.ksmpartners.ernie.server.RestGenerator.ErnieError
-import com.ksmpartners.ernie.server.RestGenerator.Parameter
-import com.ksmpartners.ernie.server.RestGenerator.Filter
-import com.ksmpartners.ernie.server.RestGenerator.RequestTemplate
-import net.liftweb.common.Full
-import scala.Some
-import com.ksmpartners.ernie.server.RestGenerator.ErnieError
-import com.ksmpartners.ernie.server.RestGenerator.Parameter
-import com.ksmpartners.ernie.server.RestGenerator.Filter
-import com.ksmpartners.ernie.server.RestGenerator.RequestTemplate
-import net.liftweb.common.Full
-import scala.Some
-import com.ksmpartners.ernie.server.RestGenerator.ErnieError
 import com.ksmpartners.ernie.server.RestGenerator.Parameter
 import com.ksmpartners.ernie.server.RestGenerator.Filter
 import com.ksmpartners.ernie.server.RestGenerator.RequestTemplate
@@ -66,12 +32,13 @@ import scala.Some
 import net.liftweb.http.BadResponse
 import com.ksmpartners.ernie.server.RestGenerator.ErnieError
 import ErnieFilters._
-import net.liftweb.http.auth.Role
-import net.liftweb.json.JsonAST.JValue
+import net.liftweb.http.auth.userRoles
 
-object basicUserReqVar extends RequestVar[List[String]](Nil)
-
+/**
+ * Contains filters that pre-process ernie requests
+ */
 package object ErnieFilters {
+
   /**
    * Method that verifies that the requesting user is in the given role
    * @param req - The request being handled
@@ -81,9 +48,10 @@ package object ErnieFilters {
    */
   private def authFilter(req: Req, role: String*)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = {
     if (role.foldLeft(false)((b, s) => b || isUserInRole(req, s)) ||
-      (if (basicUserReqVar.size > 0) {
-        log.info(basicUserReqVar + "\t" + role.toList + "\t" + req)
-        role.foldLeft(true)((r: Boolean, theRole: String) => r && (basicUserReqVar.contains(theRole) || basicUserReqVar.foldLeft(true)((res: Boolean, userRole: String) => res && (userRole == theRole))))
+      (if ((!userRoles.isEmpty) && (userRoles.is.size > 0)) {
+        role.foldLeft(true)((r: Boolean, theRole: String) => r &&
+          (userRoles.is.find(f => f.name == theRole).isDefined ||
+            userRoles.is.foldLeft(true)((res: Boolean, userRole: net.liftweb.http.auth.Role) => res && (userRole.name == theRole))))
       } else false)) f
     else () => {
       log.debug("Response: Forbidden Response. Reason: User is not authorized to perform that action")
@@ -93,8 +61,8 @@ package object ErnieFilters {
   val readAuthFilter = Filter("Read Authorization Filter", authFilter(_: Req, readRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), readRole)
   val writeAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, writeRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), writeRole)
   val writeRunAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, runRole, writeRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), writeRole, runRole)
-  //case class AuthFilter(n: String, f: (Req => restFunc => restFunc), p: Option[Parameter], e: ErnieError, role: String*) extends Filter(n, f, p, e)
   val authFilters: List[Filter] = List(readAuthFilter, writeAuthFilter, writeRunAuthFilter)
+
   /**
    * Return true if the given request accepts an ernie response as defined in ModelObject
    */
@@ -112,9 +80,10 @@ package object ErnieFilters {
       Full(NotAcceptableResponse("Resource only serves " + ModelObject.TYPE_FULL))
     }
   }
-  val jsonFilter = Filter("JSON Content Type Filter", ctypeFilter(_: Req)_, Some(Parameter("Accept", "header", "string", ModelObject.TYPE_FULL)), ErnieError(ResponseWithReason(NotAcceptableResponse(), "Resource only serves " + ModelObject.TYPE_FULL), None))
 
+  val jsonFilter = Filter("JSON Content Type Filter", ctypeFilter(_: Req)_, Some(Parameter("Accept", "header", "string", ModelObject.TYPE_FULL)), ErnieError(ResponseWithReason(NotAcceptableResponse(), "Resource only serves " + ModelObject.TYPE_FULL), None))
   val idFilter = Filter("ID is long filter", idIsLongFilter(_: Req)_, None, ErnieError(ResponseWithReason(BadResponse(), "Job ID provided is not a number"), None))
+
   private def idIsLongFilter(req: Req)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = try {
     req.path(0).toLong
     f
@@ -126,6 +95,9 @@ package object ErnieFilters {
   }
 }
 
+/**
+ * Contains JSON representations of the various responses returned in Ernie operations
+ */
 package object ErnieModels {
 
   val definitionEntity = ("DefinitionEntity" ->
@@ -137,9 +109,6 @@ package object ErnieModels {
   val deleteResponse = ("DeleteResponse" ->
     (("properties" -> JNothing) ~
       ("id" -> "DeleteResponse")))
-
-  //val jobsCatalogResponse = ("JobsCatalogResponse" ->
-  // ("type" -> "Array") ~ ("description" -> "Jobs Catalog") ~ ("$ref" -> "JobEntity"))
   val jobsMapResponse = ("jobStatusMap" -> ("id" -> "jobStatusMap") ~ ("properties" -> ("jobStatusMap" ->
     (("type" -> "Array") ~ ("items" -> ("type" -> "string")) ~ ("description" -> "Jobs map")))))
   val jobsCatalogResponse = ("JobsCatalogResponse" -> ("id" -> "JobsCatalogResponse") ~ ("properties" -> ("jobsCatalog" ->
@@ -177,8 +146,10 @@ package object ErnieModels {
     reportDefinitionMapResponse ~ reportEntity ~ reportResponse ~ statusResponse
 }
 
+/**
+ * Contains the  [[com.ksmpartners.ernie.server.RestGenerator.RequestTemplate]]s that define the valid operations for a [[com.ksmpartners.ernie.server.RestGenerator.Resource]]
+ */
 package object ErnieRequestTemplates {
-  import DispatchRestAPI._
 
   val justJSON = Some(Product(ModelObject.TYPE_FULL, ""))
   val anything = None

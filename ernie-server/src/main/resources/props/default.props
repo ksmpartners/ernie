@@ -9,3 +9,4 @@ retention.period.default=7
 retention.period.maximum=14
 worker.count=100
 authentication.mode=SAML
+swagger.docs=true

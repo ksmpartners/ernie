@@ -1,8 +1,17 @@
 /**
- * This source code file is the intellectual property of KSM Technology Partners LLC.
- * The contents of this file may not be reproduced, published, or distributed in any
- * form, except as allowed in a license agreement between KSM Technology Partners LLC
- * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
  */
 
 package com.ksmpartners.ernie.engine.report
@@ -11,22 +20,18 @@ import org.eclipse.birt.report.engine.api._
 import org.eclipse.birt.core.framework.Platform
 import org.slf4j.LoggerFactory
 import java.io._
-import com.ksmpartners.ernie.model.{ ParameterEntity, DefinitionEntity, ReportType }
+import com.ksmpartners.ernie.model.{ ParameterEntity, ReportType }
 import com.ksmpartners.ernie.engine.report.BirtReportGenerator._
 import org.eclipse.birt.report.engine.emitter.csv.CSVRenderOption
-import org.eclipse.birt.report.engine.api.IParameterDefn._
 import com.ksmpartners.ernie.util.Utility._
 import scala.collection._
 import JavaConversions._
 import org.joda.time.DateTime
-import java.util.Date
-import java.text.DecimalFormat
 import java.sql.Time
 import org.joda.time.format.DateTimeFormat
 
 /**
  * Class used to generate BIRT reports
- * <br><br>
  * This Class is not thread safe.
  */
 class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator {
@@ -91,28 +96,6 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
     }
   }
 
-  /* def stringToBirtParamData(data: String = null, param: ParameterEntity): Any = {
-    if (((data == null) || (data == "")) && (!param.getAllowNull)) {
-      throw new ParameterNullException(param.getParamName)
-    } else try {
-      param.getDataType match { //TODO: do not hardcode data type names. http://www.eclipse.org/birt/ref/rom/elements/ScalarParameter.html#Property-dataType
-        case "boolean" => data.toBoolean
-        case "date" => Date.parse(data)
-        case "dateTime" => DateTime.parse(data)
-        case "decimal" => data.toDouble
-        case "float" => data.toFloat
-        case "integer" => data.toInt.asInstanceOf[Integer]
-        case "string" => data
-        case "time" => Time.valueOf(data)
-        case "any" => data
-        case _ => throw new UnsupportedDataTypeException(param.getParamName)
-      }
-    } catch {
-      case e: UnsupportedDataTypeException => throw new UnsupportedDataTypeException(param.getParamName)
-      case e: Exception => throw new ClassCastException()
-    }
-  } */
-
   /**
    * Method that runs the .rtpdesign file in the input stream defInputStream, and outputs the results to
    * rptOutputStream as rptType
@@ -154,10 +137,26 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
 
 }
 
+/**
+ * Exception thrown when a non-null method parameter is null
+ * @param msg
+ */
 class ParameterNullException(msg: String) extends Exception(msg);
+
+/**
+ * Exception thrown when a parameter value is invalid
+ */
 class InvalidParameterValuesException(msg: String) extends Exception(msg);
+
+/**
+ * Exception thrown when a value provided has an unsupported datatype
+ * @param msg
+ */
 class UnsupportedDataTypeException(msg: String) extends Exception(msg);
 
+/**
+ * Singleton object holding the BIRT engine instance and responsible for running reports and providing helper methods for report generation
+ */
 object BirtReportGenerator {
 
   protected[report] var engine: IReportEngine = null
@@ -206,6 +205,14 @@ object BirtReportGenerator {
       false
   }
 
+  /**
+   * Convert string data to type expected by BIRT report definition parameter.
+   * @param data value to convert
+   * @param param ParameterEntity representing the BIRT parameter
+   * @throws UnsupportedDataTypeException if ParameterEntity type is invalid or unsupported
+   * @throws ClassCastException if conversion fails
+   * @return converted value.
+   */
   def stringToBirtParamData(data: String = null, param: ParameterEntity): Any = {
     if (((data == null) || (data == "")) && (!param.getAllowNull)) {
       throw new ParameterNullException(param.getParamName)
@@ -229,7 +236,7 @@ object BirtReportGenerator {
   }
 
   /**
-   * Method that creates and runs a BIRT task based on the given design and options
+   * Method that creates and runs a BIRT task based on the given design and options,
    */
   private def runReport(design: IReportRunnable, option: RenderOption, rptParams: Map[String, Any]) = synchronized {
     val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)

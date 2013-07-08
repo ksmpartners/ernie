@@ -1,8 +1,17 @@
 /**
- * This source code file is the intellectual property of KSM Technology Partners LLC.
- * The contents of this file may not be reproduced, published, or distributed in any
- * form, except as allowed in a license agreement between KSM Technology Partners LLC
- * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
  *
  */
 
@@ -10,25 +19,16 @@ package com.ksmpartners.ernie.api.service
 
 import com.ksmpartners.ernie.engine._
 import com.ksmpartners.ernie.engine.report._
-import com.ksmpartners.ernie.{ engine, model }
-import com.ksmpartners.ernie.util.MapperUtility._
+import com.ksmpartners.ernie.model
 import com.ksmpartners.ernie.util.Utility._
 import java.io._
-import com.ksmpartners.ernie.api._
 import org.testng.annotations._
 import org.testng.Assert
-import collection.mutable
-import org.joda.time.DateTime
 import org.slf4j.{ LoggerFactory, Logger }
 import scala.Array
 
-import com.ksmpartners.ernie.engine.PurgeResponse
-import com.ksmpartners.ernie.engine.PurgeRequest
-import com.ksmpartners.ernie.util.TestLogger
 import com.ksmpartners.ernie.model.{ DefinitionEntity, DeleteStatus }
-import org.apache.cxf.helpers.FileUtils
 import akka.actor.{ ActorSystem, ActorRef, ActorDSL }
-import akka.pattern.ask
 import scala.concurrent.duration._
 
 @Test(dependsOnGroups = Array("timeout"))

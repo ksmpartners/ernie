@@ -1,10 +1,20 @@
-package com.ksmpartners.ernie
 /**
- * This source code file is the intellectual property of KSM Technology Partners LLC.
- * The contents of this file may not be reproduced, published, or distributed in any
- * form, except as allowed in a license agreement between KSM Technology Partners LLC
- * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
  */
+
+package com.ksmpartners.ernie
 
 import io.gatling.com.ksmpartners.ErnieGatling
 import io.gatling.core.Predef._
@@ -15,14 +25,21 @@ import scala.Some
 import com.ksmpartners.ernie.model.ReportType
 
 /**
- * Created with IntelliJ IDEA.
- * User: acoimbra
- * Date: 6/28/13
- * Time: 10:20 AM
- * To change this template use File | Settings | File Templates.
+ * Provides user scenario(s) that can be used to stress test any Ernie protocol
  */
-
 object ErnieSimulation {
+  /**
+   * Execute a basic scenario:
+   1. Create a new definition
+   1. Get all available definitions
+   1. Repeat 5 times:
+    - 50% of the time, create a job and immediately retrieve the output
+    - 50% of the time, create a job and repeat the following 5 times:
+       1. Select a random job
+       1.
+        - 60% of the time get that job's output
+        - 40% of the time pause for 1 seconds
+   */
   def scn(s: String, e: ErnieGatling) = {
     scenario(s)
       .exec(session => {

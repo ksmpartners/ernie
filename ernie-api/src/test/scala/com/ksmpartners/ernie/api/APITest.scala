@@ -1,21 +1,26 @@
 /**
- * This source code file is the intellectual property of KSM Technology Partners LLC.
- * The contents of this file may not be reproduced, published, or distributed in any
- * form, except as allowed in a license agreement between KSM Technology Partners LLC
- * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  */
 
 package com.ksmpartners.ernie.api
 
-import com.ksmpartners.ernie.util.TestLogger
-import com.ksmpartners.ernie.api.service.{ RequiresReportManager, RequiresCoordinator, DefinitionDependencies }
 import com.ksmpartners.ernie.util.Utility._
 import org.testng.annotations._
 import scala.concurrent.duration._
 import org.testng.Assert
 import java.io.{ ByteArrayInputStream, File }
-import com.ksmpartners.ernie.model.{ DefinitionEntity, DeleteStatus, ReportType }
+import com.ksmpartners.ernie.model.{ DeleteStatus, ReportType }
 import org.slf4j.{ LoggerFactory, Logger }
 import scala.Array
 import ErnieBuilder._

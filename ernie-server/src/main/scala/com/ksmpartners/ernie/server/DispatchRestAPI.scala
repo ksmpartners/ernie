@@ -1,46 +1,64 @@
 /**
- * This source code file is the intellectual property of KSM Technology Partners LLC.
- * The contents of this file may not be reproduced, published, or distributed in any
- * form, except as allowed in a license agreement between KSM Technology Partners LLC
- * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.ksmpartners.ernie.server
 
-import net.liftweb.common.{ Box, Full }
-import com.ksmpartners.ernie.server.filter.AuthUtil._
-import com.ksmpartners.ernie.server.filter.SAMLConstants._
-
 import net.liftweb.http._
-import org.slf4j.{ Logger, LoggerFactory }
-import rest.RestHelper
-import com.ksmpartners.ernie.model.ModelObject
 import service.ServiceRegistry
 import RestGenerator._
 import ErnieRequestTemplates._
 import net.liftweb.json._
-import com.ksmpartners.ernie.api.ReportOutputException
-import net.liftweb.json.JsonDSL._
-import net.liftweb.http.auth.{ AuthRole, userRoles }
-import com.ksmpartners.ernie.server.filter.SAMLConstants
 
 /**
- * Object containing the stateless dispatch definition for an ernie server
+ * Object containing the stateless dispatch definition for an ernie server.
+ * Generates a dispatch table using the resource tree defined in the api value.
  */
 object DispatchRestAPI extends RestGenerator with JsonTranslator {
-
-  private val log = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DispatchRestAPI")
 
   case class TimeoutResponse() extends LiftResponse with HeaderDefaults {
     def toResponse = InMemoryResponse(Array(), headers, cookies, 504)
   }
 
+  /**
+   * Wrap a TimeoutResponse and message with in an ErnieError case class
+   */
   def timeoutErnieError(src: String = null): ErnieError = ErnieError(TimeoutResponse(), Some(new java.util.concurrent.TimeoutException(if (src != null) src + " timed out" else "Timeout")))
 
+  /**
+   * Shutdown the ernie server
+   */
   def shutdown() {
     ServiceRegistry.shutDown
   }
 
+  /**
+   * Set this variable for BASIC HTTP authentication.
+   * PartialFunction should:
+   * 1. Attempt to authenticate the user
+   * 1. If successful, populate userRoles RequestVar with roles (see [[com.ksmpartners.ernie.server.filter.SAMLConstants.]]).
+   * 1. Return the result of authentication as a Boolean
+   * For example:
+   * {{{
+   *   basicAuthentication = ({
+   *     case (user:String, pass:String, req:Req) =>
+   *       MyUserCollection.getUser(user, pass).map( u => {
+   *         userRoles(u.getRoles)
+   *         true
+   *       }) getOrElse false
+   *   })
+   * }}}
+   */
   var basicAuthentication: PartialFunction[(String, String, Req), Boolean] = PartialFunction.empty[(String, String, Req), Boolean]
 
   val reportDetail = Resource(Left("detail"), "Report details", false, List(getReportDetail, headReportDetail))
@@ -68,6 +86,9 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
   var defsAPI: JObject = null
   var resourceListing: JObject = null
 
+  /**
+   * Initialize the ServiceRegistry and serve the API.
+   */
   def init() {
 
     ServiceRegistry.init()
@@ -77,12 +98,6 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
     resourceListing = SwaggerUtils.buildSwaggerResourceListing(List(jobs, defs), ".1", "1.1", "http://localhost:8080")
 
     super.serveApi()
-
-    /* serve {
-      case Req("resources" :: Nil, "json", GetRequest) => resourceListing
-      case Req("jobs" :: Nil, "json", GetRequest) => jobsAPI
-      case Req("defs" :: Nil, "json", GetRequest) => defsAPI
-    }*/
 
   }
 

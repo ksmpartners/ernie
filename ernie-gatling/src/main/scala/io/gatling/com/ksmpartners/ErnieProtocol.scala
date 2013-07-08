@@ -1,47 +1,64 @@
-package io.gatling.com.ksmpartners
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ */
 
-import io.gatling.core.action.{ Chainable, Interruptable }
+package io.gatling.com.ksmpartners
+/**
+ * Package providing a protocol and DSL for stress testing [[com.ksmpartners.ernie.api]] and [[com.ksmpartners.ernie.server]]
+ */
+
 import io.gatling.core.Predef._
-import io.gatling.core.session.Session
-import io.gatling.http._
-import action._
 import akka.actor.{ Props, ActorRef }
 import com.ksmpartners.ernie.api._
 import com.ksmpartners.ernie.model._
 import com.typesafe.scalalogging.slf4j.Logging
 import io.gatling.core.config.{ ProtocolConfigurationRegistry, ProtocolConfiguration }
 import io.gatling.core.result.writer.DataWriter
-import io.gatling.core.result.message.{ RequestMessage, KO, OK, Status }
+import io.gatling.core.result.message.{ KO, OK }
 import io.gatling.core.action.builder.ActionBuilder
 import io.gatling.core.action._
 import java.io.File
 import io.gatling.core.session.EL
 
-import io.gatling.core.validation.{Failure, Success}
+import io.gatling.core.validation.Success
 import scala.concurrent.duration.{ FiniteDuration, Duration }
 import org.joda.time.DateTime
-import io.gatling.http.request.builder.{ AbstractHttpRequestWithBodyAndParamsBuilder, HttpRequestBaseBuilder }
 import io.gatling.http.Predef._
-import scala.{ util, Some }
+import scala.util
 
 import com.ksmpartners.ernie.util.MapperUtility._
 import scala.Some
 import io.gatling.core.result.message.RequestMessage
 import io.gatling.core.session.Session
-import com.ksmpartners.ernie.api.ErnieBuilder._
 import com.ksmpartners.ernie.model.JobStatus
 import com.ksmpartners.ernie.api.ReportOutputException
-import io.gatling.core.structure.{ AbstractStructureBuilder, ChainBuilder, ConditionalStatements, Execs }
+import io.gatling.core.structure.ChainBuilder
 
-class ErnieProtocol {
-
-}
-
+/**
+ * Gatling protocol configuration for stress testing the [[com.ksmpartners.ernie.api]]
+ */
 object ErnieProtocolConfiguration {
   val HTTP_PROTOCOL_TYPE = "httpProtocol"
   var embedded = true
   protected[gatling] lazy val ernie = engine.start
   private var engine:ErnieEngine = null
+
+  /**
+   * Create a new instance of ErnieProtocolConfiguration
+   * @param engine a configured but not yet started instance of [[com.ksmpartners.ernie.api.ErnieEngine]]
+   */
   def apply(engine:ErnieEngine) = {
     this.engine = engine
     ernie
@@ -50,27 +67,65 @@ object ErnieProtocolConfiguration {
   }
 }
 
+/**
+ * Class that provides an instance of the Ernie API in the form of [[com.ksmpartners.ernie.api.ErnieControl]]
+ */
 class ErnieProtocolConfiguration private() extends ProtocolConfiguration  {
    def ernieControl = ErnieProtocolConfiguration.ernie
 }
 
 case class ErnieResponse(resp:Option[Any], errorOpt:Option[Exception])
 
+/**
+ * A template for defining a stress-testable Ernie action
+ * @tparam A the return type of the Ernie API function tested by the ErnieActionDefinition
+ */
 trait ErnieActionDefinition[A] {
+
+  /**
+   * The function definition that performs the action and transforms the current Session
+   */
   val actionFunc: (Session) => (Session, Expression[ErnieResponse])
+
+  /**
+   * The function to transform the current Session upon successful completion of actionFunc and validation
+   */
   val afterFunc: (Session, Expression[ErnieResponse]) => Session
+
+  /**
+   * The function to validate an ErnieResponse returned by the actionFunc
+   */
   val validationFunc: (Session, Expression[ErnieResponse]) => Boolean
+
+  /**
+   * Human-readable name for this action
+  */
   val requestName: String
+
   protected[gatling] var ernieControl = ErnieProtocolConfiguration.ernie
+
+  /**
+   * Upon successful validation of actionFunc output, generate a message
+   */
   def successMessage(s: Session, e: Expression[ErnieResponse]): String
+
+  /**
+   * Upon failure to validate actionFunc output, generate a message
+   */
   def failMessage(s: Session, e: Expression[ErnieResponse]): String
+
   def cast(in:Any) = in match {
     case d:A => Some(d)
     case _ => None
   }
+
   private[gatling] def toActionBuilder = new ErnieActionBuilder[A](this, null)
+
 }
 
+/**
+ * Actor to perform the action spepcified by actionDef. Instantiated only by ErnieActionBuilder, which provides the Session context, protocol configuration, and the next action in the chain
+ */
 class ErnieAction[A](actionDef: ErnieActionDefinition[A], protocolConfigReg: ProtocolConfigurationRegistry, val next: ActorRef, rB: ErnieActionBuilder[A]) extends Interruptable with Logging {
 
   val requestBuilder: ErnieActionBuilder[A] = rB
@@ -103,10 +158,12 @@ class ErnieAction[A](actionDef: ErnieActionDefinition[A], protocolConfigReg: Pro
   }
 }
 
+/**
+ * Builder for ErnieAction creation
+ */
 class ErnieActionBuilder[A](actionDef: ErnieActionDefinition[A], next: ActorRef) extends ActionBuilder {
   /**
-   * Something todo with the action chain. Creates a new instance of our builder with a new
-   * next action point.
+   * Creates a new instance of our builder with a new next action point.
    */
   private[gatling] def withNext(next: ActorRef) = new ErnieActionBuilder(actionDef, next)
 
@@ -116,7 +173,6 @@ class ErnieActionBuilder[A](actionDef: ErnieActionDefinition[A], next: ActorRef)
 }
 
 class PostJobActionBuilder(val defId: Expression[String], val user: Expression[String] = value2Expression("test"), val rptType: Expression[ReportType] = value2Expression(ReportType.PDF)) extends ErnieActionDefinition[(Long, JobStatus)] {
-  import io.gatling.http.Predef._
   val actionFunc:(Session => (Session, Expression[ErnieResponse])) = (s: Session) => (s, (try {
     for {
       d <- defId(s)
@@ -241,11 +297,7 @@ class GetResultActionBuilder(j: Expression[Long] = value2Expression(-1L), waitFo
     case _ => "Unknown failure"
   }
 
-  //private[gatling] def toActionBuilder = new ErnieActionBuilder(this, null)
-
 }
-
-//case class DefList(list: List[String], e: Option[Exception]) extends ErnieResponse(Some(list), e)
 
 class GetDefsActionBuilder extends ErnieActionDefinition[List[String]] {
 
@@ -283,8 +335,6 @@ class GetDefsActionBuilder extends ErnieActionDefinition[List[String]] {
   private[gatling] def build = {
     ernieControl
   }
-
-  ///private[gatling] def toActionBuilder = new ErnieActionBuilder(this, null)
 
 }
 
@@ -326,18 +376,13 @@ class CreateDefActionBuilder(val defLoc: Expression[String], val user: Expressio
     case _ => "Unknown failure"
   }
 
-  //def location(loc : Expression[String]):CreateDefActionBuilder = new CreateDefActionBuilder(loc, user)
   def user(u: String): CreateDefActionBuilder = new CreateDefActionBuilder(defLoc, EL.compile[String](u))
 
   private[gatling] def build = {
     ernieControl
   }
 
-  //private[gatling] def toActionBuilder = new ErnieActionBuilder(this, null)
-
 }
-
-//case class DeleteResp(d: com.ksmpartners.ernie.model.DeleteStatus, e: Option[Exception]) extends ErnieResponse(Some(d), e)
 
 class DeleteJobActionBuilder(val job: Option[Expression[Long]], val as: Expression[Int] = value2Expression(15)) extends ErnieActionDefinition[DeleteStatus] {
 
@@ -396,8 +441,6 @@ class DeleteJobActionBuilder(val job: Option[Expression[Long]], val as: Expressi
   private[gatling] def build = {
     ernieControl
   }
-
-  //private[gatling] def toActionBuilder = new ErnieActionBuilder(this, null)
 
 }
 
@@ -460,42 +503,60 @@ class DeleteDefActionBuilder(val defId: Expression[String], val as: Expression[I
 }
 
 /**
- * setup the implicit conversion here.
+ * Singleton provides implicit conversion to an ErnieActionBuilder
  */
 object PostJobActionBuilder {
   implicit def toActionBuilder(requestBuilder: PostJobActionBuilder) = requestBuilder.toActionBuilder
 }
 
+/**
+ * Singleton provides implicit conversion to an ErnieActionBuilder
+ */
 object GetResultActionBuilder {
   implicit def toActionBuilder(requestBuilder: GetResultActionBuilder) = requestBuilder.toActionBuilder
 }
 
+/**
+ * Singleton provides implicit conversion to an ErnieActionBuilder
+ */
 object CreateDefActionBuilder {
   implicit def toActionBuilder(requestBuilder: CreateDefActionBuilder) = requestBuilder.toActionBuilder
 }
 
+/**
+ * Singleton provides implicit conversion to an ErnieActionBuilder
+ */
 object GetDefsActionBuilder {
   implicit def toActionBuilder(requestBuilder: GetDefsActionBuilder) = requestBuilder.toActionBuilder
 }
 
+/**
+ * Singleton provides implicit conversion to an ErnieActionBuilder
+ */
 object DeleteJobActionBuilder {
   implicit def toActionBuilder(requestBuilder: DeleteJobActionBuilder) = requestBuilder.toActionBuilder
 }
 
+/**
+ * Singleton provides implicit conversion to an ErnieActionBuilder
+ */
 object DeleteDefActionBuilder {
   implicit def toActionBuilder(requestBuilder: DeleteDefActionBuilder) = requestBuilder.toActionBuilder
 }
 
 /**
- * exposes a factory method used by the Predef stuff.
+ * Exposes a factory method used by Predef to expose the DSL
  */
 object ErnieBuilder {
   /**
-   * Start our main DSL chain from here.
+   * Start main DSL chain from here.
    */
   def ernie = new ErnieBuilder(Nil)
 }
 
+/**
+ * Template for a protocol that implements various Ernie operations
+ */
 abstract class ErnieGatling(aB: List[ActionBuilder]) extends ChainBuilder(aB) {
   def postJob(defId: String): ChainBuilder
   def postJob(defId: Option[String], r: ReportType): ChainBuilder
@@ -506,15 +567,12 @@ abstract class ErnieGatling(aB: List[ActionBuilder]) extends ChainBuilder(aB) {
   def getResult(jobId: String, wait: Duration): ChainBuilder
   def createDef(defLoc: String): ChainBuilder
   def getDefs: ChainBuilder
- // def deleteJob(job: Option[String]): ChainBuilder
-  //def deleteDef(defId: String): ChainBuilder
 }
 
 /**
- * This class contains specific kinds of ernie actions you can take
+ * Implements the Ernie API operations that may be stress-tested
  */
 class ErnieBuilder(val aB: List[ActionBuilder]) extends ErnieGatling(aB) {
-  import io.gatling.http.Predef._
 
   def postJobApi(defId: String): PostJobActionBuilder = new PostJobActionBuilder(EL.compile[String](defId))
   def postJob(defId: String): ChainBuilder = exec(postJobApi(defId))
@@ -551,6 +609,9 @@ class ErnieBuilder(val aB: List[ActionBuilder]) extends ErnieGatling(aB) {
 
 }
 
+/**
+ * Factory for instances of ErnieHttp DSL provider class
+ */
 object ErnieHttp {
   def apply(wS: String, rS: String): ErnieHttp = {
     val e = new ErnieHttp(Nil)
@@ -560,11 +621,13 @@ object ErnieHttp {
   }
 }
 
+/**
+ * Provides the DSL for stress-testing Ernie operations on a running [[com.ksmpartners.ernie.server]]
+ */
 class ErnieHttp(val aB: List[ActionBuilder]) extends ErnieGatling(aB) {
 
   import io.gatling.core.validation._
   import io.gatling.core.Predef._
-  import bootstrap._
   import scala.concurrent.duration._
 
   var writeSaml = ""
@@ -679,6 +742,9 @@ class ErnieHttp(val aB: List[ActionBuilder]) extends ErnieGatling(aB) {
 
 }
 
+/**
+ * Singleton exposes DSL chains for either a server or API protocol
+ */
 object Predef {
   def ernie = ErnieBuilder.ernie
   def ernie(wS: String, rS: String) = ErnieHttp(wS, rS)

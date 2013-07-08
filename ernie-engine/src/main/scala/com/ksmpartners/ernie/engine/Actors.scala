@@ -1,8 +1,17 @@
 /**
- * This source code file is the intellectual property of KSM Technology Partners LLC.
- * The contents of this file may not be reproduced, published, or distributed in any
- * form, except as allowed in a license agreement between KSM Technology Partners LLC
- * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
  */
 
 package com.ksmpartners.ernie.engine
@@ -16,24 +25,27 @@ import org.joda.time.{ Days, DateTime }
 import com.ksmpartners.ernie.util.Utility._
 import org.eclipse.birt.report.engine.api.UnsupportedFormatException
 import com.ksmpartners.ernie.util.MapperUtility._
-import scala.Some
 import java.io.{ IOException, File, FileOutputStream }
 import Coordinator._
 import akka.actor._
-import akka.actor.ActorDSL._
 import scala.concurrent._
 import scala.Some
-import ExecutionContext.Implicits.{ global }
-import akka.pattern.ask
+import ExecutionContext.Implicits.global
 import akka.util.Timeout
 import akka.actor.Props
 import scala.concurrent.duration._
 import scala.concurrent.duration.DurationInt
 
+/**
+ * Companion singleton for the Coordinator
+ */
 object Coordinator {
   val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.engine.report.Coordinator")
 }
 
+/**
+ * Template for a coordinating actor
+ */
 trait ErnieCoordinator extends Actor {
 
 }
@@ -42,56 +54,30 @@ trait ErnieCoordinator extends Actor {
  */
 class Coordinator(_pathToJobEntities: Option[String], rptMgr: ReportManager, to: Option[FiniteDuration], wC: Int = 1) extends ErnieActions {
   this: ReportGeneratorFactory =>
-  //private val log = LoggerFactory.getLogger(classOf[Coordinator])
-  val year: FiniteDuration = 365 days
+
+  private val year: FiniteDuration = 365 days
+
   private var workerCount = wC
   implicit val timeout = Timeout.durationToTimeout(to getOrElse year)
-  var currentWorker = -1
+  private var currentWorker = -1
+
   protected def worker: ActorRef = {
     currentWorker += 1
     if (currentWorker >= workerCount) currentWorker = 0
     context.children.toList(currentWorker)
   }
+
   private def spawnWorker() {
     context.actorOf(Props(new Worker(getReportGenerator(reportManager))))
     workerCount += 1
   }
+
   protected val jobIdToResultMap: mutable.HashMap[Long, JobEntity] = new mutable.HashMap[Long, JobEntity]() /* rptId */
   protected val reportManager = rptMgr
   protected val pathToJobEntities: Option[String] = _pathToJobEntities
-  //val system = akka.actor.ActorSystem("system")
 
   private var noRestartingJobs = true
-  //override def start(): Actor = {
-  /* log.debug("in start()")
-    super.start()
-    worker.start()
-    if (pathToJobEntities.isDefined) {
-      val path = pathToJobEntities.get
-      val jobDir = new java.io.File(path)
-      if (!(jobDir.isDirectory && jobDir.canRead))
-        throw new IOException("Input/output directories do not exist or do not have the correct read/write access. " +
-          "Job Dir: " + jobDir)
 
-      val files = (new java.io.File(path)).listFiles()
-      if (files != null)
-        files.filter({ _.isFile }).filter({ _.getName.endsWith("entity") }).foreach({ file =>
-          try {
-            val jobEnt = mapper.readValue(file, classOf[JobEntity])
-            val jobId = file.getName.replaceFirst("[.][^.]+$", "").toLong
-            jobIdToResultMap += (jobId -> jobEnt)
-            if (((jobEnt.getJobStatus == JobStatus.IN_PROGRESS) || (jobEnt.getJobStatus == JobStatus.PENDING)) && (jobEnt.getRptEntity != null)) {
-              jobEnt.setJobStatus(JobStatus.RESTARTING)
-              noRestartingJobs = false
-              updateJob(jobId, jobEnt)
-            }
-          } catch {
-            case e: Exception => log.error("Caught exception while loading job entities: {}", e.getMessage)
-          }
-        })
-    }             */
-  //   this
-  //}
   private def handleRestartingJobs() = if (!noRestartingJobs) {
     noRestartingJobs = true
     val restJobs = jobIdToResultMap.filter(p => p._2.getJobStatus == JobStatus.RESTARTING)
@@ -102,6 +88,7 @@ class Coordinator(_pathToJobEntities: Option[String], rptMgr: ReportManager, to:
         if (jobEnt.getRptEntity.getParams != null) immutable.Map(jobEnt.getRptEntity.getParams.toList: _*) else immutable.Map.empty[String, String], jobEnt.getRptEntity.getCreatedUser)
     })
   }
+
   private def checkExpired(jobId: Long) {
     reportManager.getReport(jobToRptId(jobId)).map(f => {
       val jobEnt = jobIdToResultMap.get(jobId).get
@@ -114,11 +101,17 @@ class Coordinator(_pathToJobEntities: Option[String], rptMgr: ReportManager, to:
     })
   }
 
+  /**
+   * Method to be called before any reports can be generated
+   */
   def startReportGenerator() {
     val rptGen = getReportGenerator(reportManager)
     rptGen.startup
   }
 
+  /**
+   * Prior to beginning receiving requests, load persisted job entities, start the report generator and all subordinate worker actors, and schedule a restart of all jobs that were in progress when the coordinator shut down
+   */
   override def preStart() {
     log.debug("in start()")
     var i: Int = 0
@@ -201,10 +194,6 @@ class Coordinator(_pathToJobEntities: Option[String], rptMgr: ReportManager, to:
   }
 
   private var currJobId = System.currentTimeMillis
-
-  def setTimeout(t: Timeout) {
-    //  timeout = t
-  }
 
   protected def generateJobId(): Long = {
     currJobId += 1

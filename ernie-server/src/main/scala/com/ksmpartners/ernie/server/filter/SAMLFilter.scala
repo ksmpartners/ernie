@@ -1,8 +1,15 @@
 /**
- * This source code file is the intellectual property of KSM Technology Partners LLC.
- * The contents of this file may not be reproduced, published, or distributed in any
- * form, except as allowed in a license agreement between KSM Technology Partners LLC
- * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.ksmpartners.ernie.server.filter
@@ -21,7 +28,7 @@ import scala.collection._
 import java.io.InputStream
 
 /**
- * Servlet filter used for SAML authentication
+ * Servlet filter used for SAML authentication.
  */
 class SAMLFilter extends Filter {
 
@@ -40,12 +47,8 @@ class SAMLFilter extends Filter {
       case (request: HttpServletRequest, response: HttpServletResponse) => {
         try {
           val uri = req.asInstanceOf[HttpServletRequest].getRequestURI
-          //  if (!uri.contains("static") && !uri.contains("resources.json") && !uri.contains("jobs.json") && !uri.contains("defs.json")) {
           val samlRequestWrapper = handleRequest(request, response)
           chain.doFilter(samlRequestWrapper, response)
-          // } else {
-          //   chain.doFilter(request, response)
-          // }
         } catch {
           case e: Exception => {
             log.debug("Caught exception while handling request. Return 401. Exception: {}", e.getMessage)
@@ -102,6 +105,9 @@ class SAMLFilter extends Filter {
 
 }
 
+/**
+ * Singleton companion for SAMLFilter.
+ */
 object SAMLFilter {
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.filter.SAMLFilter")
 

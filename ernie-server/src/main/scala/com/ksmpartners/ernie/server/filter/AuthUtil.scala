@@ -1,8 +1,15 @@
 /**
- * This source code file is the intellectual property of KSM Technology Partners LLC.
- * The contents of this file may not be reproduced, published, or distributed in any
- * form, except as allowed in a license agreement between KSM Technology Partners LLC
- * and a licensee. Copyright 2012 KSM Technology Partners LLC.  All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.ksmpartners.ernie.server.filter
@@ -15,37 +22,42 @@ import com.ksmpartners.ernie.server.filter.SAMLConstants._
 import org.slf4j.{ LoggerFactory, Logger }
 
 /**
- * Utility object with methods for handling authorization
+ * Utility object with methods for handling authorization.
  */
 object AuthUtil {
   private val logd: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.filter.AuthUtil")
 
   /**
-   * Determines if requesting user is in the provided role
+   * Determines if requesting user is in the provided role.
    */
   def isUserInRole(req: Req, role: String): Boolean = {
     reqToHSR(req).isUserInRole(role)
   }
 
   /**
-   * Return a list of roles the requesting user has
+   * Return a list of roles for the requesting user.
+   * @param req extract roles from this request
+   * @return a list of roles
    */
   def getRoles(req: Req): List[String] = {
     val hsr = reqToHSR(req)
     var lst: List[String] = Nil
     if (hsr.isUserInRole(writeRole)) lst = writeRole :: lst
     if (hsr.isUserInRole(readRole)) lst = readRole :: lst
+    if (hsr.isUserInRole(runRole)) lst = runRole :: lst
+    if (hsr.isUserInRole(writeRole) && hsr.isUserInRole(runRole)) lst = (writeRole + "," + runRole) :: lst
     lst
   }
 
   /**
-   * Returns a userName for the requesting user
+   * Returns a userName for the requesting user.
+   * @param req extract userName from this request
    */
   def getUserName(req: Req) = {
     reqToHSR(req).getRemoteUser
   }
 
-  def reqToHSR(req: Req): HttpServletRequest = {
+  private def reqToHSR(req: Req): HttpServletRequest = {
     val httpRequest: HTTPRequest = req.request
     if (httpRequest == null)
       throw new IllegalStateException("Request is null")
