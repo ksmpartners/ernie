@@ -23,10 +23,10 @@ import org.slf4j.{ LoggerFactory, Logger }
 /**
  * Utilities for generating a Swagger specification
  * For more information, see
- * - https://github.com/wordnik/swagger-core/wiki/Resource-Listing
- * - https://github.com/wordnik/swagger-core/wiki/API-Declaration
+  - https://github.com/wordnik/swagger-core/wiki/Resource-Listing
+  - https://github.com/wordnik/swagger-core/wiki/API-Declaration
  */
-package object SwaggerUtils {
+object SwaggerUtils {
 
   val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.SwaggerUtils")
 

@@ -37,7 +37,7 @@ import net.liftweb.http.auth.userRoles
 /**
  * Contains filters that pre-process ernie requests
  */
-package object ErnieFilters {
+object ErnieFilters {
 
   /**
    * Method that verifies that the requesting user is in the given role
@@ -98,7 +98,7 @@ package object ErnieFilters {
 /**
  * Contains JSON representations of the various responses returned in Ernie operations
  */
-package object ErnieModels {
+object ErnieModels {
 
   val definitionEntity = ("DefinitionEntity" ->
     (("properties" -> JNothing) ~
@@ -149,7 +149,7 @@ package object ErnieModels {
 /**
  * Contains the  [[com.ksmpartners.ernie.server.RestGenerator.RequestTemplate]]s that define the valid operations for a [[com.ksmpartners.ernie.server.RestGenerator.Resource]]
  */
-package object ErnieRequestTemplates {
+object ErnieRequestTemplates {
 
   val justJSON = Some(Product(ModelObject.TYPE_FULL, ""))
   val anything = None

@@ -164,7 +164,7 @@ object RestGenerator {
    * @param requestTemplates a list of supported operations
    * @param children optionally specify child resources; for instance, /countries/usa would be represented:
    *                 {{{
-   *                  Resource(Left("countries"), "Countries resource, true, Nil, Resource(Left("usa"), "United States of America", false, Nil))
+   *                  Resource(Left("countries"), "Countries resource", true, Nil, Resource(Left("usa"), "United States of America", false, Nil))
    *                 }}}
    */
   case class Resource(path: Either[String, Variable], description: String, isResourceGroup: Boolean, requestTemplates: List[RequestTemplate], children: Resource*) {
