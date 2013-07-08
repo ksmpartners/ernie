@@ -24,9 +24,12 @@
 class ReportResponse {
 
   static $swaggerTypes = array(
-      
+      'jobId' => 'int',
+      'jobStatus' => 'string'
 
     );
 
+  public $jobId; // int
+  public $jobStatus; // string
   }
 

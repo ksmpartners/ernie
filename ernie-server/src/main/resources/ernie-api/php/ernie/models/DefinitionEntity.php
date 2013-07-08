@@ -24,9 +24,22 @@
 class DefinitionEntity {
 
   static $swaggerTypes = array(
-      
+      'createdDate' => 'DateTime',
+      'defId' => 'string',
+      'defDescription' => 'string',
+      'createdUser' => 'string',
+      'paramNames' => 'array[string]',
+      'params' => 'array[ParameterEntity]',
+      'unsupportedReportTypes' => 'array[string]'
 
     );
 
+  public $createdDate; // DateTime
+  public $defId; // string
+  public $defDescription; // string
+  public $createdUser; // string
+  public $paramNames; // array[string]
+  public $params; // array[ParameterEntity]
+  public $unsupportedReportTypes; // array[string]
   }
 

@@ -45,9 +45,9 @@ object DispatchRestAPI extends RestGenerator with JsonTranslator {
   /**
    * Set this variable for BASIC HTTP authentication.
    * PartialFunction should:
-    1. Attempt to authenticate the user
-    1. If successful, populate userRoles RequestVar with roles (see [[com.ksmpartners.ernie.server.filter.SAMLConstants.]]).
-    1. Return the result of authentication as a Boolean
+   * 1. Attempt to authenticate the user
+   * 1. If successful, populate userRoles RequestVar with roles (see [[com.ksmpartners.ernie.server.filter.SAMLConstants.]]).
+   * 1. Return the result of authentication as a Boolean
    * For example:
    * {{{
    *   basicAuthentication = ({

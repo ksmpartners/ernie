@@ -24,9 +24,10 @@
 class StatusResponse {
 
   static $swaggerTypes = array(
-      
+      'jobStatus' => 'string'
 
     );
 
+  public $jobStatus; // string
   }
 

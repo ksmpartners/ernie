@@ -30,7 +30,7 @@ class DefsApi {
 	 * Retrieve a mapping of definition IDs to URIs
    * Authorization, string: Authorization (optional)
    * Accept, string: Accept (optional)
-   * @return ReportDefinitionMapResponse
+   * @return reportDefMap
 	 */
 
    public function getDefinition($Authorization=null, $Accept=null) {
@@ -62,7 +62,7 @@ class DefsApi {
         }
 
   		$responseObject = $this->apiClient->deserialize($response,
-  		                                                'ReportDefinitionMapResponse');
+  		                                                'reportDefMap');
   		return $responseObject;
 
       }

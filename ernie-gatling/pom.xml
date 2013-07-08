@@ -7,7 +7,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 	<artifactId>ernie-gatling</artifactId>
-	<name>${project.artifactId}</name>
+	<name>Ernie Stress Testing Suite</name>
 	<description>Gatling Ernie Protocol</description>
 
 	<properties>

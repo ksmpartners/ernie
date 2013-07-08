@@ -26,17 +26,6 @@
     </properties>
 
     <dependencies>
-       <!-- <dependency>
-            <groupId>com.ksmpartners.commons</groupId>
-            <artifactId>commons</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>xerces</groupId>
-                    <artifactId>xercesImpl</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>    !-->
         <dependency>
             <groupId>net.liftweb</groupId>
             <artifactId>lift-webkit_2.10</artifactId>
@@ -97,24 +86,12 @@
              <version>1.12.3</version>
              <scope>test</scope>
          </dependency>
-        <!-- <dependency>
-         <groupId>org.scala-tools.testing</groupId>
-         <artifactId>scalacheck</artifactId>
-         <version>1.6</version>
-         <scope>test</scope>
-     </dependency>!-->
         <dependency>
             <groupId>org.scalacheck</groupId>
             <artifactId>scalacheck_2.10</artifactId>
             <version>1.10.1</version>
             <scope>test</scope>
         </dependency>
-      <!--  <dependency>
-            <groupId>com.ksmpartners.common</groupId>
-            <artifactId>trace-matrix-annotations</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>!-->
     </dependencies>
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
@@ -145,6 +122,46 @@
                             <id>java-codegen</id>
                             <mainClass>com.ksmpartners.ernie.server.client.JavaErnieApiCodegen</mainClass>
                            <args>
+                                <arg>${swagger.basepath}</arg>
+                            </args>
+                            <jvmArgs>
+                                <jvmArg>-DfileMap=${swagger.resources.json}</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                        <launcher>
+                            <id>scala-codegen</id>
+                            <mainClass>com.ksmpartners.ernie.server.client.ScalaErnieApiCodegen</mainClass>
+                            <args>
+                                <arg>${swagger.basepath}</arg>
+                            </args>
+                            <jvmArgs>
+                                <jvmArg>-DfileMap=${swagger.resources.json}</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                        <launcher>
+                            <id>csharp-codegen</id>
+                            <mainClass>com.ksmpartners.ernie.server.client.CSharpErnieApiCodegen</mainClass>
+                            <args>
+                                <arg>${swagger.basepath}</arg>
+                            </args>
+                            <jvmArgs>
+                                <jvmArg>-DfileMap=${swagger.resources.json}</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                        <launcher>
+                            <id>python-codegen</id>
+                            <mainClass>com.ksmpartners.ernie.server.client.PythonErnieApiCodegen</mainClass>
+                            <args>
+                                <arg>${swagger.basepath}</arg>
+                            </args>
+                            <jvmArgs>
+                                <jvmArg>-DfileMap=${swagger.resources.json}</jvmArg>
+                            </jvmArgs>
+                        </launcher>
+                        <launcher>
+                            <id>python3-codegen</id>
+                            <mainClass>com.ksmpartners.ernie.server.client.Python3ErnieApiCodegen</mainClass>
+                            <args>
                                 <arg>${swagger.basepath}</arg>
                             </args>
                             <jvmArgs>

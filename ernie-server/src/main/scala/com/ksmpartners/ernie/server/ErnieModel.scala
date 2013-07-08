@@ -100,22 +100,36 @@ object ErnieFilters {
  */
 object ErnieModels {
 
+  val parameterEntity = ("ParameterEntity" -> ("properties" ->
+    ("paramName" -> ("type" -> "string")) ~
+    ("dataType" -> ("type" -> "string")) ~
+    ("allowNull" -> ("type" -> "boolean")) ~
+    ("defaultValue" -> ("type" -> "string"))) ~ ("id" -> "ParameterEntity"))
   val definitionEntity = ("DefinitionEntity" ->
-    (("properties" -> JNothing) ~
+    (("properties" ->
+      ("createdDate" -> ("type" -> "Date")) ~
+      ("defId" -> ("type" -> "string")) ~
+      ("defDescription" -> ("type" -> "string")) ~
+      ("createdUser" -> ("type" -> "string")) ~
+      ("paramNames" -> ("type" -> "Array") ~ ("items" -> ("type" -> "string"))) ~
+      ("params" -> ("type" -> "Array") ~ ("items" -> ("type" -> "ParameterEntity"))) ~
+      ("unsupportedReportTypes" -> ("type" -> "Array") ~ ("items" -> ("type" -> "string")))) ~
       ("id" -> "DefinitionEntity")))
   val definitionResponse = ("DefinitionResponse" ->
     (("properties" -> JNothing) ~
       ("id" -> "DefinitionResponse")))
   val deleteResponse = ("DeleteResponse" ->
-    (("properties" -> JNothing) ~
+    (("properties" -> ("deleteStatus" -> ("type" -> "string"))) ~
       ("id" -> "DeleteResponse")))
+  val deleteDefinitionResponse = ("DefinitionDeleteResponse" ->
+    (("properties" -> ("deleteStatus" -> ("type" -> "string"))) ~
+      ("id" -> "DefinitionDeleteResponse")))
   val jobsMapResponse = ("jobStatusMap" -> ("id" -> "jobStatusMap") ~ ("properties" -> ("jobStatusMap" ->
     (("type" -> "Array") ~ ("items" -> ("type" -> "string")) ~ ("description" -> "Jobs map")))))
   val jobsCatalogResponse = ("JobsCatalogResponse" -> ("id" -> "JobsCatalogResponse") ~ ("properties" -> ("jobsCatalog" ->
     (("type" -> "Array") ~ ("items" -> ("$ref" -> "JobEntity"))))))
-  val reportDefinitionMapResponse = ("ReportDefinitionMapResponse" ->
-    (("properties" -> JNothing) ~
-      ("id" -> "ReportDefinitionMapResponse")))
+  val reportDefinitionMapResponse = ("reportDefMap" -> ("id" -> "reportDefMap") ~ ("properties" -> ("reportDefMap" ->
+    (("type" -> "Array") ~ ("items" -> ("type" -> "string")) ~ ("description" -> "Defs map")))))
   val reportEntity = ("ReportEntity" ->
     (("properties" ->
       ("createdDate" -> ("type" -> "Date")) ~
@@ -137,13 +151,15 @@ object ErnieModels {
       ("rptEntity" -> ("type" -> "ReportEntity"))) ~
       ("id" -> "JobEntity"))
   val reportResponse = ("ReportResponse" ->
-    (("properties" -> JNothing) ~
+    (("properties" ->
+      ("jobId" -> ("type" -> "long")) ~
+      ("jobStatus" -> ("type" -> "string"))) ~
       ("id" -> "ReportResponse")))
   val statusResponse = ("StatusResponse" ->
-    (("properties" -> JNothing) ~
+    (("properties" -> ("jobStatus" -> ("type" -> "string"))) ~
       ("id" -> "StatusResponse")))
   val models = definitionEntity ~ definitionResponse ~ deleteResponse ~ jobEntity ~ jobsCatalogResponse ~ jobsMapResponse ~
-    reportDefinitionMapResponse ~ reportEntity ~ reportResponse ~ statusResponse
+    reportDefinitionMapResponse ~ reportEntity ~ reportResponse ~ statusResponse ~ deleteDefinitionResponse ~ parameterEntity ~ definitionEntity
 }
 
 /**
