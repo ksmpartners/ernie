@@ -113,7 +113,7 @@ class PurgeTest extends TestLogger {
 
   @AfterClass
   def shutdown() {
-    Await.result((coordinator ? ShutDownRequest()), timeout.duration)
+    coordinator ! ShutDownRequest()
   }
 
   @Test

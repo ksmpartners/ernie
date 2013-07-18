@@ -22,9 +22,7 @@ import com.ksmpartners.ernie.model.{ ReportEntity, DefinitionEntity, ReportType 
 import scala.collection._
 import org.joda.time.DateTime
 import org.slf4j.{ LoggerFactory, Logger }
-import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.util.TestLogger
-import org.apache.poi.util.IOUtils
 import java.io.{ ByteArrayInputStream, File }
 
 class MemoryReportManagerTest extends TestLogger {
@@ -93,7 +91,7 @@ class MemoryReportManagerTest extends TestLogger {
     val file = new File(Thread.currentThread.getContextClassLoader.getResource("test_def.rptdesign").getPath)
     val xl = scala.xml.XML.loadFile(file)
     val len = xl.toString.length
-    IOUtils.copy(new ByteArrayInputStream(xl.toString.getBytes), s)
+    org.apache.commons.io.CopyUtils.copy(new ByteArrayInputStream(xl.toString.getBytes), s)
     s.close()
     val res = reportManager.getDefinitionContent(dE.getDefId)
     Assert.assertTrue(res.isDefined)

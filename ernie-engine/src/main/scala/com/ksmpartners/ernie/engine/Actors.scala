@@ -174,9 +174,8 @@ class Coordinator(_pathToJobEntities: Option[String], rptMgr: ReportManager, to:
     }
     case ShutDownRequest() => {
       log.info("Shutting down")
-      val resps = context.children.map(f => f ! (ShutDownRequest()))
       sender ! ShutDownResponse()
-      context.stop(self)
+      context.system.shutdown
     }
     case msg => log.info("Received unexpected message: {}", msg)
   }

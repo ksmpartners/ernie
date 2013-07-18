@@ -20,6 +20,10 @@ function swagger_autoloader($className) {
 }
 spl_autoload_register('swagger_autoloader');
 
+class AuthTypes {
+	const BASIC = "BASIC";
+	const SAML = "SAML";
+}
 
 class APIClient {
 
@@ -28,15 +32,22 @@ class APIClient {
 	public static $PUT = "PUT";
 	public static $DELETE = "DELETE";
 
+
 	/**
 	 * @param string $apiKey your API key
 	 * @param string $apiServer the address of the API server
 	 */
-	function __construct($apiKey, $apiServer) {
-		$this->apiKey = $apiKey;
-		$this->apiServer = $apiServer;
-	}
-
+	function __construct($apiKey, $authType, $apiServer, $apiUser = null) {
+	    $this->apiUser = $apiUser;
+        $this->authType = $authType;
+        $this->apiKey = $apiKey;
+        if ($authType == AuthTypes::SAML) {
+           $this->apiKey = "Authorization: SAML " . $apiKey;
+        } elseif ($authType == AuthTypes::BASIC) {
+           $this->apiKey = "Authorization: Basic " . base64_encode($apiUser . ":" . $apiKey);
+        }
+        $this->apiServer = $apiServer;
+    }
 
     /**
 	 * @param string $resourcePath path to method endpoint
@@ -62,9 +73,7 @@ class APIClient {
 				}
 			}
 		}
-		if (! $added_api_key) {
-		    $headers[] = "Authorization: SAML " . $this->apiKey;
-		}
+		$headers[] = $this->apiKey;
 
 		if (is_object($postData) or is_array($postData)) {
 			$postData = json_encode(self::sanitizeForSerialization($postData));

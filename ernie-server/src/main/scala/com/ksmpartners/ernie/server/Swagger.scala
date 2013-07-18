@@ -49,7 +49,7 @@ object SwaggerUtils {
     val filters = rT.filters
     val action = rT.action
     val params = rT.params
-    ("httpMethod" -> requestTypeToSwagger(requestType)) ~ ("nickname" -> action.name) ~ ("produces" -> produces.toList.map(f => f.accept)) ~
+    ("httpMethod" -> requestTypeToSwagger(requestType)) ~ ("nickname" -> action.name) ~ ("produces" -> produces.map(f => f.accept)) ~
       ("responseClass" -> action.responseClass) ~ ("parameters" -> {
         filters.filter(p => p.param.isDefined).map(f => {
           buildSwaggerParam(f.param.get)
@@ -143,7 +143,7 @@ object SwaggerUtils {
         val leaf = api(api.length - 1)
         ("path" -> api.foldLeft("")((path, part) => path + SwaggerUtils.toSwaggerPath(part.path))) ~
           ("description" -> leaf.description) ~
-          ("operations" -> leaf.requestTemplates.map(f => {
+          ("operations" -> leaf.requestTemplates.filter(f => f.requestType != HeadRequest).map(f => {
             val op = SwaggerUtils.requestTemplateToSwaggerOperation(f)
             op.replace(List("parameters"), api.find(res =>
               res.path.isRight).map[JArray](res => List(buildSwaggerParam(res.path.right.get)) ::: (op \ "parameters").children).getOrElse((op \ "parameters")))

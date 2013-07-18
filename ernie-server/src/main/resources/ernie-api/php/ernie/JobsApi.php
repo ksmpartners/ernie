@@ -28,12 +28,10 @@ class JobsApi {
   /**
 	 * getJobsMap
 	 * Return a map of jobId to URI
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return jobStatusMap
 	 */
 
-   public function getJobsMap($Authorization=null, $Accept=null) {
+   public function getJobsMap() {
 
   		//parse inputs
   		$resourcePath = "/jobs";
@@ -42,13 +40,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
+      //make the API Call
       if (! isset($body)) {
         $body = null;
       }
@@ -61,54 +53,22 @@ class JobsApi {
           return null;
         }
 
+       if ('jobStatusMap' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'jobStatusMap');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getJobsMapHead
-	 * Return a map of jobId to URI
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getJobsMapHead($Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/jobs";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * postJob
 	 * Schedules the submitted job
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * body, string: ReportRequest (optional)
    * @return ReportResponse
 	 */
 
-   public function postJob($Authorization=null, $Accept=null, $body=null) {
+   public function postJob($body=null) {
 
   		//parse inputs
   		$resourcePath = "/jobs";
@@ -117,13 +77,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
+      //make the API Call
       if (! isset($body)) {
         $body = null;
       }
@@ -136,20 +90,21 @@ class JobsApi {
           return null;
         }
 
+       if ('ReportResponse' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'ReportResponse');
+      }
   		return $responseObject;
 
       }
   /**
 	 * getDeletedJobsCatalog
 	 * Return a catalog of deleted jobs' JobEntities
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return JobsCatalogResponse
 	 */
 
-   public function getDeletedJobsCatalog($Authorization=null, $Accept=null) {
+   public function getDeletedJobsCatalog() {
 
   		//parse inputs
   		$resourcePath = "/jobs/deleted";
@@ -158,13 +113,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
+      //make the API Call
       if (! isset($body)) {
         $body = null;
       }
@@ -177,53 +126,21 @@ class JobsApi {
           return null;
         }
 
+       if ('JobsCatalogResponse' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'JobsCatalogResponse');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getDeletedJobsCatalogHead
-	 * Return a catalog of deleted jobs' JobEntities
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getDeletedJobsCatalogHead($Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/jobs/deleted";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * getFailedJobsCatalog
 	 * Return a catalog of failed jobs' JobEntities
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return JobsCatalogResponse
 	 */
 
-   public function getFailedJobsCatalog($Authorization=null, $Accept=null) {
+   public function getFailedJobsCatalog() {
 
   		//parse inputs
   		$resourcePath = "/jobs/failed";
@@ -232,13 +149,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
+      //make the API Call
       if (! isset($body)) {
         $body = null;
       }
@@ -251,53 +162,21 @@ class JobsApi {
           return null;
         }
 
+       if ('JobsCatalogResponse' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'JobsCatalogResponse');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getFailedJobsCatalogHead
-	 * Return a catalog of failed jobs' JobEntities
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getFailedJobsCatalogHead($Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/jobs/failed";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * purgeExpired
 	 * Purges expired jobs
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return 
 	 */
 
-   public function purgeExpired($Authorization=null, $Accept=null) {
+   public function purgeExpired() {
 
   		//parse inputs
   		$resourcePath = "/jobs/expired";
@@ -306,13 +185,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
+      //make the API Call
       if (! isset($body)) {
         $body = null;
       }
@@ -325,12 +198,10 @@ class JobsApi {
   /**
 	 * getExpiredJobsCatalog
 	 * Return a catalog of expired jobs' JobEntities
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return JobsCatalogResponse
 	 */
 
-   public function getExpiredJobsCatalog($Authorization=null, $Accept=null) {
+   public function getExpiredJobsCatalog() {
 
   		//parse inputs
   		$resourcePath = "/jobs/expired";
@@ -339,13 +210,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
+      //make the API Call
       if (! isset($body)) {
         $body = null;
       }
@@ -358,53 +223,21 @@ class JobsApi {
           return null;
         }
 
+       if ('JobsCatalogResponse' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'JobsCatalogResponse');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getExpiredJobsCatalogHead
-	 * Return a catalog of expired jobs' JobEntities
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getExpiredJobsCatalogHead($Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/jobs/expired";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * getCompleteJobsCatalog
 	 * Return a catalog of complete jobs' JobEntities
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return JobsCatalogResponse
 	 */
 
-   public function getCompleteJobsCatalog($Authorization=null, $Accept=null) {
+   public function getCompleteJobsCatalog() {
 
   		//parse inputs
   		$resourcePath = "/jobs/complete";
@@ -413,13 +246,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
+      //make the API Call
       if (! isset($body)) {
         $body = null;
       }
@@ -432,53 +259,21 @@ class JobsApi {
           return null;
         }
 
+       if ('JobsCatalogResponse' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'JobsCatalogResponse');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getCompleteJobsCatalogHead
-	 * Return a catalog of complete jobs' JobEntities
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getCompleteJobsCatalogHead($Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/jobs/complete";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * getJobsCatalog
 	 * Return a catalog of all JobEntities
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return JobsCatalogResponse
 	 */
 
-   public function getJobsCatalog($Authorization=null, $Accept=null) {
+   public function getJobsCatalog() {
 
   		//parse inputs
   		$resourcePath = "/jobs/catalog";
@@ -487,13 +282,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
+      //make the API Call
       if (! isset($body)) {
         $body = null;
       }
@@ -506,54 +295,22 @@ class JobsApi {
           return null;
         }
 
+       if ('JobsCatalogResponse' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'JobsCatalogResponse');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getJobsCatalogHead
-	 * Return a catalog of all JobEntities
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getJobsCatalogHead($Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/jobs/catalog";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * getJobEntity
 	 * Return a JobEntity
    * job_id, string: job_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return JobEntity
 	 */
 
-   public function getJobEntity($job_id=null, $Authorization=null, $Accept=null) {
+   public function getJobEntity($job_id=null) {
 
   		//parse inputs
   		$resourcePath = "/jobs/{job_id}";
@@ -562,13 +319,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($job_id != null) {
+      if($job_id != null) {
   			$resourcePath = str_replace("{" . "job_id" . "}",
   			                            $this->apiClient->toPathValue($job_id), $resourcePath);
   		}
@@ -585,59 +336,23 @@ class JobsApi {
           return null;
         }
 
+       if ('JobEntity' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'JobEntity');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getJobEntityHead
-	 * Return a JobEntity
-   * job_id, string: job_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getJobEntityHead($job_id=null, $Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/jobs/{job_id}";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($job_id != null) {
-  			$resourcePath = str_replace("{" . "job_id" . "}",
-  			                            $this->apiClient->toPathValue($job_id), $resourcePath);
-  		}
-  		//make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * getJobResult
 	 * Returns a stream containing the result content for the given Job ID
    * job_id, string: job_id (optional)
-   * Authorization, string: Authorization (optional)
    * Accept, string: Accept (optional)
    * @return byte
 	 */
 
-   public function getJobResult($job_id=null, $Authorization=null, $Accept=null) {
+   public function getJobResult($job_id=null, $Accept=null) {
 
   		//parse inputs
   		$resourcePath = "/jobs/{job_id}/result";
@@ -646,10 +361,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
+      if($Accept != null) {
                 $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
             }
         if($job_id != null) {
@@ -669,55 +381,22 @@ class JobsApi {
           return null;
         }
 
+       if ('byte' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'byte');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getJobResultHead
-	 * Returns a stream containing the result content for the given Job ID
-   * job_id, string: job_id (optional)
-   * Authorization, string: Authorization (optional)
-   * @return 
-	 */
-
-   public function getJobResultHead($job_id=null, $Authorization=null) {
-
-  		//parse inputs
-  		$resourcePath = "/jobs/{job_id}/result";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($job_id != null) {
-  			$resourcePath = str_replace("{" . "job_id" . "}",
-  			                            $this->apiClient->toPathValue($job_id), $resourcePath);
-  		}
-  		//make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * deleteReport
 	 * Purges report output for a given Job ID
    * job_id, string: job_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return DeleteResponse
 	 */
 
-   public function deleteReport($job_id=null, $Authorization=null, $Accept=null) {
+   public function deleteReport($job_id=null) {
 
   		//parse inputs
   		$resourcePath = "/jobs/{job_id}/result";
@@ -726,13 +405,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($job_id != null) {
+      if($job_id != null) {
   			$resourcePath = str_replace("{" . "job_id" . "}",
   			                            $this->apiClient->toPathValue($job_id), $resourcePath);
   		}
@@ -749,8 +422,11 @@ class JobsApi {
           return null;
         }
 
+       if ('DeleteResponse' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'DeleteResponse');
+      }
   		return $responseObject;
 
       }
@@ -758,12 +434,10 @@ class JobsApi {
 	 * getResultDetail
 	 * Retrieves details for output from a given jobId
    * job_id, string: job_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return ReportEntity
 	 */
 
-   public function getResultDetail($job_id=null, $Authorization=null, $Accept=null) {
+   public function getResultDetail($job_id=null) {
 
   		//parse inputs
   		$resourcePath = "/jobs/{job_id}/result/detail";
@@ -772,13 +446,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($job_id != null) {
+      if($job_id != null) {
   			$resourcePath = str_replace("{" . "job_id" . "}",
   			                            $this->apiClient->toPathValue($job_id), $resourcePath);
   		}
@@ -795,59 +463,22 @@ class JobsApi {
           return null;
         }
 
+       if ('ReportEntity' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'ReportEntity');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getResultDetailHead
-	 * Retrieves details for output from a given jobId
-   * job_id, string: job_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getResultDetailHead($job_id=null, $Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/jobs/{job_id}/result/detail";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($job_id != null) {
-  			$resourcePath = str_replace("{" . "job_id" . "}",
-  			                            $this->apiClient->toPathValue($job_id), $resourcePath);
-  		}
-  		//make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * getJobStatus
 	 * Return StatusResponse for given jobId
    * job_id, string: job_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return StatusResponse
 	 */
 
-   public function getJobStatus($job_id=null, $Authorization=null, $Accept=null) {
+   public function getJobStatus($job_id=null) {
 
   		//parse inputs
   		$resourcePath = "/jobs/{job_id}/status";
@@ -856,13 +487,7 @@ class JobsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($job_id != null) {
+      if($job_id != null) {
   			$resourcePath = str_replace("{" . "job_id" . "}",
   			                            $this->apiClient->toPathValue($job_id), $resourcePath);
   		}
@@ -879,47 +504,12 @@ class JobsApi {
           return null;
         }
 
+       if ('StatusResponse' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'StatusResponse');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getJobStatusHead
-	 * Return StatusResponse for given jobId
-   * job_id, string: job_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getJobStatusHead($job_id=null, $Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/jobs/{job_id}/status";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($job_id != null) {
-  			$resourcePath = str_replace("{" . "job_id" . "}",
-  			                            $this->apiClient->toPathValue($job_id), $resourcePath);
-  		}
-  		//make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   

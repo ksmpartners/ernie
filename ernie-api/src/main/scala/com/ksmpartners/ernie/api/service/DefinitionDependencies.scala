@@ -20,7 +20,6 @@ import com.ksmpartners.ernie.model.{ ParameterEntity, DeleteStatus, DefinitionEn
 import java.io.{ InputStream, ByteArrayInputStream }
 import com.ksmpartners.ernie.engine.report.BirtReportGenerator
 import com.ksmpartners.ernie.api._
-import org.apache.cxf.helpers.IOUtils
 import com.ksmpartners.ernie.engine.DeleteDefinitionResponse
 import akka.pattern.ask
 import scala.concurrent.Await
@@ -78,13 +77,14 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       if (!defId.isDefined) {
         val (defEntRes: DefinitionEntity, stream: java.io.OutputStream) = reportManager.putDefinition(defEnt)
         defEnt = defEntRes
-        rptDesign.map(r => { r.reset; IOUtils.copy(r, stream) })
+
+        rptDesign.map(r => { r.reset; org.apache.commons.io.CopyUtils.copy(r, stream) })
         stream.close
         defEnt
       } else {
         defEnt.setDefId(defId.get)
         val result = reportManager.updateDefinition(defId.get, defEnt)
-        rptDesign.map(r => { r.reset; IOUtils.copy(r, result) })
+        rptDesign.map(r => { r.reset; org.apache.commons.io.CopyUtils.copy(r, result) })
         result.close
         defEnt
       }

@@ -40,7 +40,7 @@ trait DefinitionDependencies extends RequiresAPI {
     val unexpectedError = ErnieError(InternalServerErrorResponse(), None)
     private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.server.DefsResource")
 
-    val getDefsAction: Action = Action("getDefinition", get(_: Package), "Retrieve a mapping of definition IDs to URIs", "", "reportDefMap",
+    val getDefsAction: Action = Action("getDefinitions", get(_: Package), "Retrieve a mapping of definition IDs to URIs", "", "reportDefMap",
       DispatchRestAPI.timeoutErnieError("Defs list"))
 
     /**

@@ -85,8 +85,11 @@ class {{classname}} {
           return null;
         }
 
+       if ('{{returnType}}' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                '{{returnType}}');
+      }
   		return $responseObject;
 
       {{/returnType}}

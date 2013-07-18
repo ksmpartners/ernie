@@ -215,7 +215,7 @@ class DefinitionTest extends WebSpec(() => {
   @AfterSuite
   def shutdown() {
 
-    //DispatchRestAPI.shutdown()
+    DispatchRestAPI.shutdown()
 
     for (file <- outputDir.listFiles()) {
       recDel(file)

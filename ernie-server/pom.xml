@@ -49,6 +49,11 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
             <groupId>com.ksmpartners.ernie</groupId>
             <artifactId>ernie-api</artifactId>
             <version>1.0-SNAPSHOT</version>
@@ -170,7 +175,7 @@
                         </launcher>
                         <launcher>
                             <id>ernie-docs</id>
-                            <mainClass>com.wordnik.swagger.codegen.SwaggerDocGenerator</mainClass>
+                            <mainClass>com.ksmpartners.ernie.server.client.SwaggerDocGenerator</mainClass>
                             <args>
                                 <arg>${swagger.basepath}</arg>
                             </args>
@@ -190,14 +195,12 @@
                         </launcher>
                         <launcher>
                             <id>objc-codegen</id>
-                            <mainClass>ObjcPetstoreCodegen</mainClass>
+                            <mainClass>com.ksmpartners.ernie.server.client.ObjcErnieApiCodegen</mainClass>
                             <args>
-                                <arg>http://petstore.swagger.wordnik.com/api/api-docs.json</arg>
-                                <arg>special-key</arg>
-                                <arg></arg>
+                                <arg>${swagger.basepath}</arg>
                             </args>
                             <jvmArgs>
-                                <jvmArg>-DfileMap=src/test/resources/</jvmArg>
+                                <jvmArg>-DfileMap=${swagger.resources.json}</jvmArg>
                             </jvmArgs>
                         </launcher>
                     </launchers>
@@ -301,17 +304,17 @@
                             <execution>
                                 <id>main-scalac</id>
                                 <configuration>
-                                    <args>
-                                        <args>-P:scct:projectId:${project.name}</args>
-                                        <args>-P:scct:basedir:${project.basedir}</args>
-                                    </args>
-                                    <compilerPlugins>
+                                   <args>
+                                       <args>-P:scct:projectId:${project.name}</args>
+                                       <args>-P:scct:basedir:${project.basedir}</args>
+                                     </args>
+                                     <compilerPlugins>
                                         <compilerPlugin>
-                                            <groupId>reaktor</groupId>
-                                            <artifactId>scct_2.10</artifactId>
-                                            <version>0.2-RELEASE</version>
-                                        </compilerPlugin>
-                                    </compilerPlugins>
+                                             <groupId>reaktor</groupId>
+                                             <artifactId>scct_2.10</artifactId>
+                                             <version>0.2-RELEASE</version>
+                                         </compilerPlugin>
+                                     </compilerPlugins>
                                 </configuration>
                             </execution>
                         </executions>

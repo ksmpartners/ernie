@@ -58,9 +58,9 @@ object ErnieFilters {
       Full(ForbiddenResponse("User is not authorized to perform that action"))
     }
   }
-  val readAuthFilter = Filter("Read Authorization Filter", authFilter(_: Req, readRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), readRole)
-  val writeAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, writeRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), writeRole)
-  val writeRunAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, runRole, writeRole)_, Some(Parameter("Authorization", "header", "string")), ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), writeRole, runRole)
+  val readAuthFilter = Filter("Read Authorization Filter", authFilter(_: Req, readRole)_, None, ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), readRole)
+  val writeAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, writeRole)_, None, ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), writeRole)
+  val writeRunAuthFilter = Filter("Write Authorization Filter", authFilter(_: Req, runRole, writeRole)_, None, ErnieError(ResponseWithReason(ForbiddenResponse(), "User is not authorized to perform that action"), None), writeRole, runRole)
   val authFilters: List[Filter] = List(readAuthFilter, writeAuthFilter, writeRunAuthFilter)
 
   /**
@@ -81,7 +81,7 @@ object ErnieFilters {
     }
   }
 
-  val jsonFilter = Filter("JSON Content Type Filter", ctypeFilter(_: Req)_, Some(Parameter("Accept", "header", "string", ModelObject.TYPE_FULL)), ErnieError(ResponseWithReason(NotAcceptableResponse(), "Resource only serves " + ModelObject.TYPE_FULL), None))
+  val jsonFilter = Filter("JSON Content Type Filter", ctypeFilter(_: Req)_, None, ErnieError(ResponseWithReason(NotAcceptableResponse(), "Resource only serves " + ModelObject.TYPE_FULL), None))
   val idFilter = Filter("ID is long filter", idIsLongFilter(_: Req)_, None, ErnieError(ResponseWithReason(BadResponse(), "Job ID provided is not a number"), None))
 
   private def idIsLongFilter(req: Req)(f: () => Box[LiftResponse]): () => Box[LiftResponse] = try {
@@ -167,9 +167,10 @@ object ErnieModels {
  */
 object ErnieRequestTemplates {
 
-  val justJSON = Some(Product(ModelObject.TYPE_FULL, ""))
-  val anything = None
-  val jsonFile = Some(Product("json", "json"))
+  val justJSON = List(Product(ModelObject.TYPE_FULL, ""))
+  val anything = Nil
+  val results = List(Product("application/pdf", ""), Product("application/csv", ""), Product("application/html", ""))
+  val jsonFile = List(Product("json", "json"))
 
   val getJobsList = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter), ServiceRegistry.jobsResource.getJobsListAction)
   val headJobsList = getToHead(getJobsList)
@@ -189,7 +190,7 @@ object ErnieRequestTemplates {
   val headJob = getToHead(getJob)
   val getJobStatus = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobStatusResource.getJobStatusAction)
   val headJobStatus = getToHead(getJobStatus)
-  val getJobResult = RequestTemplate(GetRequest, anything, List(readAuthFilter, idFilter), ServiceRegistry.jobResultsResource.getJobResultAction, Parameter("Accept", "header", "string"))
+  val getJobResult = RequestTemplate(GetRequest, results, List(readAuthFilter, idFilter), ServiceRegistry.jobResultsResource.getJobResultAction, Parameter("Accept", "header", "string"))
   val headJobResult = getToHead(getJobResult)
   val deleteJobResult = RequestTemplate(DeleteRequest, justJSON, List(writeAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobResultsResource.deleteReportAction)
   val getReportDetail = RequestTemplate(GetRequest, justJSON, List(readAuthFilter, jsonFilter, idFilter), ServiceRegistry.jobResultsResource.getDetailAction)

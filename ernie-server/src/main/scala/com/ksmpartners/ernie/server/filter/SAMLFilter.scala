@@ -66,9 +66,10 @@ class SAMLFilter extends Filter {
     // Get Authorization header value
     val samlTokenHeader = req.getHeader(authHeaderProp)
     // Null check
-    if (samlTokenHeader == null || !samlTokenHeader.startsWith("SAML"))
+    if (samlTokenHeader == null)
+      throw new SAMLParseException("No Authorization token in HTTP Request.")
+    if (!samlTokenHeader.startsWith("SAML"))
       throw new SAMLParseException("No SAML token in HTTP Request.")
-
     // Header value fits format: SAML ENCODED_TOKEN
     // ENCODED_TOKEN = DEFLATED + Base64 encoded
     // Need to Decode, then INFLATE

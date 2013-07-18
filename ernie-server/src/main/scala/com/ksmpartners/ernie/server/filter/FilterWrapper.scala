@@ -21,6 +21,7 @@ import java.util.Properties
 import java.io.{ FileInputStream, File }
 import com.ksmpartners.ernie.util.Utility._
 import com.ksmpartners.ernie.server.PropertyNames
+import org.slf4j.LoggerFactory
 
 /**
  * Filter that delegates filtering based on the value of authentication.mode variable.

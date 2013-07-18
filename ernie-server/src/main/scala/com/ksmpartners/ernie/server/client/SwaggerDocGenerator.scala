@@ -24,9 +24,9 @@ import scala.collection.mutable.{ HashMap, ListBuffer }
 object SwaggerDocGenerator extends BasicGenerator {
   def main(args: Array[String]) = generateClient(args)
 
-  override def templateDir = "src/main/resources/swagger-static"
+  override def templateDir = "src/main/resources/client-templates/swagger-static"
 
-  val outputFolder = "docs"
+  val outputFolder = "src/main/resources/docs"
 
   // where to write generated code
   override def destinationDir = outputFolder

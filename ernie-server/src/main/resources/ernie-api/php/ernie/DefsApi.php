@@ -26,14 +26,12 @@ class DefsApi {
 	}
 
   /**
-	 * getDefinition
+	 * getDefinitions
 	 * Retrieve a mapping of definition IDs to URIs
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return reportDefMap
 	 */
 
-   public function getDefinition($Authorization=null, $Accept=null) {
+   public function getDefinitions() {
 
   		//parse inputs
   		$resourcePath = "/defs";
@@ -42,13 +40,7 @@ class DefsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
+      //make the API Call
       if (! isset($body)) {
         $body = null;
       }
@@ -61,54 +53,22 @@ class DefsApi {
           return null;
         }
 
+       if ('reportDefMap' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'reportDefMap');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getDefinitionHead
-	 * Retrieve a mapping of definition IDs to URIs
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getDefinitionHead($Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/defs";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * postDefinition
 	 * Post a DefinitionEntity
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * body, string: DefinitionEntity (optional)
    * @return DefinitionEntity
 	 */
 
-   public function postDefinition($Authorization=null, $Accept=null, $body=null) {
+   public function postDefinition($body=null) {
 
   		//parse inputs
   		$resourcePath = "/defs";
@@ -117,13 +77,7 @@ class DefsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        //make the API Call
+      //make the API Call
       if (! isset($body)) {
         $body = null;
       }
@@ -136,8 +90,11 @@ class DefsApi {
           return null;
         }
 
+       if ('DefinitionEntity' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'DefinitionEntity');
+      }
   		return $responseObject;
 
       }
@@ -145,12 +102,10 @@ class DefsApi {
 	 * getDefinitionDetail
 	 * Retrieve the DefinitionEntity for a specific Definition ID
    * def_id, string: def_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return DefinitionEntity
 	 */
 
-   public function getDefinitionDetail($def_id=null, $Authorization=null, $Accept=null) {
+   public function getDefinitionDetail($def_id=null) {
 
   		//parse inputs
   		$resourcePath = "/defs/{def_id}";
@@ -159,13 +114,7 @@ class DefsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($def_id != null) {
+      if($def_id != null) {
   			$resourcePath = str_replace("{" . "def_id" . "}",
   			                            $this->apiClient->toPathValue($def_id), $resourcePath);
   		}
@@ -182,59 +131,22 @@ class DefsApi {
           return null;
         }
 
+       if ('DefinitionEntity' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'DefinitionEntity');
+      }
   		return $responseObject;
-
-      }
-  /**
-	 * getDefinitionDetailHead
-	 * Retrieve the DefinitionEntity for a specific Definition ID
-   * def_id, string: def_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
-   * @return 
-	 */
-
-   public function getDefinitionDetailHead($def_id=null, $Authorization=null, $Accept=null) {
-
-  		//parse inputs
-  		$resourcePath = "/defs/{def_id}";
-  		$resourcePath = str_replace("{format}", "json", $resourcePath);
-  		$method = "HEAD";
-      $queryParams = array();
-      $headerParams = array();
-
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($def_id != null) {
-  			$resourcePath = str_replace("{" . "def_id" . "}",
-  			                            $this->apiClient->toPathValue($def_id), $resourcePath);
-  		}
-  		//make the API Call
-      if (! isset($body)) {
-        $body = null;
-      }
-  		$response = $this->apiClient->callAPI($resourcePath, $method,
-  		                                      $queryParams, $body,
-  		                                      $headerParams);
-
 
       }
   /**
 	 * deleteDefinition
 	 * Deletes a specific definition
    * def_id, string: def_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * @return DefinitionDeleteResponse
 	 */
 
-   public function deleteDefinition($def_id=null, $Authorization=null, $Accept=null) {
+   public function deleteDefinition($def_id=null) {
 
   		//parse inputs
   		$resourcePath = "/defs/{def_id}";
@@ -243,13 +155,7 @@ class DefsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($def_id != null) {
+      if($def_id != null) {
   			$resourcePath = str_replace("{" . "def_id" . "}",
   			                            $this->apiClient->toPathValue($def_id), $resourcePath);
   		}
@@ -266,8 +172,11 @@ class DefsApi {
           return null;
         }
 
+       if ('DefinitionDeleteResponse' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'DefinitionDeleteResponse');
+      }
   		return $responseObject;
 
       }
@@ -275,13 +184,11 @@ class DefsApi {
 	 * putDefinition
 	 * Put definition rptdesign
    * def_id, string: def_id (optional)
-   * Authorization, string: Authorization (optional)
-   * Accept, string: Accept (optional)
    * body, string: Rptdesign (optional)
    * @return DefinitionEntity
 	 */
 
-   public function putDefinition($def_id=null, $Authorization=null, $Accept=null, $body=null) {
+   public function putDefinition($def_id=null, $body=null) {
 
   		//parse inputs
   		$resourcePath = "/defs/{def_id}/rptdesign";
@@ -290,13 +197,7 @@ class DefsApi {
       $queryParams = array();
       $headerParams = array();
 
-      if($Authorization != null) {
-                $headerParams['Authorization'] = $this->apiClient->toHeaderValue($Authorization);
-            }
-        if($Accept != null) {
-                $headerParams['Accept'] = $this->apiClient->toHeaderValue($Accept);
-            }
-        if($def_id != null) {
+      if($def_id != null) {
   			$resourcePath = str_replace("{" . "def_id" . "}",
   			                            $this->apiClient->toPathValue($def_id), $resourcePath);
   		}
@@ -313,8 +214,11 @@ class DefsApi {
           return null;
         }
 
+       if ('DefinitionEntity' == 'file') {
+       } else {
   		$responseObject = $this->apiClient->deserialize($response,
   		                                                'DefinitionEntity');
+      }
   		return $responseObject;
 
       }

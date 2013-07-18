@@ -65,7 +65,7 @@ class ActorsTest extends TestLogger {
 
   @AfterClass
   def shutdown() {
-    Await.result((coordinator ? (ShutDownRequest())).mapTo[ShutDownResponse], timeout.duration)
+    coordinator ! (ShutDownRequest())
   }
 
   @Test

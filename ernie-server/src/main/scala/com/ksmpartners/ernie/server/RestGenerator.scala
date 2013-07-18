@@ -29,7 +29,7 @@ import com.ksmpartners.ernie.server.RestGenerator.Variable
 import com.ksmpartners.ernie.api.ReportOutputException
 import com.ksmpartners.ernie.server.RestGenerator.Resource
 import com.ksmpartners.ernie.server.RestGenerator.Package
-import net.liftweb.http.auth.AuthRole
+import net.liftweb.http.auth.{ Role, AuthRole }
 
 /**
  * Companion singleton for RestGenerator trait.
@@ -148,11 +148,11 @@ object RestGenerator {
   /**
    * Represent an HTTP operation supported by some [[com.ksmpartners.ernie.server.RestGenerator.Resource]]
    * @param requestType the HTTP method
-   * @param produces optionally specify a [[com.ksmpartners.ernie.server.RestGenerator.Product]] to describe the result of this operation
+   * @param produces optionally specify a list of [[com.ksmpartners.ernie.server.RestGenerator.Product]] to describe the result of this operation
    * @param filters a list of [[com.ksmpartners.ernie.server.RestGenerator.Filter]]s to pre-process a request
    * @param action the [[com.ksmpartners.ernie.server.RestGenerator.Action]] to invoke for this operation
    */
-  case class RequestTemplate(requestType: RequestType, produces: Option[Product], filters: List[Filter], action: Action, params: Parameter*)
+  case class RequestTemplate(requestType: RequestType, produces: List[Product], filters: List[Filter], action: Action, params: Parameter*)
 
   /**
    * Represent a resource to serve. Note that each Resource corresponds to a member of the "apis" array in a <a href="https://github.com/wordnik/swagger-core/wiki/API-Declaration">Swagger API declaration</a>
@@ -245,33 +245,15 @@ trait RestGenerator extends RestHelper {
       if (Path.contains("")) {
         val Path1 = Path.slice(0, Path.indexOf(""))
         val Path2 = Path.slice(Path.indexOf("") + 1, Path.length)
-        //if (leaf.requestTemplates.isEmpty) serve
         leaf.requestTemplates.foreach(requestTemplate => {
-          object Suffix {
-            def unapply(in: String) = if (requestTemplate.produces.isEmpty) Some(in) else {
-              if (requestTemplate.produces.get.suffix == in) Some(in)
-              else None
-            }
-          }
           if (leaf isResourceGroup) serve(Path.slice(0, Path.indexOf("")) prefix {
-            case req @ Req(variable :: Path2 :: Nil, Suffix(x), requestTemplate.requestType) => {
-              foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
-            }
+            genPf(Path2, requestTemplate, true)
           })
           serve(Path.slice(0, Path.indexOf("")) prefix {
-            case req @ Req(variable :: Path2, Suffix(x), requestTemplate.requestType) => {
-              foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req, Variable(variable))))
-            }
+            genPf(Path2, requestTemplate, true)
           })
           ErnieFilters.authFilters.foreach(f => if (requestTemplate.filters.contains(f)) protect.::=({
-            case req @ Req(Path1 :: variable :: Path2, Suffix(x), requestTemplate.requestType) => {
-              if (f.values.size > 1)
-                Full(AuthRole(f.values.foldLeft("")((s: String, d: String) => if (s == "") d else s + "," + d), f.values.map(n => new net.liftweb.http.auth.Role {
-                  def name = n
-                }).toList: _*))
-              else if (f.values.size == 1) Full(net.liftweb.http.auth.AuthRole(f.values(0)))
-              else net.liftweb.common.Empty
-            }
+            genPf(f, Path1 ::: List("") ::: Path2, requestTemplate, true)
           }))
         })
         serve(Path.slice(0, Path.indexOf("")) prefix {
@@ -281,35 +263,13 @@ trait RestGenerator extends RestHelper {
         })
       } else {
         leaf.requestTemplates.foreach(requestTemplate => {
-          object Suffix {
-            def unapply(in: String) = {
-              if (requestTemplate.produces.isEmpty) Some(in) else {
-                if (requestTemplate.produces.get.suffix == in) Some(in)
-                else None
-              }
-            }
-          }
-          if (leaf isResourceGroup) serve(Path prefix {
-            case req @ Req(Nil, Suffix(x), requestTemplate.requestType) =>
-              {
-                foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
-              }
-          })
-          serve {
-            case req @ Req(Path, Suffix(x), requestTemplate.requestType) => {
-              foldFilters(req, requestTemplate.filters) apply (() => requestTemplate.action.func(Package(req)))
-            }
-          }
+
+          if (leaf isResourceGroup) serve(Path prefix genPf(Path, requestTemplate))
+          serve(genPf(Path, requestTemplate))
+
           ErnieFilters.authFilters.foreach(f => if (requestTemplate.filters.contains(f)) {
             protect.::=({
-              case req @ Req(Path, Suffix(x), requestTemplate.requestType) => {
-                if (f.values.size > 1)
-                  Full(AuthRole(f.values.foldLeft("")((s: String, d: String) => if (s == "") d else s + "," + d), f.values.map(n => new net.liftweb.http.auth.Role {
-                    def name = n
-                  }).toList: _*))
-                else if (f.values.size == 1) Full(net.liftweb.http.auth.AuthRole(f.values(0)))
-                else net.liftweb.common.Empty
-              }
+              genPf(f, Path, requestTemplate, false)
             })
           })
         })
@@ -320,6 +280,62 @@ trait RestGenerator extends RestHelper {
         }
       }
     })
+  }
+
+  private def genPf(f: Filter, path: List[String], requestTemplate: RequestTemplate, variable: Boolean) = new PartialFunction[Req, Box[Role]] {
+
+    val produces = requestTemplate.produces
+    val rT = requestTemplate.requestType
+
+    def apply(v1: Req): Box[Role] = {
+      if (f.values.size > 1)
+        Full(AuthRole(f.values.foldLeft("")((s: String, d: String) => if (s == "") d else s + "," + d), f.values.map(n => new net.liftweb.http.auth.Role {
+          def name = n
+        }).toList: _*))
+      else if (f.values.size == 1) Full(net.liftweb.http.auth.AuthRole(f.values(0)))
+      else net.liftweb.common.Empty
+    }
+
+    def isDefinedAt(x: Req): Boolean = {
+
+      val pathBool = if (variable) {
+        (x.path.partPath.containsSlice(path.slice(0, path.indexOf("")))) && (x.path.partPath.containsSlice(path.slice(path.indexOf("") + 1, path.size)))
+      } else x.path.partPath == path
+
+      (pathBool) && {
+        if (produces.isEmpty) true else {
+          if (produces.find(f => f.suffix == x.path.suffix).isDefined) true
+          else false
+        }
+      } && (rT == x.requestType)
+    }
+  }
+
+  private def genPf(path: List[String], requestTemplate: RequestTemplate, variable: Boolean = false) = new PartialFunction[Req, () => Box[LiftResponse]] {
+
+    val produces = requestTemplate.produces
+    val rT = requestTemplate.requestType
+
+    def apply(v1: Req): () => Box[LiftResponse] = {
+      val pack = if (variable) {
+        Package(v1, Variable(v1.path.partPath(0)))
+      } else Package(v1)
+      foldFilters(v1, requestTemplate.filters) apply (() => requestTemplate.action.func(pack))
+    }
+
+    def isDefinedAt(x: Req): Boolean = {
+
+      val pathBool = if (variable) {
+        (x.path.partPath.slice(1, x.path.partPath.size) == (path))
+      } else x.path.partPath == path
+
+      (pathBool) && {
+        if (produces.isEmpty) true else {
+          if (produces.find(f => f.suffix == x.path.suffix).isDefined) true
+          else false
+        }
+      } && (rT == x.requestType)
+    }
   }
 
 }

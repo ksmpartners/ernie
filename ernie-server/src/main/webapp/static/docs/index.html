@@ -53,7 +53,7 @@
         headers: {"Authorization": saml},
         discoveryUrl:"http://localhost:8080/resources.json",
         dom_id:"swagger-ui-container",
-        supportedSubmitMethods: ['get', 'head', 'post', 'put', 'delete'],
+        supportedSubmitMethods: [], //['get', 'head', 'post', 'put', 'delete'],
         onComplete: function(swaggerApi, swaggerUi){
         if(console) {
         console.log("Loaded SwaggerUI")
