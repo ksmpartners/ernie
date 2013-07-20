@@ -209,6 +209,7 @@ protected[api] class ErnieControl extends ErnieDependencies {
   /**
    * Retrieve report output metadata.
    * @param jobId the job whose report output metadata is to be interrogated
+   * @throws MissingArgumentException if jobId is null or invalid
    * @throws AskTimeoutException if request times out
    * @return a [[com.ksmpartners.ernie.model.ReportEntity]] if the job ID is found.
    */
@@ -219,6 +220,7 @@ protected[api] class ErnieControl extends ErnieDependencies {
   /**
    * Retrieve report output metadata.
    * @param rptId the report output whose metadata is to be interrogated
+   * @throws MissingArgumentException if jobId is null or invalid
    * @throws AskTimeoutException if request times out
    * @return a [[com.ksmpartners.ernie.model.ReportEntity]] if the report ID is found.
    */
@@ -229,6 +231,7 @@ protected[api] class ErnieControl extends ErnieDependencies {
   /**
    * Retrieve job output.
    * @param jobId the jobId whose output is to be retrieved
+   * @throws MissingArgumentException if jobId is null or invalid
    * @throws AskTimeoutException if request times out
    * @return a [[java.io.InputStream]] if the report output is available; otherwise, [[scala.None]]
    */
@@ -240,6 +243,7 @@ protected[api] class ErnieControl extends ErnieDependencies {
    * Delete a job's output and any associated metadata
    * @param jobId the job whose output and metadata is to be deleted
    * @throws AskTimeoutException if request times out
+   * @throws MissingArgumentException if jobId is null or invalid
    * @return the status of the deletion
    */
   def deleteReportOutput(jobId: Long): model.DeleteStatus = wrapper(() =>
@@ -307,12 +311,6 @@ object ErnieBuilder {
 
   def apply() = ernieBuilder
 
-  sealed abstract class ReportManager
-  case class FileReportManager(jobDir: String, defDir: String, outputDir: String) extends ReportManager
-  case class MemoryReportManager() extends ReportManager
-
-  case class ErnieConfiguration(val reportManager: ReportManager, val timeout: Option[FiniteDuration], val defaultRetentionDays: Option[Int], val maxRetentionDays: Option[Int], val workerCount: Option[Int])
-
   abstract class BOOL
   abstract class TRUE extends BOOL
   abstract class FALSE extends BOOL
@@ -345,3 +343,31 @@ object ErnieBuilder {
 
   def ernieBuilder = new ConfigBuilder[FALSE](None, None, None, None, None)
 }
+
+/**
+ * Representation of an ernie-engine ReportManager.
+ */
+sealed abstract class ReportManager
+
+/**
+ * Reporesentation of an ernie-engine FileReportManager.
+ * @param jobDir directory in which jobs are persisted
+ * @param defDir directory in which definitions are persisted
+ * @param outputDir directory in which job output is persisted
+ */
+case class FileReportManager(jobDir: String, defDir: String, outputDir: String) extends ReportManager
+
+/**
+ * Representation of an ernie-engine MemoryReportManager.
+ */
+case class MemoryReportManager() extends ReportManager
+
+/**
+ * Configuration structure for ernie-api.
+ * @param reportManager a representation of an ernie-engine ReportManager. See [[com.ksmpartners.ernie.api.FileReportManager]], [[com.ksmpartners.ernie.api.MemoryReportManager]]
+ * @param timeout timeout duration for API calls
+ * @param defaultRetentionDays default number of days to retain report output
+ * @param maxRetentionDays maximum number of days allowed for report output retention
+ * @param workerCount number of Akka Actors to generate to serve report output generation requests
+ */
+case class ErnieConfiguration(val reportManager: ReportManager, val timeout: Option[FiniteDuration], val defaultRetentionDays: Option[Int], val maxRetentionDays: Option[Int], val workerCount: Option[Int])

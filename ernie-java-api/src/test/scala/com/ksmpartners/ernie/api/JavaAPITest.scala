@@ -15,6 +15,7 @@
 
 package com.ksmpartners.ernie.api
 
+import _root_.java.io.ByteArrayInputStream
 import com.ksmpartners.ernie.util.Utility._
 import org.testng.annotations._
 import scala.concurrent.duration._
@@ -35,11 +36,10 @@ object ApiTestUtil {
   }
 }
 
-//@Test(dependsOnGroups = Array("timeout"))
-class APITest { //extends TestNGSuite {
+class JavaAPITest { //extends TestLogger {
 
   @BeforeClass
-  private var ernie: ErnieControl = null
+  private var ernie: ErnieController = null
   private val log: Logger = LoggerFactory.getLogger("com.ksmpartners.ernie.api.APITest")
 
   @BeforeClass(dependsOnGroups = Array("tTCleanUp"))
@@ -57,31 +57,27 @@ class APITest { //extends TestNGSuite {
   @BeforeClass
   private var jobId = -1L
 
-  @Test(dependsOnGroups = Array("timeout"))
+  @Test
   def init() {
     log.info("Beginning APITest")
-    ernie = ErnieEngine(
-      ernieBuilder
-        withFileReportManager (createTempDirectory.getAbsolutePath, createTempDirectory().getAbsolutePath, createTempDirectory.getAbsolutePath)
-        withDefaultRetentionDays (5)
-        withMaxRetentionDays (10)
-        timeoutAfter (5 minutes)
-        withWorkers (5)
-        build ()).start
+    val ec = new ErnieConfig.Builder(new FileReportManager(createTempDirectory.getAbsolutePath, createTempDirectory().getAbsolutePath, createTempDirectory.getAbsolutePath))
+      .withDefaultRetentionDays(5)
+      .withMaxRetentionDays(10)
+      .timeoutAfter(5 minutes)
+      .withWorkers(5)
+      .build()
+
+    ernie = new ErnieController
+    ernie.configure(ec)
+    ernie.start
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-184")))
   @Test(groups = Array("setup"), dependsOnMethods = Array("init"))
   def createDefinition() {
-    testException(() => ernie.createDefinition(Some(null), "test", "test"), classOf[InvalidDefinitionException])
-    testException(() => ernie.createDefinition(None, null, null), classOf[IllegalArgumentException])
-
-    // Assert.assertEquals(ernie.createDefinition(Some(Right(null)), "test", "test").error.get.getClass, classOf[InvalidDefinitionException])
-    // Assert.assertEquals(ernie.createDefinition(None, null, null).error.get.getClass, classOf[IllegalArgumentException])
     val xml = scala.xml.XML.loadFile(new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def.rptdesign").getPath))
-    try_(new ByteArrayInputStream(xml.toString.getBytes)) { bAIS =>
+    try_(new ByteArrayInputStream(xml.toString.getBytes)) { bAIS: ByteArrayInputStream =>
       {
-        val resp = ernie.createDefinition(Some(bAIS), "test", "test")
+        val resp = ernie.createDefinition(bAIS, "test", "test")
         defId = resp.getDefId
       }
     }
@@ -91,24 +87,24 @@ class APITest { //extends TestNGSuite {
   //@TestSpecs(Array(new TestSpec(key = "ERNIE-185"), new TestSpec(key = "ERNIE-186")))
   @Test(dependsOnMethods = Array("createDefinition"), groups = Array("setup"))
   def updateDefinition() {
-    testException(() => ernie.updateDefinition(null, None, None), classOf[MissingArgumentException])
-    testException(() => ernie.updateDefinition(defId, None, None), classOf[MissingArgumentException])
-    val resp = ernie.updateDefinition(defId, Some(ernie.getDefinitionEntity(defId)), None)
+    val resp = ernie.updateDefinition(defId, ernie.getDefinitionEntity(defId))
     Assert.assertEquals(resp.getDefId, defId)
     try_(new ByteArrayInputStream(<break/>.toString.getBytes)) { bAIS =>
-      testException(() => ernie.updateDefinition(defId, None, Some(bAIS)), classOf[InvalidDefinitionException])
+      testException(() => ernie.updateDefinition(defId, bAIS), classOf[InvalidDefinitionException])
     }
     val xml = scala.xml.XML.loadFile(new File(Thread.currentThread.getContextClassLoader.getResource("in/test_def_params.rptdesign").getPath))
     try_(new ByteArrayInputStream(xml.toString.getBytes)) { bAIS =>
-      Assert.assertTrue(ernie.updateDefinition(defId, None, Some(bAIS)).getParams.size > 0)
+      Assert.assertTrue(ernie.updateDefinition(defId, bAIS).getParams.size > 0)
     }
   }
 
   @Test(dependsOnMethods = Array("updateDefinition"), groups = Array("setup"))
   def createJob() {
-    var (id, status) = ernie.createJob("test", ReportType.PDF, None, null, "test")
+    var je = ernie.createJob("test", ReportType.PDF, null, "test")
+    val id = je.getJobId
+    val status = je.getJobStatus
     Assert.assertEquals(status, com.ksmpartners.ernie.model.JobStatus.FAILED_NO_SUCH_DEFINITION)
-    jobId = ernie.createJob(defId, ReportType.PDF, None, null, "test")._1
+    jobId = ernie.createJob(defId, ReportType.PDF, null, "test").getJobId
     Assert.assertTrue(jobId > 0)
   }
 
@@ -122,12 +118,6 @@ class APITest { //extends TestNGSuite {
     Assert.assertTrue(ernie.getDefinitionList.size > 0)
   }
 
-  /*  @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
-  def getDefinition() {
-    Assert.assertEquals(ernie.getDefinition(null).error.get.getClass, classOf[MissingArgumentException])
-    Assert.assertTrue(ernie.getDefinition(defId).defEnt.isDefined)
-  }    */
-
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getDefinitionEntity() {
     testException(() => ernie.getDefinitionEntity(null), classOf[MissingArgumentException])
@@ -137,17 +127,9 @@ class APITest { //extends TestNGSuite {
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getDefinitionDesign() {
-    testException(() => ernie.getDefinitionDesign(null)(b => b), classOf[MissingArgumentException])
-    ernie.getDefinitionDesign(defId)(b => Assert.assertTrue(scala.xml.XML.load(b).toString.length > 10))
-  }
-
-  @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
-  def getDefinitionDesignOpt() {
-    testException(() => ernie.getDefinitionDesignOpt(null)(b => b), classOf[MissingArgumentException])
-    ernie.getDefinitionDesignOpt(defId)(b => {
-      Assert.assertTrue(b.isDefined);
-      Assert.assertTrue(scala.xml.XML.load(b.get).toString.length > 10)
-    })
+    testException(() => ernie.getDefinitionDesign(null), classOf[MissingArgumentException])
+    val b = ernie.getDefinitionDesign(defId)
+    Assert.assertTrue(scala.xml.XML.load(b).toString.length > 10)
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
@@ -159,12 +141,12 @@ class APITest { //extends TestNGSuite {
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getJobEntity() {
     testException(() => ernie.getJobEntity(-1L), classOf[MissingArgumentException])
-    Assert.assertTrue(ernie.getJobEntity(jobId).isDefined)
+    Assert.assertEquals(ernie.getJobEntity(jobId).getJobId, jobId)
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getJobCatalog() {
-    Assert.assertTrue(ernie.getJobCatalog(None).size > 0)
+    Assert.assertTrue(ernie.getJobCatalog().size > 0)
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
@@ -187,17 +169,16 @@ class APITest { //extends TestNGSuite {
   def getRptEnt() {
     testException(() => ernie.getReportEntity(-1L), classOf[MissingArgumentException])
     var resp = ernie.getReportEntity(jobId)
-    Assert.assertTrue(resp.isDefined)
+    Assert.assertEquals(resp.getRptId, com.ksmpartners.ernie.util.Utility.jobToRptId(jobId));
     resp = ernie.getReportEntity(jobToRptId(jobId))
-    Assert.assertTrue(resp.isDefined)
-    Assert.assertTrue(resp.get.getStartDate.isBeforeNow)
+    Assert.assertTrue(resp.getStartDate.isBeforeNow)
   }
 
   @Test(dependsOnGroups = Array("main"), groups = Array("completed"))
   def getOutputStream() {
     testException(() => ernie.getReportOutput(-1L), classOf[MissingArgumentException])
     val resp = ernie.getReportOutput(jobId)
-    Assert.assertTrue(resp.isDefined)
+    Assert.assertTrue(resp.available() > 0)
   }
 
   /*@Test(dependsOnGroups = Array("main"), groups = Array("completed"))
@@ -234,7 +215,7 @@ class APITest { //extends TestNGSuite {
   @Test(dependsOnGroups = Array("completed"), groups = Array("aTCleanUp"))
   def purge() {
     val resp = ernie.purgeExpiredReports()
-    Assert.assertEquals(resp._1, DeleteStatus.SUCCESS)
+    Assert.assertEquals(resp.deleteStatus, DeleteStatus.SUCCESS)
   }
 
 }

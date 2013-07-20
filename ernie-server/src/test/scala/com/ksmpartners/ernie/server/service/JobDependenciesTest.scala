@@ -25,20 +25,17 @@ import org.testng.annotations._
 import net.liftweb.common.{ Full, Box }
 import net.liftweb.http._
 import org.testng.Assert
-import collection.mutable
-import org.joda.time.DateTime
+
 import com.ksmpartners.ernie.server.{ DispatchRestAPI, JsonTranslator, service }
 import service.ServiceRegistry._
 import org.slf4j.{ LoggerFactory, Logger }
-////import com.ksmpartners.common.annotations.tracematrix.{ TestSpec, TestSpecs }
 import scala.Array
 
 import net.liftweb.http.StreamingResponse
 import net.liftweb.http.ResponseWithReason
-import com.ksmpartners.ernie.engine.ShutDownRequest
+
 import net.liftweb.common.Full
-import com.ksmpartners.ernie.engine.PurgeResponse
-import com.ksmpartners.ernie.engine.PurgeRequest
+
 import com.ksmpartners.ernie.util.TestLogger
 
 class JobDependenciesTest extends TestLogger {

@@ -27,11 +27,19 @@
             <groupId>org.eclipse.birt.runtime</groupId>
             <artifactId>org.eclipse.birt.runtime</artifactId>
             <version>4.2.2</version>
-            <exclusions>
+          <exclusions>
                 <exclusion>
                     <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
                     <artifactId>org.apache.xerces</artifactId>
                 </exclusion>
+              <exclusion>
+                  <groupId>org.eclipse.birt.runtime</groupId>
+                  <artifactId>org.apache.poi</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>milyn</groupId>
+                  <artifactId>flute</artifactId>
+              </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -43,6 +51,16 @@
             <groupId>org.eclipse.birt.report.engine.emitter.csv</groupId>
             <artifactId>org.eclipse.birt.report.engine.emitter.csv</artifactId>
             <version>1.0.0.201110121016</version>
+        </dependency>
+        <dependency>
+            <groupId>milyn</groupId>
+            <artifactId>flute</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.9</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -59,26 +77,20 @@
             <artifactId>ernie-util</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>oracle</groupId>
             <artifactId>ojdbc6</artifactId>
             <version>11.2.0.3.0</version>
-        </dependency>
+        </dependency>!-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.1.3</version>
         </dependency>
-      <!--  <dependency>
-            <groupId>com.ksmpartners.common</groupId>
-            <artifactId>trace-matrix-annotations</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>    !-->
     </dependencies>
 
     <build>
-        <sourceDirectory>src/main/scala</sourceDirectory>
+        <sourceDirectory>src/main</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
             <plugin>

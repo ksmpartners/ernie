@@ -124,7 +124,6 @@ class PurgeTest extends TestLogger {
     Assert.assertTrue(reportManager.hasReport("REPORT_4"))
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-68")))
   @Test(dependsOnMethods = Array("hasReports"))
   def canPurgeExpiredJobs() {
     import com.ksmpartners.ernie.engine.StatusResponse

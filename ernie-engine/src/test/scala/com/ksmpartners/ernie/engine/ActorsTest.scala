@@ -137,7 +137,6 @@ class ActorsTest extends TestLogger {
     jobId = rptResp.jobId
   }
 
-  ////@TestSpecs(Array(new TestSpec(key = "ERNIE-118")))
   @Test
   def canAddDefWithEmptyOrWhitespaceDescription() {
     val defEntEmptyDesc = new DefinitionEntity(DateTime.now, null, "default", null, "", null, null)
@@ -148,14 +147,12 @@ class ActorsTest extends TestLogger {
 
   }
 
-  ////@TestSpecs(Array(new TestSpec(key = "ERNIE-119")))
   @Test
   def defDescriptionWhitespaceIsTrimmed() {
     val defEntEmptyDesc = new DefinitionEntity(DateTime.now, null, "default", null, "    test    ", null, null)
     Assert.assertEquals(reportManager.putDefinition(defEntEmptyDesc)._1.getDefDescription, "test")
   }
 
-  ////@TestSpecs(Array(new TestSpec(key = "ERNIE-117")))
   @Test
   def nonUniqueDefDescriptionsAreAllowed() {
     val defEntEmptyDesc = new DefinitionEntity(DateTime.now, null, "default", null, "", null, null)
@@ -163,7 +160,6 @@ class ActorsTest extends TestLogger {
     Assert.assertEquals(reportManager.putDefinition(defEntEmptyDesc)._1.getCreatedUser, "default")
   }
 
-  ////@TestSpecs(Array(new TestSpec(key = "ERNIE-164")))
   @Test(dependsOnMethods = Array("canGetResult"))
   def reportEntitiesIncludeAllRequiredMetadata() {
     Assert.assertTrue(jobId > 0L)
@@ -182,7 +178,6 @@ class ActorsTest extends TestLogger {
 
   }
 
-  ////@TestSpecs(Array(new TestSpec(key = "ERNIE-8")))
   @Test
   def jobWithoutRetentionDateUsesDefault() {
     import com.ksmpartners.ernie.engine._

@@ -34,7 +34,12 @@
             <groupId>io.gatling</groupId>
             <artifactId>gatling-ernie</artifactId>
             <version>2.0.0-M2</version>
-        </dependency>!-->
+        </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.10</artifactId>
+            <version>2.0.M6-SNAP28</version>
+        </dependency>  !-->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback</artifactId>
@@ -155,6 +160,7 @@
         <module>ernie-util</module>
         <module>ernie-api</module>
         <module>ernie-gatling</module>
+	<module>ernie-java-api</module>
     </modules>
     <repositories>
     <repository>
@@ -167,6 +173,17 @@
             <enabled>true</enabled>
         </snapshots>
         <url>file://${project.basedir}/ernie-gatling/lib</url>
+    </repository>
+<repository>
+        <id>birt</id>
+        <releases>
+            <enabled>true</enabled>
+            <checksumPolicy>ignore</checksumPolicy>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+        <url>file://${project.basedir}/lib</url>
     </repository>
     </repositories>
 </project>

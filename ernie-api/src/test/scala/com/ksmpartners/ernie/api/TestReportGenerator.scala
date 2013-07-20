@@ -25,14 +25,14 @@ import java.io.{ OutputStream, InputStream }
 
 trait TestReportGeneratorFactory extends ReportGeneratorFactory {
 
-  def getReportGenerator(reportManager: ReportManager): ReportGenerator = {
+  def getReportGenerator(reportManager: com.ksmpartners.ernie.engine.report.ReportManager): ReportGenerator = {
     new TestReportGenerator(reportManager)
   }
 
 }
 
-class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator {
-
+class TestReportGenerator(reportManager: com.ksmpartners.ernie.engine.report.ReportManager) extends ReportGenerator {
+  import com.ksmpartners.ernie.engine.report.ReportManager
   protected var running = false
 
   def startup() {

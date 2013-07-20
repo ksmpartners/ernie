@@ -29,7 +29,6 @@ import com.ksmpartners.ernie.util.Utility._
 import org.slf4j.{ Logger, LoggerFactory }
 import net.liftweb.json.JsonAST
 import net.liftweb.json.JsonAST.{ JBool, JField, JObject }
-//import com.ksmpartners.common.annotations.tracematrix.{ TestSpecs, TestSpec }
 import com.ksmpartners.ernie.util.MapperUtility._
 import net.liftweb.http.StreamingResponse
 import net.liftweb.json.JsonAST.JObject
@@ -70,7 +69,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     log.debug("BEGIN test:" + result.getName)
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-112")))
   @Test
   def unsupportedJobsServiceRequestsReturn405() {
     var mockReq = new MockWriteAuthReq("/jobs")
@@ -83,7 +81,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     check405(mockReq)
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-113")))
   @Test
   def unsupportedJobsStatusServiceRequestsReturn405() {
     var mockReq = new MockWriteAuthReq("/jobs/1/status")
@@ -100,7 +97,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     check405(mockReq)
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-114")))
   @Test
   def unsupportedJobsResultsServiceRequestsReturn405() {
     var mockReq = new MockWriteAuthReq("/jobs/1/result")
@@ -113,7 +109,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     check405(mockReq)
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-115")))
   @Test
   def unsupportedDefsServiceRequestsReturn405() {
     var mockReq = new MockWriteAuthReq("/defs")
@@ -141,7 +136,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-127")))
   @Test
   def cantPurgeReportResultsWithoutWriteAuth() {
     val mockReq = new MockNoAuthReq("/jobs/expired")
@@ -156,7 +150,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-131")))
   @Test
   def cantPurgeReportResultsWithoutJSONRequest() {
     val mockReq = new MockWriteAuthReq("/jobs/expired")
@@ -171,7 +164,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-85")))
   @Test
   def cantGetJobsWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/jobs")
@@ -186,7 +178,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-89")))
   @Test
   def cantGetJobsWithoutCorrectAcceptHeader() {
     val mockReq = new MockReadAuthReq("/jobs")
@@ -199,7 +190,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-39")))
   @Test
   def cantGetDefsWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/defs")
@@ -214,7 +204,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-43")))
   @Test
   def cantGetDefsWithoutCorrectAcceptHeader() {
     val mockReq = new MockReadAuthReq("/defs")
@@ -228,7 +217,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-62")))
   @Test
   def cantGetJobStatusWithoutJSONRequest() {
     val mockReq = new MockReadAuthReq("/jobs/1/status")
@@ -242,7 +230,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-58")))
   @Test
   def cantGetJobStatusWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/jobs/1/status")
@@ -257,7 +244,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-51")))
   @Test
   def cantPostJobWithoutWriteAuth() {
     val mockReq = new MockNoAuthReq("/jobs")
@@ -296,7 +282,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-55")))
   @Test
   def cantPostJobWithoutJSONRequest() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -316,26 +301,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  /*@Test  def cantPostJobWithoutExistingReportDefinitionFile() {
-    val mockReq = new MockWriteAuthReq("/jobs")
-    mockReq.method = "POST"
-    mockReq.headers += ("Accept" -> List(ModelObject.TYPE_FULL))
-
-    val mockReportReq = new ReportRequest()
-    mockReportReq.setDefId("WRONG")
-    mockReportReq.setRptType(ReportType.HTML)
-    mockReq.body = DispatchRestAPI.serialize(mockReportReq)
-
-    MockWeb.testReq(mockReq) { req =>
-      val resp = DispatchRestAPI(req)()
-      Assert.assertTrue(resp.isDefined)
-      log.info(resp.open_!.toResponse.code + "")
-      Assert.assertTrue(resp.open_!.isInstanceOf[BadResponse])
-      Assert.assertEquals(resp.open_!.toResponse.code, 400)
-    }
-  } */
-
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-57")))
   @Test
   def cantPostJobWithoutValidRequestJSON() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -352,7 +317,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-63")))
   @Test
   def cantGetOutputDownloadWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/jobs/234/result")
@@ -366,7 +330,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-67")))
   @Test
   def cantGetOutputDownloadWithoutCorrectAcceptHeader() {
     completeJob
@@ -393,7 +356,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-76")))
   @Test
   def cantDeleteReportResultsWithoutJSONRequest() {
     val mockReq = new MockWriteAuthReq("/jobs/1/result")
@@ -408,7 +370,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-72")))
   @Test
   def cantDeleteReportResultsWithoutWriteAuth() {
     val mockReq = new MockNoAuthReq("/jobs/1/result")
@@ -423,7 +384,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-82")))
   @Test
   def cantGetDefDetailsWithoutJSONRequest() {
     val mockReq = new MockReadAuthReq("/defs/test_def")
@@ -437,7 +397,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-78")))
   @Test
   def cantGetDefDetailsWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/defs/test_def")
@@ -452,7 +411,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-96")))
   @Test
   def cantGetDefDetailForNonExistentReportDef() {
     val mockReq = new MockReadAuthReq("/defs/invalid_def")
@@ -465,7 +423,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-71")))
   @Test
   def cantPostJobIfRetentionDateInPast() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -487,7 +444,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-12")))
   @Test
   def cantPostJobIfRetentionDateBeyondMaximum() {
     val mockReq = new MockWriteAuthReq("/jobs")
@@ -509,7 +465,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-94")))
   @Test
   def cantDeleteDefsWithoutWriteAuth() {
     val mockReq = new MockNoAuthReq("/defs/test_def2")
@@ -523,7 +478,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-97")))
   @Test
   def cantDeleteDefsWithoutCorrectAcceptHeader() {
 
@@ -540,7 +494,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-45")))
   @Test
   def cantPostDefsWithoutWriteAuth() {
     val mockReq = new MockNoAuthReq("/defs")
@@ -564,7 +517,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-50")))
   @Test
   def cantPostDefsWithoutJSONRequest() {
     val mockReq = new MockWriteAuthReq("/defs")
@@ -588,7 +540,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-98")))
   @Test
   def cantPutDefsWithoutWriteAuth() {
     val mockReq = new MockNoAuthReq("/defs/test_def2/rptdesign")
@@ -613,7 +564,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-102")))
   @Test
   def cantPutDefsWithoutJSONRequest() {
     val mockReq = new MockWriteAuthReq("/defs/test_def2/rptdesign")
@@ -638,7 +588,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-133")))
   @Test
   def cantPostJobWithInvalidParamDataTypes() {
     var mockReq: MockHttpServletRequest = new MockWriteAuthReq("/jobs")
@@ -686,7 +635,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     Assert.assertTrue(failed)
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-133")))
   @Test
   def cantPostJobWithoutNonNullParam() {
     var mockReq: MockHttpServletRequest = new MockWriteAuthReq("/jobs")
@@ -728,7 +676,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-147")))
   @Test
   def cantGetReportDetailWithoutJSONRequest() {
 
@@ -743,7 +690,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-143")))
   @Test
   def cantGetReportDetailWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/jobs/1/result/detail")
@@ -758,7 +704,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-141")))
   @Test
   def cantGetJobDetailWithoutJSONRequest() {
 
@@ -773,7 +718,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-137")))
   @Test
   def cantGetJobDetailWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/jobs/1")
@@ -788,7 +732,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-154")))
   @Test
   def cantGetJobsCatalogWithoutJSONAcceptHeader() {
     val mockReq = new MockReadAuthReq("/jobs/catalog")
@@ -802,7 +745,6 @@ class FailureTest extends WebSpec(() => Unit) with TestSetupUtilities {
     }
   }
 
-  //@TestSpecs(Array(new TestSpec(key = "ERNIE-150")))
   @Test
   def cantGetJobsCatalogWithoutReadAuth() {
     val mockReq = new MockNoAuthReq("/jobs/catalog")

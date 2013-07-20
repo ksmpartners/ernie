@@ -49,7 +49,7 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
+            <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
         </dependency>
@@ -66,8 +66,7 @@
         <dependency>
             <groupId>com.wordnik</groupId>
             <artifactId>swagger-codegen_2.10</artifactId>
-            <version>2.0.3-SNAPSHOT</version>
-            <scope>compile</scope>
+            <version>2.0.5</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -123,7 +122,7 @@
                         <jvmArg>-Xmx1024m</jvmArg>
                     </jvmArgs>
                     <launchers>
-                        <launcher>
+                       <!-- <launcher>
                             <id>java-codegen</id>
                             <mainClass>com.ksmpartners.ernie.server.client.JavaErnieApiCodegen</mainClass>
                            <args>
@@ -172,7 +171,7 @@
                             <jvmArgs>
                                 <jvmArg>-DfileMap=${swagger.resources.json}</jvmArg>
                             </jvmArgs>
-                        </launcher>
+                        </launcher>     !-->
                         <launcher>
                             <id>ernie-docs</id>
                             <mainClass>com.ksmpartners.ernie.server.client.SwaggerDocGenerator</mainClass>
@@ -182,7 +181,7 @@
                             <jvmArgs>
                                 <jvmArg>-DfileMap=${swagger.resources.json}</jvmArg>
                             </jvmArgs>
-                        </launcher>
+                        </launcher>  <!--
                         <launcher>
                             <id>php-codegen</id>
                             <mainClass>com.ksmpartners.ernie.server.client.PHPErnieApiCodegen</mainClass>
@@ -202,7 +201,7 @@
                             <jvmArgs>
                                 <jvmArg>-DfileMap=${swagger.resources.json}</jvmArg>
                             </jvmArgs>
-                        </launcher>
+                        </launcher>  !-->
                     </launchers>
                 </configuration>
             </plugin>
@@ -272,8 +271,19 @@
         </plugins>
     </build>
 
-    <profiles>
-        <profile>
+    <!-- <profiles>
+           <profile>
+               <id>coverage</id>
+               <dependencies>
+                   <dependency>
+                       <groupId>reaktor</groupId>
+                       <artifactId>scct_2.10</artifactId>
+                       <version>0.2-RELEASE</version>
+                   </dependency>
+               </dependencies>
+           </profile>
+
+      <profile>
             <id>coverage</id>
             <dependencies>
             <dependency>
@@ -322,6 +332,6 @@
                 </plugins>
             </build>
         </profile>
-    </profiles>
+    </profiles>      !-->
 
 </project>

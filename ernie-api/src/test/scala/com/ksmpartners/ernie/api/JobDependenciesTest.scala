@@ -98,7 +98,7 @@ class JobDependenciesTest extends JobDependencies with RequiresCoordinator with 
       }
     }
     //val api = ErnieAPI(tempJobDir.getAbsolutePath, tempInputDir.getAbsolutePath, tempOutputDir.getAbsolutePath, timeout, 7, 14)
-    val rm = new FileReportManager(tempInputDir.getAbsolutePath, tempOutputDir.getAbsolutePath)
+    val rm = new com.ksmpartners.ernie.engine.report.FileReportManager(tempInputDir.getAbsolutePath, tempOutputDir.getAbsolutePath)
     testDef = rm.putDefinition(new model.DefinitionEntity(DateTime.now(), "test_def", "default", null, "", null, null))._1.getDefId
     rm
   }
@@ -226,14 +226,14 @@ class JobDependenciesTest extends JobDependencies with RequiresCoordinator with 
 
 trait TestReportGeneratorFactory extends ReportGeneratorFactory {
 
-  def getReportGenerator(reportManager: ReportManager): ReportGenerator = {
+  def getReportGenerator(reportManager: com.ksmpartners.ernie.engine.report.ReportManager): ReportGenerator = {
     new TestReportGenerator(reportManager)
   }
 
 }
 
-class TestReportGenerator(reportManager: ReportManager) extends ReportGenerator {
-
+class TestReportGenerator(reportManager: com.ksmpartners.ernie.engine.report.ReportManager) extends ReportGenerator {
+  import com.ksmpartners.ernie.engine.report.ReportManager
   protected var running = false
 
   def startup() = if (!running) {

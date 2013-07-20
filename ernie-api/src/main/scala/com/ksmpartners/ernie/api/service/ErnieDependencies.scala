@@ -22,7 +22,7 @@ import scala.concurrent.duration._
 import akka.actor.{ ActorRef, ActorSystem, ActorDSL }
 import com.ksmpartners.ernie.api.ErnieBuilder
 import com.ksmpartners.ernie.engine.report.FileReportManager
-import com.ksmpartners.ernie.api.ErnieBuilder.ErnieConfiguration
+import com.ksmpartners.ernie.api._
 import scala.Some
 import com.ksmpartners.ernie.engine.report.ReportManager
 import com.ksmpartners.ernie.engine.report.MemoryReportManager
@@ -38,14 +38,14 @@ abstract class ErnieDependencies extends JobDependencies
 
   private var ernieConfig: Option[ErnieConfiguration] = None
 
-  private def fileReportManager: Option[ErnieBuilder.FileReportManager] =
+  private def fileReportManager: Option[com.ksmpartners.ernie.api.FileReportManager] =
     ernieConfig match {
-      case Some(ErnieConfiguration(f: ErnieBuilder.FileReportManager, _, _, _, _)) => Some(f)
+      case Some(ErnieConfiguration(f: com.ksmpartners.ernie.api.FileReportManager, _, _, _, _)) => Some(f)
       case _ => None
     }
 
   /**
-   * Get the timeout for requests to [[com.ksmpartners.ernie.engine.Coordinator]] as specified by the initial [[com.ksmpartners.ernie.api.ErnieBuilder.ErnieConfiguration]]
+   * Get the timeout for requests to [[com.ksmpartners.ernie.engine.Coordinator]] as specified by the initial [[com.ksmpartners.ernie.api.ErnieConfiguration]]
    */
   def timeoutDuration = ernieConfig.map(c => c.timeout.getOrElse(5 minutes)) getOrElse (5 minutes)
 
@@ -92,7 +92,7 @@ abstract class ErnieDependencies extends JobDependencies
   val shutdownResource = new ShutdownResource
 
   /**
-   * Prepare the dependencies using the provided [[com.ksmpartners.ernie.api.ErnieBuilder.ErnieConfiguration]]
+   * Prepare the dependencies using the provided [[com.ksmpartners.ernie.api.ErnieConfiguration]]
    * @param config a configuration for this class built using [[com.ksmpartners.ernie.api.ErnieBuilder]]
    * @throws RuntimeException if invalid directories are provided
    */
