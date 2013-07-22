@@ -163,7 +163,7 @@
 	<module>ernie-java-api</module>
     </modules>
     <repositories>
-    <repository>
+   <!-- <repository>
         <id>gatling</id>
         <releases>
             <enabled>true</enabled>
@@ -173,9 +173,9 @@
             <enabled>true</enabled>
         </snapshots>
         <url>file://${project.basedir}/ernie-gatling/lib</url>
-    </repository>
+    </repository> !-->
 <repository>
-        <id>birt</id>
+        <id>ernie</id>
         <releases>
             <enabled>true</enabled>
             <checksumPolicy>ignore</checksumPolicy>

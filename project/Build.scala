@@ -20,6 +20,16 @@ object ErnieBuild extends MavenBuild {
     }
   }
 
+  project("ernie-server")(
+    (com.earldouglas.xsbtwebplugin.WebPlugin.webSettings ++
+    (libraryDependencies += "org.mortbay.jetty" % "jetty" % "6.1.22" % "container") ++
+    (javacOptions ++= Seq(
+        "ernie.props", "./ernie-server/src/main/resources/props/default.props",
+        "keystore.location=", "./ernie-server/src/test/resources/keystore.jks",
+        "authentication.mode", "SAML"
+    ))):_*
+  )
+
   project("ernie-gatling") {
     resolvers ++= Seq(gatlingReleasesRepo, gatling3PartyRepo)
   }
