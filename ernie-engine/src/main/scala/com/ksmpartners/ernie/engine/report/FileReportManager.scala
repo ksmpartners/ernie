@@ -143,7 +143,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     val defId = defEnt.getDefId
     if (defEnt.getDefDescription != null) defEnt.setDefDescription(defEnt.getDefDescription.trim())
     val defEntFile = new File(rptDefDir, defId + ".entity")
-    defEntFile.setWritable(true)
+    defEntFile.setWritable(true, false)
     defEntFile.delete
     defEntFile.createNewFile
 
@@ -212,7 +212,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     log.info("Deleting definition file {}", defId)
     if (definitions.contains(defId)) {
       val file = definitions.get(defId).get
-      file.setWritable(true)
+      file.setWritable(true, false)
       if (file.delete()) {
         log.info("Definition file {} was deleted successfully.", defId)
         definitions -= defId
@@ -228,7 +228,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
   private def deleteDefinitionEntity(defId: String) {
     val entFile = new File(rptDefDir, defId + ".entity")
     if (entFile.exists()) {
-      entFile.setWritable(true)
+      entFile.setWritable(true, false)
       if (entFile.delete()) {
         log.info("Definition entity file {} was deleted successfully.", defId)
         definitionEntities -= defId
@@ -244,7 +244,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     log.info("Deleting report file {}", rptId)
     if (reports.contains(rptId)) {
       val file = reports.get(rptId).get
-      file.setWritable(true)
+      file.setWritable(true, false)
       if (file.delete()) {
         log.info("Report file {} was deleted successfully.", rptId)
         reports -= rptId
@@ -260,7 +260,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
   private def deleteReportEntity(rptId: String) {
     val entFile = new File(outputDir, rptId + ".entity")
     if (entFile.exists()) {
-      entFile.setWritable(true)
+      entFile.setWritable(true, false)
       if (entFile.delete()) {
         log.info("Report entity file {} was deleted successfully.", rptId)
         reportEntities -= rptId
