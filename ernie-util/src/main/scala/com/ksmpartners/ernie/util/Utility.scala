@@ -90,6 +90,7 @@ object Utility {
    * Deletes a File. If the File is a directory, all sub files and directories will also be deleted
    */
   def recDel(file: File) {
+    if (file.exists) file.setWritable(true)
     if (file.isDirectory) {
       for (f <- file.listFiles()) {
         recDel(f)
