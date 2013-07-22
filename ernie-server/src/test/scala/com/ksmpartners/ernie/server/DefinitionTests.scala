@@ -84,13 +84,14 @@ class DefinitionTest extends WebSpec(() => {
   val outputDir = new File(properties.get("output.dir").toString)
   val jobsDir = new File(properties.get("jobs.dir").toString)
   val defsDir = new File(properties.get("rpt.def.dir").toString)
-  for (file <- outputDir.listFiles()) {
+
+  if (outputDir.listFiles != null) for (file <- outputDir.listFiles()) {
     recDel(file)
   }
-  for (file <- jobsDir.listFiles()) {
+  if (jobsDir.listFiles != null) for (file <- jobsDir.listFiles()) {
     recDel(file)
   }
-  for (file <- defsDir.listFiles()) {
+  if (defsDir.listFiles != null) for (file <- defsDir.listFiles()) {
     if (!file.getName.contains("test_def")) recDel(file)
   }
 
@@ -216,15 +217,15 @@ class DefinitionTest extends WebSpec(() => {
 
     DispatchRestAPI.shutdown()
 
-    for (file <- outputDir.listFiles()) {
+    if (outputDir.listFiles != null) for (file <- outputDir.listFiles()) {
       recDel(file)
     }
 
-    for (file <- jobsDir.listFiles()) {
+    if (jobsDir.listFiles != null) for (file <- jobsDir.listFiles()) {
       recDel(file)
     }
 
-    for (file <- defsDir.listFiles()) {
+    if (defsDir.listFiles != null) for (file <- defsDir.listFiles()) {
       if (!file.getName.contains("test_def")) recDel(file)
     }
 
