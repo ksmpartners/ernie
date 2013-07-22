@@ -50,7 +50,6 @@ trait ErnieActions extends ErnieCoordinator {
     val userName = req.userName
     val rptType = req.rptType
     val jobId = generateJobId()
-    if (!reportParameters.isEmpty) log.info(pathToJobEntities + "/" + jobId + "")
     if (reportManager.getDefinition(defId).isDefined) {
       val rptEntity = new ReportEntity()
       rptEntity.setSourceDefId(defId)

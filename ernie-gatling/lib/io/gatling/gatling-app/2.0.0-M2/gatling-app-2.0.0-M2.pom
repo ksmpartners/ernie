@@ -6,47 +6,42 @@
 		<groupId>io.gatling</groupId>
 		<version>2.0.0-M2</version>
 	</parent>
-	<artifactId>gatling-http</artifactId>
+	<artifactId>gatling-app</artifactId>
 	<name>${project.artifactId}</name>
-	<description>Gatling HTTP functionnalities</description>
+	<description>Gatling command line application</description>
 
 	<properties>
 		<header.basedir>${project.parent.basedir}</header.basedir>
 	</properties>
 
 	<dependencies>
-		<!-- compile -->
 		<dependency>
 			<groupId>io.gatling</groupId>
-			<artifactId>gatling-core</artifactId>
+			<artifactId>gatling-http</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.ning</groupId>
-			<artifactId>async-http-client</artifactId>
+			<groupId>io.gatling</groupId>
+			<artifactId>gatling-jdbc</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.fusesource.scalate</groupId>
-			<artifactId>scalate-core_2.10</artifactId>
+			<groupId>io.gatling</groupId>
+			<artifactId>gatling-redis</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.jcraft</groupId>
-			<artifactId>jzlib</artifactId>
+			<groupId>io.gatling</groupId>
+			<artifactId>gatling-charts</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty</artifactId>
-		</dependency>
-
-		<!-- test -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
+			<groupId>io.gatling</groupId>
+			<artifactId>gatling-metrics</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.specs2</groupId>
-			<artifactId>specs2_2.10</artifactId>
-			<scope>test</scope>
+			<groupId>com.github.scopt</groupId>
+			<artifactId>scopt_2.10</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.typesafe.zinc</groupId>
+			<artifactId>zinc</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -57,6 +52,16 @@
 			<plugin>
 				<groupId>net.alchim31.maven</groupId>
 				<artifactId>scala-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>io.gatling.app.App</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
