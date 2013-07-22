@@ -26,6 +26,7 @@ import org.slf4j.{ LoggerFactory, Logger }
 import scala.Array
 import ErnieBuilder._
 import ApiTestUtil._
+import org.joda.time.DateTime
 
 object ApiTestUtil {
   def testException[B <: Exception](func: () => Unit, ex: Class[B]) = try {
@@ -156,11 +157,10 @@ class JavaAPITest { //extends TestLogger {
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def completeJob() {
-    var ticks = 0
+    val endTime = DateTime.now.plus(ernie.timeoutDuration.toMillis)
     var inProgress = true
-    while ((ticks < ernie.timeoutDuration.toMillis) && inProgress) {
+    while ((DateTime.now.isBefore(endTime)) && inProgress) {
       if (getStatus == com.ksmpartners.ernie.model.JobStatus.COMPLETE) inProgress = false
-      ticks += 1
     }
     Assert.assertFalse(inProgress)
   }

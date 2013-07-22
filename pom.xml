@@ -66,7 +66,16 @@
     <build>
         <pluginManagement>
             <plugins>
-
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <inherited>true</inherited>
+                    <configuration>
+                        <skipTests>false</skipTests>
+                        <forkMode>once</forkMode>
+                        <argLine>-Xmx1024m -XX:MaxPermSize=1024m</argLine>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.scalariform</groupId>
                     <artifactId>scalariform-maven-plugin</artifactId>
