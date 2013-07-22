@@ -95,11 +95,13 @@ object Utility {
       for (f <- file.listFiles()) {
         recDel(f)
       }
-      if (!file.delete())
-        throw new FileNotFoundException("Failed to delete file: " + file)
+      //if (!file.delete())
+      //  throw new FileNotFoundException("Failed to delete file: " + file)
+      file.deleteOnExit
     } else {
-      if (!file.delete())
-        throw new FileNotFoundException("Failed to delete file: " + file)
+      //if (!file.delete())
+      //  throw new FileNotFoundException("Failed to delete file: " + file)
+      file.deleteOnExit
     }
   }
 

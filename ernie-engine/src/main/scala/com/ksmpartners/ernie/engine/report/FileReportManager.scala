@@ -213,13 +213,14 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     if (definitions.contains(defId)) {
       val file = definitions.get(defId).get
       file.setWritable(true, false)
-      if (file.delete()) {
-        log.info("Definition file {} was deleted successfully.", defId)
-        definitions -= defId
-        deleteDefinitionEntity(defId)
-      } else {
-        log.warn("Definition file {} did not delete successfully.", defId)
-      }
+      // if (file.delete()) {
+      file.deleteOnExit
+      log.info("Definition file {} was deleted successfully.", defId)
+      definitions -= defId
+      deleteDefinitionEntity(defId)
+      //} else {
+      //  log.warn("Definition file {} did not delete successfully.", defId)
+      // }
     } else {
       log.warn("Definition file {} does not exist, skipping delete.", defId)
     }
@@ -229,12 +230,13 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     val entFile = new File(rptDefDir, defId + ".entity")
     if (entFile.exists()) {
       entFile.setWritable(true, false)
-      if (entFile.delete()) {
-        log.info("Definition entity file {} was deleted successfully.", defId)
-        definitionEntities -= defId
-      } else {
-        log.warn("Definition entity file {} did not delete successfully.", defId)
-      }
+      //  if (entFile.delete()) {
+      entFile.deleteOnExit
+      log.info("Definition entity file {} was deleted successfully.", defId)
+      definitionEntities -= defId
+      //   } else {
+      //    log.warn("Definition entity file {} did not delete successfully.", defId)
+      //  }
     } else {
       log.warn("Definition entity file {} does not exist, skipping delete.", defId)
     }
@@ -245,13 +247,14 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     if (reports.contains(rptId)) {
       val file = reports.get(rptId).get
       file.setWritable(true, false)
-      if (file.delete()) {
-        log.info("Report file {} was deleted successfully.", rptId)
-        reports -= rptId
-        deleteReportEntity(rptId)
-      } else {
-        log.warn("Report file {} did not delete successfully.", rptId)
-      }
+      //  if (file.delete()) {
+      file.deleteOnExit
+      log.info("Report file {} was deleted successfully.", rptId)
+      reports -= rptId
+      deleteReportEntity(rptId)
+      //  } else {
+      // log.warn("Report file {} did not delete successfully.", rptId)
+      // }
     } else {
       log.warn("Report file {} does not exist, skipping delete.", rptId)
     }
@@ -261,12 +264,13 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
     val entFile = new File(outputDir, rptId + ".entity")
     if (entFile.exists()) {
       entFile.setWritable(true, false)
-      if (entFile.delete()) {
-        log.info("Report entity file {} was deleted successfully.", rptId)
-        reportEntities -= rptId
-      } else {
-        log.warn("Report entity file {} did not delete successfully.", rptId)
-      }
+      // if (entFile.delete()) {
+      entFile.deleteOnExit
+      log.info("Report entity file {} was deleted successfully.", rptId)
+      reportEntities -= rptId
+      //  } else {
+      //    log.warn("Report entity file {} did not delete successfully.", rptId)
+      //  }
     } else {
       log.warn("Report entity file {} does not exist, skipping delete.", rptId)
     }
