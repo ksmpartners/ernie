@@ -10,7 +10,7 @@ package com.ksmpartners.ernie.model;
 import java.util.List;
 
 /**
- * A JSONable class used to send jobs information via HTTP
+ * A JSONable class used to serialize a catalog of report generation job metadata.
  */
 public class JobsCatalogResponse extends ModelObject {
 
@@ -22,10 +22,16 @@ public class JobsCatalogResponse extends ModelObject {
         this.jobsCatalog = jobsCatalog;
     }
 
+    /**
+     * Return the JobEntity list.
+     */
     public List<JobEntity> getJobsCatalog() {
         return jobsCatalog;
     }
 
+    /**
+     * Set the JobEntity list.
+     */
     public void setJobStatusMap(List<JobEntity> jobsCatalog) {
         this.jobsCatalog = jobsCatalog;
     }

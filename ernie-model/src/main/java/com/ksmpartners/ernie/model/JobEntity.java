@@ -23,7 +23,7 @@ import org.joda.time.DateTime;
 import java.util.List;
 
 /**
- * A JSONable class used to serialize definition meta-data to disk
+ * A JSONable class used to serialize report generation job metadata.
  */
 public class JobEntity extends ModelObject {
 
@@ -43,47 +43,75 @@ public class JobEntity extends ModelObject {
         this.rptEntity = rptEntity;
     }
 
+    /**
+     * Return the internal identifier for the generated report.
+     */
     public String getRptId() {
         return rptId;
     }
 
+    /**
+     * Return the object containing the report output metadata. When the job completes, the ReportEntity will be removed from the JobEntity and persisted alongside the report output.
+     */
     public ReportEntity getRptEntity() {
         return rptEntity;
     }
 
+    /**
+     * Set the internal identifier for the generated report
+     */
     public void setRptId(String rptId) {
         this.rptId = rptId;
     }
 
+    /**
+     * Set the object containing the report output metadata. When the job completes, the ReportEntity will be removed from the JobEntity and persisted alongside the report output.
+     */
     public void setRptEntity(ReportEntity rptEntity) {
         this.rptEntity = rptEntity;
     }
 
+    /**
+     * Return job submission date.
+     */
     @JsonSerialize(using = ISODateSerializer.class)
     public DateTime getSubmitDate() {
         return submitDate;
     }
 
+    /**
+     * Set job submission date.
+     */
     @JsonDeserialize(using = ISODateDeserializer.class)
     public void setSubmitDate(DateTime submitDate) {
         this.submitDate = submitDate;
     }
 
 
+    /**
+     * Return the internal identifier for the report generation job.
+     */
     public Long getJobId() {
         return jobId;
     }
 
-
-
+    /**
+     * Return the status of report generation.
+     */
     public JobStatus getJobStatus() {
         return jobStatus;
     }
 
+    /**
+     * Set the internal identifier for the report generation job.
+     */
     public void setJobId(Long jobId) {
         this.jobId = jobId;
     }
 
+    /**
+     * Set the status of report generation.
+     */
     public void setJobStatus(JobStatus jobStatus) {
         this.jobStatus = jobStatus;
     }

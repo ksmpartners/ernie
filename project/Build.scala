@@ -15,24 +15,76 @@
 import sbt._
 import Keys._
 import com.github.shivawu.sbt.maven.MavenBuild
+import sbtassembly.Plugin._
+import AssemblyKeys._
 
 object ErnieBuild extends MavenBuild {
 
   val gatlingReleasesRepo = "Gatling Releases Repo" at "http://repository.excilys.com/content/repositories/releases"
   val gatling3PartyRepo = "Gatling Third-Party Repo" at "http://repository.excilys.com/content/repositories/thirdparty"
 
-  project("*")(scalaVersion := "2.10.1",
-  	unmanagedJars in Compile <++= unmanagedBase map { ub =>
-	  (ub ** "*.jar").classpath
-	}
-  ) //, libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.0.M6-SNAP28")
-  //libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.0.M6-SNAP28"
+  lazy val buildSettings = Defaults.defaultSettings ++ Seq(
+    version := "1.0-SNAPSHOT",
+    organization := "com.ksmpartners",
+    scalaVersion := "2.10.1"
+  )
+
+  private val LicenseFile = """(license|licence|notice|copying)([.]\w+)?$""".r
+  private def isLicenseFile(fileName: String): Boolean =
+    fileName.toLowerCase match {
+      case LicenseFile(_, ext) if ext != ".class" => true // DISLIKE
+      case _ => false
+    }
+
+  private val ReadMe = """(readme)([.]\w+)?$""".r
+  private def isReadme(fileName: String): Boolean =
+    fileName.toLowerCase match {
+      case ReadMe(_, ext) if ext != ".class" => true
+      case _ => false
+    }
+
+  val ernieMerge:String => MergeStrategy = {
+    case "reference.conf" | "rootdoc.txt" =>
+      MergeStrategy.concat
+    case PathList(ps @ _*) if isReadme(ps.last) || isLicenseFile(ps.last) =>
+      MergeStrategy.rename
+    case PathList("META-INF", xs @ _*) =>
+      (xs map {_.toLowerCase}) match {
+        case ("manifest.mf" :: Nil) | ("index.list" :: Nil) | ("dependencies" :: Nil) =>
+          MergeStrategy.discard
+        case ps @ (x :: xs) if ps.last.endsWith(".sf") || ps.last.endsWith(".dsa") =>
+          MergeStrategy.discard
+        case "plexus" :: xs =>
+          MergeStrategy.discard
+        case "services" :: xs =>
+          MergeStrategy.filterDistinctLines
+        case ("spring.schemas" :: Nil) | ("spring.handlers" :: Nil) =>
+          MergeStrategy.filterDistinctLines
+        case _ => MergeStrategy.first
+      }
+    case _ => MergeStrategy.first
+  }
+
+  project("*")(
+    (
+      (scalaVersion := "2.10.1") ++
+      buildSettings ++ assemblySettings ++
+      (unmanagedJars in Compile <++= unmanagedBase map { ub =>
+	     (ub ** "*.jar").classpath
+	    }) ++
+      (test in assembly := {}) ++
+      (
+        mergeStrategy in assembly := ernieMerge
+      )
+    ):_*
+  )
 
   project("ernie-engine")(
     libraryDependencies ~= { deps =>
-      deps.filter( d =>
+      deps.filter( d =>           {
         !d.name.contains("csv") &&
         !d.name.contains("flute")
+      }
       )
     }
  )

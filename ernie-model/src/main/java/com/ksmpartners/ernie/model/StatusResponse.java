@@ -15,7 +15,7 @@
 package com.ksmpartners.ernie.model;
 
 /**
- * A JSONable class used to send job status information via HTTP
+ * A JSONable class used to serialize job status information.
  */
 public class StatusResponse extends ModelObject {
 
@@ -27,10 +27,16 @@ public class StatusResponse extends ModelObject {
         this.jobStatus = jobStatus;
     }
 
+    /**
+     * Return the status of report generation.
+     */
     public JobStatus getJobStatus() {
         return jobStatus;
     }
 
+    /**
+     * Set the status of report generation.
+     */
     public void setJobStatus(JobStatus jobStatus) {
         this.jobStatus = jobStatus;
     }

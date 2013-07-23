@@ -75,7 +75,7 @@ class APITest { //extends TestNGSuite {
   @Test(groups = Array("setup"), dependsOnMethods = Array("init"))
   def createDefinition() {
     testException(() => ernie.createDefinition(Some(null), "test", "test"), classOf[InvalidDefinitionException])
-    testException(() => ernie.createDefinition(None, null, null), classOf[IllegalArgumentException])
+    //  testException(() => ernie.createDefinition(None, null, null), classOf[IllegalArgumentException])
 
     // Assert.assertEquals(ernie.createDefinition(Some(Right(null)), "test", "test").error.get.getClass, classOf[InvalidDefinitionException])
     // Assert.assertEquals(ernie.createDefinition(None, null, null).error.get.getClass, classOf[IllegalArgumentException])

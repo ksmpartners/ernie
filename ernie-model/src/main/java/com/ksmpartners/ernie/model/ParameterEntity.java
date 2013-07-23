@@ -23,7 +23,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * A JSONable class used to serialize definition meta-data to disk
+ * A JSONable class used to serialize report definition parameter metadata
  */
 public class ParameterEntity extends ModelObject {
 
@@ -41,34 +41,63 @@ public class ParameterEntity extends ModelObject {
         this.defaultValue = defaultValue;
     }
 
+    /**
+     * Return the name of the parameter. For instance, testParameter below:
+     * <parameters>
+     *  <scalar-parameter name="testParameter">
+     *  ...
+     */
     public String getParamName() {
         return paramName;
     }
 
+    /**
+     * Set the name of the parameter.
+     */
     public void setParamName(String paramName) {
         this.paramName = paramName;
     }
 
+    /**
+     * Return the default value for the parameter. For instance, 1000 below:
+     *  <expression name="defaultValue">1000</expression>
+     */
     public String getDefaultValue() {
         return defaultValue;
     }
 
+    /**
+     * Set the default parameter value.
+     */
     public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
     }
 
+    /**
+     * Return the data type for the parameter. For instance, "decimal" below:
+     * <property name="dataType">decimal</property>
+     */
     public String getDataType() {
         return dataType;
     }
 
+    /**
+     * Set the data type for the parameter.
+     */
     public void setDataType(String dataType) {
         this.dataType = dataType;
     }
 
+    /**
+     * Return a boolean indicated if null values are allowed for the parameter.
+     */
     public Boolean getAllowNull() {
         return allowNull;
     }
 
+    /**
+     * Set the boolean indicated if null values are allowed for the parameter.
+     */
     public void setAllowNull(Boolean allowNull) {
         this.allowNull = allowNull;
     }

@@ -8,7 +8,7 @@
 package com.ksmpartners.ernie.model;
 
 /**
- * Enumeration used to indicate the status of a given job.
+ * Enumeration used to indicate the status of a given job deletion.
  */
 public enum DeleteStatus {
     /** Definition deletion successful */
@@ -19,5 +19,4 @@ public enum DeleteStatus {
     FAILED_IN_USE,
     /** Definition not exist */
     NOT_FOUND;
-
 }

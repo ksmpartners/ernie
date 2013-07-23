@@ -20,6 +20,10 @@ public class DeleteDefinitionResponse extends ModelObject {
         this.deleteStatus = deleteStatus;
     }
 
+    /**
+     *
+     * @return
+     */
     public DeleteStatus getDeleteStatus() {
         return deleteStatus;
     }

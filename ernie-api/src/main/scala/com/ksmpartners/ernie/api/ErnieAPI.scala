@@ -30,13 +30,13 @@ import scala.concurrent.duration.FiniteDuration
  * API for interacting with Ernie.
  * Retrieve an instance of ErnieControl by starting an ErnieEngine. For example:
  * {{{
- *   val config = ErnieBuilder() withMemoryReportManager build()
+ *   val config = ErnieBuilder() withMemoryReportManager() build()
  *   val engine = ErnieEngine(config)
  *   val control = engine.start
  * }}}
  * Or simply:
  * {{{
- *   val control = ErnieEngine(ErnieBuilder() withMemoryReportManager build()).start
+ *   val control = ErnieEngine(ErnieBuilder() withMemoryReportManager() build()).start
  * }}}
  */
 protected[api] class ErnieControl extends ErnieDependencies {

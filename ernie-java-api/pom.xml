@@ -13,7 +13,7 @@
     <artifactId>ernie-java-api</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Ernie Embedded API</name>
+    <name>Ernie Embedded Java API</name>
     <description>A Java API for embedding Ernie</description>
     <inceptionYear>2013</inceptionYear>
     <properties>

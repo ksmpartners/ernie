@@ -8,7 +8,7 @@
 package com.ksmpartners.ernie.model;
 
 /**
- * A JSONable class used to send report response information via HTTP
+ * A JSONable class used to serialize metadata for report output deletion
  */
 public class DeleteResponse extends ModelObject {
 
@@ -20,10 +20,16 @@ public class DeleteResponse extends ModelObject {
         this.deleteStatus = deleteStatus;
     }
 
+    /**
+     * Return deletion status
+     */
     public DeleteStatus getDeleteStatus() {
         return deleteStatus;
     }
 
+    /**
+     * Set deletion status
+     */
     public void setDeleteStatus(DeleteStatus deleteStatus) {
         this.deleteStatus = deleteStatus;
     }

@@ -114,8 +114,8 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
 
   override def putDefinition(entity: Map[String, Any]): (DefinitionEntity, OutputStream) = putDefinition(Left(entity))
   override def putDefinition(entity: DefinitionEntity): (DefinitionEntity, OutputStream) = {
-    if ((entity.getCreatedUser == null) || (entity.getCreatedUser.length <= 0))
-      throw new IllegalArgumentException("Entity must contain createdUser")
+    //if ((entity.getCreatedUser == null) || (entity.getCreatedUser.length <= 0))
+    //  throw new IllegalArgumentException("Entity must contain createdUser")
     putDefinition(Right(entity))
   }
 

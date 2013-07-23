@@ -10,7 +10,7 @@ package com.ksmpartners.ernie.model;
 import java.util.Map;
 
 /**
- * A JSONable class used to send jobs information via HTTP
+ * A JSONable class used to serialize a map of report generation job identifiers.
  */
 public class JobsMapResponse extends ModelObject {
 
@@ -22,10 +22,16 @@ public class JobsMapResponse extends ModelObject {
         this.jobsMap = jobsMap;
     }
 
+    /**
+     * Return the map of report generation job identifiers
+     */
     public Map<String, String> getJobStatusMap() {
         return jobsMap;
     }
 
+    /**
+     * Set the map of report generation job identifiers
+     */
     public void setJobStatusMap(Map<String, String> jobsMap) {
         this.jobsMap = jobsMap;
     }

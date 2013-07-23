@@ -18,5 +18,4 @@ public enum JobCatalog {
     DELETED,
     IN_PROGRESS
 
-
 }

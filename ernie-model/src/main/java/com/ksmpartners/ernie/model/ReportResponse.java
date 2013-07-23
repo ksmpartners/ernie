@@ -8,7 +8,7 @@
 package com.ksmpartners.ernie.model;
 
 /**
- * A JSONable class used to send report response information via HTTP
+ * A JSONable class used to serialize report response information.
  */
 public class ReportResponse extends ModelObject {
 
@@ -22,18 +22,30 @@ public class ReportResponse extends ModelObject {
         this.jobStatus = jobStatus;
     }
 
+    /**
+     * Return the internal identifier for this report generation task.
+     */
     public long getJobId() {
         return jobId;
     }
 
+    /**
+     * Set the internal identifier for this report generation task.
+     */
     public void setjobId(long jobId) {
         this.jobId = jobId;
     }
 
+    /**
+     * Return the report generation status.
+     */
     public JobStatus getJobStatus() {
         return jobStatus;
     }
 
+    /**
+     * Set the report generation status.
+     */
     public void setJobStatus(JobStatus jobStatus) {
         this.jobStatus = jobStatus;
     }

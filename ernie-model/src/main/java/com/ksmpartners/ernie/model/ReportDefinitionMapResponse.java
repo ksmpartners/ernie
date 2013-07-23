@@ -10,7 +10,7 @@ package com.ksmpartners.ernie.model;
 import java.util.Map;
 
 /**
- * A JSONable class used to send report definition information via HTTP
+ * A JSONable class used to serialize a map of report definition identifiers.
  */
 public class ReportDefinitionMapResponse extends ModelObject {
 
@@ -22,10 +22,16 @@ public class ReportDefinitionMapResponse extends ModelObject {
         this.reportDefMap = reportDefMap;
     }
 
+    /**
+     * Return the map of report definition identifiers.
+     */
     public Map<String, String> getReportDefMap() {
         return reportDefMap;
     }
 
+    /**
+     * Set the map of report definition identifiers.
+     */
     public void setReportDefMap(Map<String, String> reportDefMap) {
         this.reportDefMap = reportDefMap;
     }

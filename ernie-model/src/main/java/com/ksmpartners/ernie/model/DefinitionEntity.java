@@ -57,50 +57,86 @@ public class DefinitionEntity extends ModelObject {
         this.createdDate = createdDate;
     }
 
+    /**
+     * Return the identifier internal to Ernie for this Definition/DefinitionEntity.
+     */
     public String getDefId() {
         return defId;
     }
 
+    /**
+     * Set the identifier internal to Ernie for this Definition/DefinitionEntity.
+     */
     public void setDefId(String defId) {
         this.defId = defId;
     }
 
+    /**
+     * Return the identifier for the creator of this Definition/DefinitionEntity.
+     */
     public String getCreatedUser() {
         return createdUser;
     }
 
+    /**
+     * Set the identifier for the creator of this Definition/DefinitionEntity.
+     */
     public void setCreatedUser(String createdUser) {
         this.createdUser = createdUser;
     }
 
+    /**
+     * Return the list of names of the report parameters expected by this report design.
+     */
     public List<String> getParamNames() {
         return paramNames;
     }
 
+    /**
+     * Set the list of names of the report parameters expected by this report design.
+     */
     public void setParamNames(List<String> paramNames) {
         this.paramNames = paramNames;
     }
 
+    /**
+     * Return user description. This data is not used by Ernie.
+     */
     public String getDefDescription() {
         return defDescription;
     }
 
+    /**
+     * Set user description. This data is not used by Ernie.
+     */
     public void setDefDescription(String defDescription) {
         this.defDescription = defDescription;
     }
 
+    /**
+     * Return list of ReportTypes not supported by this report design.
+     */
     public List<ReportType> getUnsupportedReportTypes() {
         return unsupportedReportTypes;
     }
 
+    /**
+     * Set the list of ReportTypes not supported by this report design.
+     */
     public void setUnsupportedReportTypes(List<ReportType> unsupportedReportTypes) {
         this.unsupportedReportTypes = unsupportedReportTypes;
     }
 
+    /**
+     * Return the list of report parameters expected by this report design.
+     */
     public List<ParameterEntity> getParams() {
         return params;
     }
 
+    /**
+     * Set the list of report parameters expected by this report design.
+     */
     public void setParams(List<ParameterEntity> params) {
         this.params = params;
     }

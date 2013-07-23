@@ -23,7 +23,7 @@ import org.joda.time.DateTime;
 import java.util.Map;
 
 /**
- * A JSONable class used to serialize report meta-data to disk
+ * A JSONable class used to serialize report output metadata.
  */
 public class ReportEntity extends ModelObject {
 
@@ -51,83 +51,137 @@ public class ReportEntity extends ModelObject {
         this.finishDate = finishDate;
     }
 
+    /**
+     * Return the date of the creation of this metadata.
+     */
     @JsonSerialize(using = ISODateSerializer.class)
     public DateTime getCreatedDate() {
         return createdDate;
     }
 
+    /**
+     * Set the date of the creation of this metadata.
+     */
     @JsonDeserialize(using = ISODateDeserializer.class)
     public void setCreatedDate(DateTime createdDate) {
         this.createdDate = createdDate;
     }
 
+    /**
+     * Return the date on which this metadata and associated output will expire.
+     */
     @JsonSerialize(using = ISODateSerializer.class)
     public DateTime getRetentionDate() {
         return retentionDate;
     }
 
+    /**
+     * Set the date on which this metadata and associated output will expire.
+     */
     @JsonDeserialize(using = ISODateDeserializer.class)
     public void setRetentionDate(DateTime retentionDate) {
         this.retentionDate = retentionDate;
     }
 
+    /**
+     * Return the date on which report output generation begun.
+     */
     @JsonSerialize(using = ISODateSerializer.class)
     public DateTime getStartDate() {
         return startDate;
     }
 
+    /**
+     * Set the date on which report output generation begun.
+     */
     @JsonDeserialize(using = ISODateDeserializer.class)
     public void setStartDate(DateTime startDate) {
         this.startDate = startDate;
     }
 
+    /**
+     * Return the date on which report output generation completed.
+     * @return
+     */
     @JsonSerialize(using = ISODateSerializer.class)
     public DateTime getFinishDate() {
         return finishDate;
     }
 
+    /**
+     * Set the date on which report output generation completed.
+     */
     @JsonDeserialize(using = ISODateDeserializer.class)
     public void setFinishDate(DateTime finishDate) {
         this.finishDate = finishDate;
     }
 
-
+    /**
+     * Return the internal identifier for this metadata and associated report output.
+     */
     public String getRptId() {
         return rptId;
     }
 
+    /**
+     * Set the internal identifier for this metadata and associated report output.
+     */
     public void setRptId(String rptId) {
         this.rptId = rptId;
     }
 
+    /**
+     * Return the internal identifier of the report design used to generate this report.
+     */
     public String getSourceDefId() {
         return sourceDefId;
     }
 
+    /**
+     * Set the internal identifier of the report design used to generate this report.
+     */
     public void setSourceDefId(String sourceDefId) {
         this.sourceDefId = sourceDefId;
     }
 
+    /**
+     * Return an identifier for the user that submitted this report generation job.
+     */
     public String getCreatedUser() {
         return createdUser;
     }
 
+    /**
+     * Set the identifier for the user that submitted this report generation job.
+     */
     public void setCreatedUser(String createdUser) {
         this.createdUser = createdUser;
     }
 
+    /**
+     * Return the mapping of report parameter names to values.
+     */
     public Map<String, String> getParams() {
         return params;
     }
 
+    /**
+     * Set the mapping of report parameter names to values.
+     */
     public void setParams(Map<String, String> params) {
         this.params = params;
     }
 
+    /**
+     * Return the output format for this report.
+     */
     public ReportType getReportType() {
         return reportType;
     }
 
+    /**
+     * Set the output format for this report.
+     */
     public void setReportType(ReportType reportType) {
         this.reportType = reportType;
     }
