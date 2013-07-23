@@ -4,7 +4,7 @@ Ernie Report Generator
 ============================================
 Ernie is a [high performance](#4) wrapper for the [Eclipse BIRT Report Engine](http://www.eclipse.org/birt/phoenix/). Developers can integrate Ernie using an embedded [Java or Scala API](#2), or deploy a [servlet](#3) that exposes Ernie's features as a RESTful web service.
 
-Ernie is designed to be used in conjunction with the [Eclipse BIRT Designer](http://www.eclipse.org/birt/phoenix/intro/intro03.php). All reports generated using Ernie are based on report definitions created using the designer. 
+All reports generated using Ernie are based on report definitions created using the [Eclipse BIRT Designer](http://www.eclipse.org/birt/phoenix/intro/intro03.php). 
 
 Prerequisites and setup <a id="1"></a>
 ----------------------
@@ -37,11 +37,58 @@ __To build Ernie with SBT:__
         project ernie-server
         package
 
+__To generate ScalaDocs and JavaDocs for all Ernie projects:__
+
+``` mvn scala:doc javadoc:javadoc ```
+
+Then, find API documentation in:
+
+* ernie-api/target/site/scaladocs
+
+* ernie-engine/target/site/scaladocs
+
+* ernie-gatling/target/site/scaladocs
+
+* ernie-server/target/site/scaladocs
+
+* ernie-model/target/site/apidocs
+
+* ernie-util/target/site/scaladocs
+
+* ernie-java-api/target/site/apidocs
+
 Embedded API <a id="2"></a>
 ---------------
-Ernie-api and ernie-java-api are, respectively, Scala and Java interfaces for Ernie-engine. Here are some instructions for integrating Ernie for various common environments:
+Ernie-api and ernie-java-api are, respectively, Scala and Java interfaces for Ernie-engine. If you are integrating these libraries as standalone jars (with dependencies), please note that they do not include the __BIRT Report Runtime jar which is required to be in your classpath__. You can download the BIRT runtime [here](http://download.eclipse.org/birt/downloads/) and find the requisite jar in ReportEngine/lib/org.eclipse.birt.runtime....jar.
 
-*
+The embedded APIs provide a builder pattern for configuring Ernie and an engine object that takes a built configuration and produces an interface for interacting with Ernie. For example, using ernie-api:
+
+```scala
+val engine = ErnieEngine(api.ErnieBuilder()
+	.withMemoryReportManager()
+	.withDefaultRetentionDays(7)
+	.withMaxRetentionDays(14)
+	.withWorkers(100)
+.build())
+val ernie = e.start
+ernie.getDefinitionList
+```
+
+Or, using ernie-java-api:
+
+```java
+ErnieController ernie = new ErnieController();
+ernie.configure(
+	new ErnieConfig.Builder(
+		new com.ksmpartners.ernie.api.MemoryReportManager()
+	)
+	.withWorkers(10)
+	.build()
+);
+try {
+	ernie.start();
+	ernie.getDefinitionList();
+```
 
 Ernie server <a id="3"></a>
 -------------------------------
