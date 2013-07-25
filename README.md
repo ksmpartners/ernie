@@ -104,8 +104,14 @@ Ernie server <a id="3"></a>
 
 The ernie-server package exposes a RESTful interface to Ernie using the Lift web framework. It supports SAML and Basic authentication with simple, role-based authorization. It also generates a [Swagger](https://developers.helloreverb.com/swagger/) specification and UI. 
 
-Gatling performance testing <a id="5"></a>
+Gatling performance testing <a id="4"></a>
 ---------------------------
+
+Ernie-gatling extends the performance testing DSL of the Gatling stress tool, allowing developers to easily describe scenarios and execute stress tests on either a running ernie-server or the ernie-api. For instance:
+
+```scala
+
+``` 
 
 
 

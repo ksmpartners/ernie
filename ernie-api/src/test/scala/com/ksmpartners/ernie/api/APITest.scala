@@ -58,17 +58,37 @@ class APITest { //extends TestNGSuite {
   @BeforeClass
   private var jobId = -1L
 
+  @BeforeClass
+  private val jobDir = createTempDirectory.getAbsolutePath
+
   @Test(dependsOnGroups = Array("timeout"))
   def init() {
     log.info("Beginning APITest")
     ernie = ErnieEngine(
       ernieBuilder
-        withFileReportManager (createTempDirectory.getAbsolutePath, createTempDirectory().getAbsolutePath, createTempDirectory.getAbsolutePath)
+        withFileReportManager (createTempDirectory.getAbsolutePath, createTempDirectory().getAbsolutePath, jobDir)
         withDefaultRetentionDays (5)
         withMaxRetentionDays (10)
         timeoutAfter (5 minutes)
         withWorkers (5)
         build ()).start
+  }
+
+  @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
+  def trouble() {
+    val design = scala.xml.XML.loadFile(Thread.currentThread.getContextClassLoader.getResource("in/new_report.rptdesign").getPath)
+    log.info(design + "  asdf")
+    val d = ernie.createDefinition(Some(new java.io.ByteArrayInputStream(design.toString.getBytes)), "test", "adam")
+    log.info(d + " derp")
+    val j = ernie.createJob(d.getDefId, com.ksmpartners.ernie.model.ReportType.PDF, None, Map.empty[String, String], "adam")
+    log.info("job " + j)
+    val endTime = DateTime.now.plus(ernie.timeoutDuration.toMillis)
+    var inProgress = true
+    while ((DateTime.now.isBefore(endTime)) && inProgress) {
+      if (ernie.getJobStatus(j._1) == com.ksmpartners.ernie.model.JobStatus.COMPLETE) inProgress = false
+    }
+    log.info("done... " + jobDir)
+
   }
 
   //@TestSpecs(Array(new TestSpec(key = "ERNIE-184")))
