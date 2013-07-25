@@ -26,12 +26,12 @@
         <dependency>
             <groupId>org.eclipse.birt.runtime</groupId>
             <artifactId>org.eclipse.birt.runtime</artifactId>
-            <version>4.2.2</version>
+            <version>4.3.0</version>
           <exclusions>
-                <exclusion>
+                <!--<exclusion>
                     <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
                     <artifactId>org.apache.xerces</artifactId>
-                </exclusion>
+                </exclusion>   !-->
              <exclusion>
                   <groupId>org.eclipse.birt.runtime</groupId>
                   <artifactId>org.apache.poi</artifactId>

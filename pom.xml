@@ -74,9 +74,12 @@
                                 <mainClass>fully.qualified.MainClass</mainClass>
                             </manifest>
                         </archive>
-                        <descriptorRefs>
+			<descriptors>
+				<descriptor>assembly.xml</descriptor>
+			</descriptors>
+                        <!--<descriptorRefs>
                             <descriptorRef>jar-with-dependencies</descriptorRef>
-                        </descriptorRefs>
+                        </descriptorRefs>!-->
                     </configuration>
                 </plugin>
                 <plugin>

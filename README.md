@@ -59,7 +59,9 @@ Then, find API documentation in /target/site/scaladocs for the Scala projects (e
 
 Eclipse BIRT
 ----------------------
-It is highly recommended that users of Ernie build report definitions with the Eclipse BIRT Designer. You can get a standalone binary [here](http://www.eclipse.org/downloads/download.php?file=/birt/downloads/drops/R-R1-4_3_0-201306131152/birt-rcp-report-designer-4_3_0.zip). The BIRT designer will allow you to connect to any JDBC data source and build rich
+It is highly recommended that users of Ernie build report definitions with the Eclipse BIRT Designer. You can get a standalone fat-client [here](http://www.eclipse.org/downloads/download.php?file=/birt/downloads/drops/R-R1-4_3_0-201306131152/birt-rcp-report-designer-4_3_0.zip). It is also available as a plugin for the Eclipse IDE. The BIRT designer will allow you to create a report template that specifies multiple JDBC data sources and generates complex, graphically rich reports.
+
+The Ernie APIs and server provide endpoints for (CRUD) management of these report definitions. All Ernie report generation tasks take a definition identifier as a required parameter. 
 
 Embedded API <a id="2"></a>
 ---------------
@@ -100,21 +102,7 @@ For more information on the embedded API configuration and usage, see the [ernie
 Ernie server <a id="3"></a>
 -------------------------------
 
-The ernie-server package exposes a RESTful interface to Ernie using the Lift web framework. 
-
-__Features__
-
-* SAML and Basic authentication with simple, role-based authorization
-
-* Swagger JSON specification and Swagger UI
-
-* d
-
-* 
-
-
-Unit test suite  <a id="4"></a>
---------------------------
+The ernie-server package exposes a RESTful interface to Ernie using the Lift web framework. It supports SAML and Basic authentication with simple, role-based authorization. It also generates a [Swagger](https://developers.helloreverb.com/swagger/) specification and UI. 
 
 Gatling performance testing <a id="5"></a>
 ---------------------------
