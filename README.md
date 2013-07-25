@@ -4,7 +4,21 @@ Ernie Report Generator
 ============================================
 Ernie is a [high performance](#4) wrapper for the [Eclipse BIRT Report Engine](http://www.eclipse.org/birt/phoenix/). Developers can integrate Ernie using an embedded [Java or Scala API](#2), or deploy a [servlet](#3) that exposes Ernie's features as a RESTful web service.
 
-All reports generated using Ernie are based on report definitions created using the [Eclipse BIRT Designer](http://www.eclipse.org/birt/phoenix/intro/intro03.php). 
+All reports generated using Ernie use a report definition created using by the [Eclipse BIRT Designer](http://www.eclipse.org/birt/phoenix/intro/intro03.php). 
+
+Ernie provides endpoints for:
+
+*	 managing these report definitions and their metadata
+
+*	 creating a report generation job based on a definition
+
+*	 interrogating the status and metadata of a job
+
+*	 managing job output
+
+*	 retrieving lists and catalogs of report generation jobs and definitions
+
+*	specifying a date for output expiration and purging expired output
 
 Prerequisites and setup <a id="1"></a>
 ----------------------
@@ -41,21 +55,11 @@ __To generate ScalaDocs and JavaDocs for all Ernie projects:__
 
 ``` mvn scala:doc javadoc:javadoc ```
 
-Then, find API documentation in:
+Then, find API documentation in /target/site/scaladocs for the Scala projects (ernie-api, ernie-engine, ernie-server, ernie-gatling, ernie-util) and /target/site/apidocs for the Java projects (ernie-model, ernie-java-api).
 
-* ernie-api/target/site/scaladocs
-
-* ernie-engine/target/site/scaladocs
-
-* ernie-gatling/target/site/scaladocs
-
-* ernie-server/target/site/scaladocs
-
-* ernie-model/target/site/apidocs
-
-* ernie-util/target/site/scaladocs
-
-* ernie-java-api/target/site/apidocs
+Eclipse BIRT
+----------------------
+It is highly recommended that users of Ernie build report definitions with the Eclipse BIRT Designer. You can get a standalone binary [here](http://www.eclipse.org/downloads/download.php?file=/birt/downloads/drops/R-R1-4_3_0-201306131152/birt-rcp-report-designer-4_3_0.zip). The BIRT designer will allow you to connect to any JDBC data source and build rich
 
 Embedded API <a id="2"></a>
 ---------------
@@ -89,9 +93,31 @@ try {
 	ernie.start();
 	ernie.getDefinitionList();
 ```
+	
+
+For more information on the embedded API configuration and usage, see the [ernie-api](ernie-api) and [ernie-java-api](ernie-java-api) documentation.
 
 Ernie server <a id="3"></a>
 -------------------------------
 
-To build a WAR using SBT:
+The ernie-server package exposes a RESTful interface to Ernie using the Lift web framework. 
+
+__Features__
+
+* SAML and Basic authentication with simple, role-based authorization
+
+* Swagger JSON specification and Swagger UI
+
+* d
+
+* 
+
+
+Unit test suite  <a id="4"></a>
+--------------------------
+
+Gatling performance testing <a id="5"></a>
+---------------------------
+
+
 

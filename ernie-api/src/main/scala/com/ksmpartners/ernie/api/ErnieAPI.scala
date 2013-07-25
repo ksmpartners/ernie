@@ -62,7 +62,7 @@ protected[api] class ErnieControl extends ErnieDependencies {
    * @throws AskTimeoutException if request times out
    * @return the resultant definition metadata.
    */
-  def createDefinition(rptDesign: Option[ByteArrayInputStream], description: String, createdUser: String): model.DefinitionEntity =
+  def createDefinition(rptDesign: Option[InputStream], description: String, createdUser: String): model.DefinitionEntity =
     wrapper(() => {
       defsResource.putDefinition(None,
         rptDesign,
@@ -91,7 +91,7 @@ protected[api] class ErnieControl extends ErnieDependencies {
    * @throws AskTimeoutException if request times out
    * @return updated definition metadata.
    */
-  def updateDefinition(defId: String, defEnt: Option[model.DefinitionEntity], rptDesign: Option[ByteArrayInputStream]): model.DefinitionEntity =
+  def updateDefinition(defId: String, defEnt: Option[model.DefinitionEntity], rptDesign: Option[InputStream]): model.DefinitionEntity =
     wrapper(() => {
       if (defId == null) throw new MissingArgumentException("Null definition ID")
       defsResource.putDefinition(Some(defId), rptDesign, defEnt)

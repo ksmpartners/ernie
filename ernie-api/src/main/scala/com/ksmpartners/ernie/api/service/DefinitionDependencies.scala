@@ -44,7 +44,7 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
      * @throws InvalidDefinitionException if rptDesign is null or contains malformed XML
      * @return updated definition metadata.
      */
-    def putDefinition(defId: Option[String], rptDesign: Option[ByteArrayInputStream], definitionEntity: Option[DefinitionEntity]): DefinitionEntity = {
+    def putDefinition(defId: Option[String], rptDesign: Option[InputStream], definitionEntity: Option[DefinitionEntity]): DefinitionEntity = {
       defId.map(f => if (!reportManager.getDefinition(f).isDefined) throw new NotFoundException(f + " not found"))
       if (!(definitionEntity.isDefined || rptDesign.isDefined)) throw new MissingArgumentException("Must specify at least a definition entity or design")
       var defEnt = definitionEntity.getOrElse(defId.flatMap(d => reportManager.getDefinition(d).map(f => f.getEntity)) getOrElse (new DefinitionEntity))

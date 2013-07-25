@@ -81,9 +81,9 @@ public class ErnieController {
      * @throws ErnieEngineNotStartedException if ErnieController.start() was not called
      * @return the resultant definition metadata.
      */
-    public DefinitionEntity createDefinition(ByteArrayInputStream rptDesign, String description, String createdUser) throws InvalidDefinitionException, AskTimeoutException, ErnieEngineNotStartedException {
+    public DefinitionEntity createDefinition(InputStream rptDesign, String description, String createdUser) throws InvalidDefinitionException, AskTimeoutException, ErnieEngineNotStartedException {
         if (api == null) throw new ErnieEngineNotStartedException();
-        return api.createDefinition(new Some<ByteArrayInputStream>(rptDesign), description, createdUser);
+        return api.createDefinition(new Some<InputStream>(rptDesign), description, createdUser);
     }
 
     /**
@@ -96,7 +96,7 @@ public class ErnieController {
      */
     public DefinitionEntity createDefinition(String description, String createdUser) throws InvalidDefinitionException, AskTimeoutException, ErnieEngineNotStartedException {
         if (api == null) throw new ErnieEngineNotStartedException();
-        final scala.Option<ByteArrayInputStream> none = scala.Option.apply(null);
+        final scala.Option<InputStream> none = scala.Option.apply(null);
         return api.createDefinition(none, description, createdUser);
     }
 
@@ -121,9 +121,9 @@ public class ErnieController {
      * @throws ErnieEngineNotStartedException if ErnieController.start() was not called
      * @return updated definition metadata.
      */
-    public DefinitionEntity updateDefinition(String defId, DefinitionEntity defEnt, ByteArrayInputStream rptDesign) throws ErnieEngineNotStartedException, MissingArgumentException {
+    public DefinitionEntity updateDefinition(String defId, DefinitionEntity defEnt, InputStream rptDesign) throws ErnieEngineNotStartedException, MissingArgumentException {
         if (api == null) throw new ErnieEngineNotStartedException();
-        return api.updateDefinition(defId, new Some<DefinitionEntity>(defEnt), new Some<ByteArrayInputStream>(rptDesign));
+        return api.updateDefinition(defId, new Some<DefinitionEntity>(defEnt), new Some<InputStream>(rptDesign));
     }
 
     /**
@@ -137,10 +137,10 @@ public class ErnieController {
      * @throws ErnieEngineNotStartedException if ErnieController.start() was not called
      * @return updated definition metadata.
      */
-    public DefinitionEntity updateDefinition(String defId, ByteArrayInputStream rptDesign) throws ErnieEngineNotStartedException, MissingArgumentException {
+    public DefinitionEntity updateDefinition(String defId, InputStream rptDesign) throws ErnieEngineNotStartedException, MissingArgumentException {
         if (api == null) throw new ErnieEngineNotStartedException();
         final scala.Option<DefinitionEntity> none = scala.Option.apply(null);
-        return api.updateDefinition(defId, none, new Some<ByteArrayInputStream>(rptDesign));
+        return api.updateDefinition(defId, none, new Some<InputStream>(rptDesign));
     }
 
     /**
@@ -156,7 +156,7 @@ public class ErnieController {
      */
     public DefinitionEntity updateDefinition(String defId, DefinitionEntity defEnt) throws ErnieEngineNotStartedException, MissingArgumentException {
         if (api == null) throw new ErnieEngineNotStartedException();
-        Option<ByteArrayInputStream> none = scala.Option.apply(null);
+        Option<InputStream> none = scala.Option.apply(null);
         return api.updateDefinition(defId, new Some<DefinitionEntity>(defEnt),  none);
     }
 
