@@ -11,6 +11,27 @@
     <name>Ernie Report Generation Project</name>
     <description>A JEE application resource for generating business reports</description>
     <inceptionYear>2013</inceptionYear>
+	 <organization>
+	    <name>KSM Technology Partners</name>
+	    <url>http://www.ksmpartners.com</url>
+	  </organization>
+  <developers>
+    <developer>
+      <id>adamcoimbra</id>
+      <name>Adam Coimbra</name>
+      <email>adamcoimbra@gmail.com</email>
+    </developer>
+	<developer>
+		  <id>andrewalbrecht</id>
+		  <name>Andrew Albrech</name>
+		  <email>aalbrecht@ksmpartners.com</email>
+    </developer>
+	<developer>
+		  <id>mikeharnish</id>
+		  <name>Michael Harnish</name>
+		  <email>mharnisht@ksmpartners.com</email>
+    </developer>
+  </developers>
     <properties>
         <surefire.reports.version>2.15</surefire.reports.version>
         <scala.maven.plugin.version>3.1.0</scala.maven.plugin.version>
@@ -30,16 +51,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-               <!--<dependency>
-            <groupId>io.gatling</groupId>
-            <artifactId>gatling-ernie</artifactId>
-            <version>2.0.0-M2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.10</artifactId>
-            <version>2.0.M6-SNAP28</version>
-        </dependency>  !-->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback</artifactId>
@@ -77,9 +88,7 @@
 			<descriptors>
 				<descriptor>assembly.xml</descriptor>
 			</descriptors>
-                        <!--<descriptorRefs>
-                            <descriptorRef>jar-with-dependencies</descriptorRef>
-                        </descriptorRefs>!-->
+       
                     </configuration>
                 </plugin>
                 <plugin>
