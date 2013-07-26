@@ -74,7 +74,7 @@ class APITest { //extends TestNGSuite {
         build ()).start
   }
 
-  @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
+ /* @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def trouble() {
     val design = scala.xml.XML.loadFile(Thread.currentThread.getContextClassLoader.getResource("in/new_report.rptdesign").getPath)
     log.info(design + "  asdf")
@@ -89,7 +89,7 @@ class APITest { //extends TestNGSuite {
     }
     log.info("done... " + jobDir)
 
-  }
+  }  */
 
   //@TestSpecs(Array(new TestSpec(key = "ERNIE-184")))
   @Test(groups = Array("setup"), dependsOnMethods = Array("init"))
