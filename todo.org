@@ -24,7 +24,7 @@
 [x]-> Set up dev environement
 [x]** Set up test server
 [ ]*** Test DB?
-[ ]* Test framework
+[x]* Test framework
 [x]** TestNG for unit tests
 [x]** Find framework for REST API testing
 [x]** JaCoCo for code coverage reports
@@ -35,7 +35,7 @@
 [x]---> Not needed. Can cover REST with unit tests
 [x]* Initial state
 [x]** Get project source in solid state before starting "real" development
-[ ]* Documentation
+[x]* Documentation
 [x]** Document all currently existing source
 [x]--> Some documentation needs to be rewritten
 [x]* Implement Dates in JSON as ISO-8601(not longs)

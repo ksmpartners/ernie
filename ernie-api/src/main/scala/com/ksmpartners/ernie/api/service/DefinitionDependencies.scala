@@ -61,14 +61,19 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
           (designXml \\ "parameters").foreach(f => f.child.foreach(g => {
             var param = new ParameterEntity()
             param.setParamName((g \ "@name").text)
+
             g.child.foreach(prop => (prop \ "@name").text match {
               case "allowBlank" => param.setAllowNull(prop.text == "true")
               case "dataType" => param.setDataType(prop.text)
-              case "defaultValue" => param.setDefaultValue(prop.text)
+              case "defaultValue" => param.setDefaultValue(prop.text.trim)
               case _ =>
             })
-            if ((param.getParamName != "") && (param.getDataType != "") && (param.getDefaultValue != "") && (param.getAllowNull != null)) paramList.add(param)
+
+            if ((param.getAllowNull == null) & (param.getDefaultValue != "")) param.setAllowNull(true)
+
+            if ((param.getParamName != "") && (param.getDataType != "") && (param.getAllowNull != null)) paramList.add(param)
           }))
+
           defEnt.setParams(paramList)
         } catch {
           case e: Exception => throw InvalidDefinitionException("Malformed report design while extracting parameters: " + e.getMessage)

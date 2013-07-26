@@ -112,9 +112,11 @@ mvn jetty:run -f ernie-server/pom.xml \
 Gatling performance testing <a id="4"></a>
 ---------------------------
 
-Ernie-gatling extends the performance testing DSL of the Gatling stress tool, allowing developers to easily describe scenarios and execute stress tests on either a running ernie-server or the ernie-api. For instance:
+Ernie-gatling extends the performance testing DSL of the Gatling stress tool, allowing developers to easily describe scenarios and execute stress tests on either a running ernie-server or the ernie-api. 
 
-```scala
+```
+
+mvn gatling:execute -Dgatling.simulationClass=com.ksmpartners.ernie.ErnieServerSimulation
 
 ``` 
 
