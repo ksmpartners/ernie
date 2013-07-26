@@ -10,12 +10,12 @@ import com.ksmpartners.ernie.model
 
 object ErnieTest {
 	
-	/*val engine = ErnieEngine(ErnieBuilder()
+	/*val ernie = ErnieEngine(ErnieBuilder()
 		.withMemoryReportManager()
 		.withDefaultRetentionDays(7)
 		.withMaxRetentionDays(14)
 		.withWorkers(100)
-	.build())*/
+	.build()).start*/
 
 	val ernie = ErnieEngine(
       ernieBuilder
@@ -30,8 +30,8 @@ object ErnieTest {
 	def cj(fil:String, params:Map[String, String]):(Long, model.JobStatus) = {
 		val design = scala.xml.XML.loadFile(fil)
 
-		val d = ernie.createDefinition(Some(new java.io.ByteArrayInputStream(design.toString.getBytes)), "test", "adam")
-		ernie.createJob(d.getDefId, com.ksmpartners.ernie.model.ReportType.PDF, None, Map.empty[String, String], "adam")
+		val d = ernie.createDefinition(Some(new java.io.ByteArrayInputStream(design.toString.getBytes)), "test", "test")
+		ernie.createJob(d.getDefId, com.ksmpartners.ernie.model.ReportType.PDF, None, params, "test")
 	}
 
 }
