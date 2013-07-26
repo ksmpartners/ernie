@@ -60,6 +60,14 @@
 		</dependency>  -->
 	</dependencies>
 
+<pluginRepositories>
+    <pluginRepository>
+        <id>excilys</id>
+        <name>Excilys Repository</name>
+        <url>http://repository.excilys.com/content/groups/public</url>
+    </pluginRepository>
+</pluginRepositories>
+
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>
 		<testSourceDirectory>src/test/scala</testSourceDirectory>
