@@ -65,7 +65,7 @@ The Ernie APIs and server provide endpoints for (CRUD) management of these repor
 
 Embedded API <a id="2"></a>
 ---------------
-Ernie-api and ernie-java-api are, respectively, Scala and Java interfaces for Ernie-engine. If you are integrating these libraries as standalone jars (with dependencies), please note that they do not include the __BIRT Report Runtime jar which is required to be in your classpath__. You can download the BIRT runtime [here](http://download.eclipse.org/birt/downloads/) and find the requisite jar in ReportEngine/lib/org.eclipse.birt.runtime....jar.
+Ernie-api and ernie-java-api are, respectively, Scala and Java interfaces for Ernie-engine. If you are integrating these libraries as standalone jars (with dependencies), please note that they do not include the __BIRT Report Runtime jars which is required to be in your classpath__. You can download the BIRT runtime [here](http://download.eclipse.org/birt/downloads/) and find the requisite jars in ReportEngine/lib.
 
 The embedded APIs provide a builder pattern for configuring Ernie and an engine object that takes a built configuration and produces an interface for interacting with Ernie. For example, using ernie-api:
 

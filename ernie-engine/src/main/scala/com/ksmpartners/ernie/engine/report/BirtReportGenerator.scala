@@ -29,6 +29,9 @@ import JavaConversions._
 import org.joda.time.DateTime
 import java.sql.Time
 import org.joda.time.format.DateTimeFormat
+import org.mozilla.javascript.GeneratedClassLoader
+import java.security.AccessController
+import org.eclipse.birt.report.engine.javascript.ScriptUtil
 
 /**
  * Class used to generate BIRT reports
@@ -41,6 +44,11 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
   def startup() = {
     if (!running) {
       running = true
+      try {
+        org.mozilla.javascript.SecurityController.initGlobal(ScriptUtil.createSecurityController)
+      } catch {
+        case _: Throwable =>
+      }
       startEngine()
       running = (engine != null)
     }
@@ -243,7 +251,6 @@ object BirtReportGenerator {
     task.setRenderOption(option)
     task.setParameterValues(rptParams)
     rptParams.foreach(f => { task.setParameterValue(f._1, f._2); if (!task.validateParameters) throw new InvalidParameterValuesException(f._1) })
-
     task.run()
     task.close()
   }

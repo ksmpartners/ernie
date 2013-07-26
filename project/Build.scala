@@ -88,6 +88,10 @@ object ErnieBuild extends MavenBuild {
       )
     }
  )
+  
+  project("ernie-model")(publishArtifact in (Compile, packageDoc) := false)
+  project("ernie-util")(publishArtifact in (Compile, packageDoc) := false)
+  project("ernie-java-api")(publishArtifact in (Compile, packageDoc) := false)
 
   project("ernie-server")(
     (com.earldouglas.xsbtwebplugin.WebPlugin.webSettings ++
