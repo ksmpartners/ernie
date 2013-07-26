@@ -4,11 +4,11 @@ Ernie Report Generator
 ============================================
 Ernie is a [high performance](#4) wrapper for the [Eclipse BIRT Report Engine](http://www.eclipse.org/birt/phoenix/). Developers can integrate Ernie using an embedded [Java or Scala API](#2), or deploy a [servlet](#3) that exposes Ernie's features as a RESTful web service.
 
-All reports generated using Ernie use a report definition created using by the [Eclipse BIRT Designer](http://www.eclipse.org/birt/phoenix/intro/intro03.php). 
+Ernie uses a report definition created using the [Eclipse BIRT Designer](http://www.eclipse.org/birt/phoenix/intro/intro03.php). 
 
-Ernie provides endpoints for:
+Ernie supports:
 
-*	 managing these report definitions and their metadata
+*	 managing report definitions and their metadata
 
 *	 creating a report generation job based on a definition
 
@@ -18,11 +18,11 @@ Ernie provides endpoints for:
 
 *	 retrieving lists and catalogs of report generation jobs and definitions
 
-*	specifying a date for output expiration and purging expired output
+*	specifying an output expiration date and purging expired output
 
 Prerequisites and setup <a id="1"></a>
 ----------------------
-__Ernie requires the following software to be installed:__
+__Ernie requires the following software:__
 
 1. [Apache Maven 3](http://maven.apache.org/) or [SBT 0.12.4 or better](http://www.scala-sbt.org/)
 1. Java 1.6
@@ -55,17 +55,17 @@ __To generate ScalaDocs and JavaDocs for all Ernie projects:__
 
 ``` mvn scala:doc javadoc:javadoc ```
 
-Then, find API documentation in /target/site/scaladocs for the Scala projects (ernie-api, ernie-engine, ernie-server, ernie-gatling, ernie-util) and /target/site/apidocs for the Java projects (ernie-model, ernie-java-api).
+Find API documentation in /target/site/scaladocs for the Scala projects (ernie-api, ernie-engine, ernie-server, ernie-gatling, ernie-util) and /target/site/apidocs for the Java projects (ernie-model, ernie-java-api).
 
 Eclipse BIRT
 ----------------------
-It is highly recommended that users of Ernie build report definitions with the Eclipse BIRT Designer. You can get a standalone fat-client [here](http://www.eclipse.org/downloads/download.php?file=/birt/downloads/drops/R-R1-4_3_0-201306131152/birt-rcp-report-designer-4_3_0.zip). It is also available as a plugin for the Eclipse IDE. The BIRT designer will allow you to create a report template that specifies multiple JDBC data sources and generates complex, graphically rich reports.
+It is recommended that users of Ernie build report definitions with the Eclipse BIRT Designer. A standalone fat-client is [here](http://www.eclipse.org/downloads/download.php?file=/birt/downloads/drops/R-R1-4_3_0-201306131152/birt-rcp-report-designer-4_3_0.zip). It is also available as a plugin for the Eclipse IDE. The BIRT designer allows report template creation that specifies multiple JDBC data sources and generates complex, graphically rich reports.
 
 The Ernie APIs and server provide endpoints for (CRUD) management of these report definitions. All Ernie report generation tasks take a definition identifier as a required parameter. 
 
 Embedded API <a id="2"></a>
 ---------------
-Ernie-api and ernie-java-api are, respectively, Scala and Java interfaces for Ernie-engine. If you are integrating these libraries as standalone jars (with dependencies), please note that they do not include the __BIRT Report Runtime jars which is required to be in your classpath__. You can download the BIRT runtime [here](http://download.eclipse.org/birt/downloads/) and find the requisite jars in ReportEngine/lib.
+Ernie-api and ernie-java-api are, respectively, Scala and Java interfaces for Ernie-engine. If you are integrating these libraries as standalone jars (with dependencies), please note that they do not include the __BIRT Report Runtime jars which is required to be in your classpath__. The BIRT runtime can be downloaded [here](http://download.eclipse.org/birt/downloads/). Find the requisite jars in ReportEngine/lib.
 
 The embedded APIs provide a builder pattern for configuring Ernie and an engine object that takes a built configuration and produces an interface for interacting with Ernie. For example, using ernie-api:
 
@@ -102,7 +102,12 @@ For more information on the embedded API configuration and usage, see the [ernie
 Ernie server <a id="3"></a>
 -------------------------------
 
-The ernie-server package exposes a RESTful interface to Ernie using the Lift web framework. It supports SAML and Basic authentication with simple, role-based authorization. It also generates a [Swagger](https://developers.helloreverb.com/swagger/) specification and UI. 
+The ernie-server package exposes a RESTful interface to Ernie using the Lift web framework. It supports SAML and Basic authentication with simple, role-based authorization. It also generates a [Swagger](https://developers.helloreverb.com/swagger/) specification and UI. You can test the servlet in a Jetty container:
+
+```
+mvn jetty:run -f ernie-server/pom.xml \
+	-Dernie.props="./ernie-server/src/main/resources/props/default.props"
+```
 
 Gatling performance testing <a id="4"></a>
 ---------------------------

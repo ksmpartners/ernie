@@ -29,7 +29,7 @@ class ErnieServerSimulation extends Simulation {
 
   val e = ernie(writeSaml, readSaml)
 
-  setUp(scn("ErnieHTTP", e).protocolConfig(httpConfig.baseURL("http://localhost:8080")).inject(ramp(100 users) over (30 seconds)))
+  setUp(scn("ErnieHTTP", e).protocolConfig(httpConfig.baseURL("http://localhost:8080")).inject(ramp(10000 users) over (30 seconds)))
 
   def range(start: Int, end: Int): Int = start + (math.random.toInt % end)
 }

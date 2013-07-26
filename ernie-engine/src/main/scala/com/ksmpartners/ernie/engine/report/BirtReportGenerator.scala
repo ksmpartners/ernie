@@ -132,7 +132,8 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
       }
     }
     renderOption.setOutputStream(rptOutputStream)
-    BirtReportGenerator.runReport(design, renderOption, rptParams)
+    //BirtReportGenerator.runReport(design, renderOption, rptParams)
+    runReport(design, renderOption, rptParams)
   }
 
   /**
@@ -141,6 +142,18 @@ class BirtReportGenerator(reportManager: ReportManager) extends ReportGenerator 
   def shutdown() = if (running) {
     shutdownEngine()
     running = false
+  }
+
+  /**
+   * Method that creates and runs a BIRT task based on the given design and options,
+   */
+  private def runReport(design: IReportRunnable, option: RenderOption, rptParams: Map[String, Any]) = {
+    val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
+    task.setRenderOption(option)
+    task.setParameterValues(rptParams)
+    rptParams.foreach(f => { task.setParameterValue(f._1, f._2); if (!task.validateParameters) throw new InvalidParameterValuesException(f._1) })
+    task.run()
+    task.close()
   }
 
 }
@@ -243,15 +256,4 @@ object BirtReportGenerator {
     }
   }
 
-  /**
-   * Method that creates and runs a BIRT task based on the given design and options,
-   */
-  private def runReport(design: IReportRunnable, option: RenderOption, rptParams: Map[String, Any]) = synchronized {
-    val task: IRunAndRenderTask = engine.createRunAndRenderTask(design)
-    task.setRenderOption(option)
-    task.setParameterValues(rptParams)
-    rptParams.foreach(f => { task.setParameterValue(f._1, f._2); if (!task.validateParameters) throw new InvalidParameterValuesException(f._1) })
-    task.run()
-    task.close()
-  }
 }

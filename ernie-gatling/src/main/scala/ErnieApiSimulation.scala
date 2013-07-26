@@ -50,6 +50,6 @@ class ErnieApiSimulation extends Simulation {
 
   var e = Predef.ernie
 
-  setUp(scn("ErnieAPI", e).protocolConfig(config).inject(ramp(100 users) over (1 seconds)))
+  setUp(scn("ErnieAPI", e).protocolConfig(config).inject(ramp(10000 users) over (30 seconds)))
 
 }
