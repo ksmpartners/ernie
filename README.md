@@ -140,5 +140,20 @@ mvn gatling:execute -Dgatling.simulationClass=com.ksmpartners.ernie.ErnieApiSimu
 
 For more information, see the [ernie-gatling](ernie-gatling) documentation.
 
+TODO
+------------------------
+Future versions of Ernie will provide:
 
+- [ ] Full SBT support
+	- [ ] TestNG
+	- [ ] Gatling stress tests
+	- [ ] Jetty 
+- [ ] Clustered deployment support for embedded API and servlet
+- [ ] Swagger client generation for REST server
+- [ ] More extensive documentation
+- [ ] Push notifications on report generation job status change, via:
+	- [ ] Embedded API callbacks
+	- [ ] Comet
+- [ ] Code coverage working for all packages in Maven and SBT
+- [ ] Encryption for rptdesign files with passwords
 
