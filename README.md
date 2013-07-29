@@ -123,7 +123,9 @@ Gatling performance testing <a id="gatling"></a>
 
 Ernie-gatling extends the performance testing DSL of the Gatling stress tool, allowing developers to easily describe scenarios and execute stress tests on either a running ernie-server or the ernie-api. 
 
-To run the basic simulations bundled with ernie:
+On our local development machines, the ErnieApiSimulation found the embedded API able to process around 35000 requests for report output retrieval and 10000 report generation jobs in a total of 3 minutes, with a mean response time of less than 120 ms and over 200 requests per second. The ErnieServerSimulation found the servlet able to serve over 60 requests per second at a mean response time of 20 ms. 
+
+But you don't have to take our word for it. To run the basic simulations bundled with Ernie:
 
 ```
 #Assumes a running ernie-server at http://localhost:8080
@@ -135,6 +137,8 @@ mvn gatling:execute -Dgatling.simulationClass=com.ksmpartners.ernie.ErnieServerS
 mvn gatling:execute -Dgatling.simulationClass=com.ksmpartners.ernie.ErnieApiSimulation -rf :ernie-gatling
 
 ``` 
+
+For more information, see the [ernie-gatling](ernie-gatling) documentation.
 
 
 
