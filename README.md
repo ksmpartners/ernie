@@ -38,6 +38,8 @@ __To build Ernie with Maven:__
 
         cd ernie-server
         mvn clean install
+        
+Find dependent jars in /target and fat jars in /target/assembly for each module.
 
 __To build Ernie with SBT:__
 
@@ -50,6 +52,8 @@ __To build Ernie with SBT:__
         clean
         project ernie-server
         package
+        
+Find SBT jars in the /target/scala-2.10 folder of each module.
 
 __To generate ScalaDocs and JavaDocs for all Ernie projects:__
 
