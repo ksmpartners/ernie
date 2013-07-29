@@ -23,6 +23,11 @@ object ErnieBuild extends MavenBuild {
   val gatlingReleasesRepo = "Gatling Releases Repo" at "http://repository.excilys.com/content/repositories/releases"
   val gatling3PartyRepo = "Gatling Third-Party Repo" at "http://repository.excilys.com/content/repositories/thirdparty"
 
+   implicit def dependencyFilterer(deps: Seq[ModuleID]) = new Object {
+	  def excluding(group: String, artifactId: String) =
+		deps.map(_.exclude(group, artifactId))
+	}
+  
   lazy val buildSettings = Defaults.defaultSettings ++ Seq(
     version := "1.0-SNAPSHOT",
     organization := "com.ksmpartners",
@@ -85,8 +90,11 @@ object ErnieBuild extends MavenBuild {
         !d.name.contains("csv") &&
         !d.name.contains("flute")
       }
-      )
-    }
+      ).excluding("milyn","flute")
+    },
+	(unmanagedJars in Compile <++= unmanagedBase map { ub =>
+	     (ub ** "*.jar").classpath
+	})
  )
   
   project("ernie-model")(publishArtifact in (Compile, packageDoc) := false)
@@ -97,14 +105,16 @@ object ErnieBuild extends MavenBuild {
     (com.earldouglas.xsbtwebplugin.WebPlugin.webSettings ++
     (libraryDependencies += "org.mortbay.jetty" % "jetty" % "6.1.22" % "container") ++
     (javacOptions ++= Seq(
-        "ernie.props", "./ernie-server/src/main/resources/props/default.props",
-        "keystore.location=", "./ernie-server/src/test/resources/keystore.jks",
-        "authentication.mode", "SAML"
+        "ernie.props", "./ernie-server/src/main/resources/props/default.props"
+       // "keystore.location=", "./ernie-server/src/test/resources/keystore.jks",
+       // "authentication.mode", "SAML"
     ))):_*
   )
 
   project("ernie-gatling") {
     resolvers ++= Seq(gatlingReleasesRepo, gatling3PartyRepo)
   }
+  
+ 
 
 }
