@@ -93,15 +93,13 @@ And finally, retrieve the report output:
 Configuration
 --------------------------------
 - __ReportManager__: The ErnieBuilder requires either ``` withFileReportManager(...) ``` or ``` withMemoryReportManager() ``` to be called before build().
-  The withFileReportManager configuration requires that you specify three distinct directories, in which job metdata, definitions, and output will be respectively persisted:
+  The withMemoryReportManager configuration takes no parameters, but will not persist anything after the application exits. The withFileReportManager configuration requires that you specify three distinct directories, in which job metdata, definitions, and output will be respectively persisted:
   
 ```scala
    def withFileReportManager(jobDir: String, defDir: String, outputDir: String)
 ```
-
-  The withMemoryReportManager configuration takes no parameters, but will not persist anything after the application exits.
   
-- __Workers__ (Optional): An Ernie Worker is an Akka Actor that has the ability to execute report generation requests concurrently (i.e. alongside other workers). Therefore, the number specified here will designate the _maximum number of concurrent report generation tasks_.
+- __Workers__ (Optional): An Ernie Worker is an Akka Actor that has the ability to execute report generation requests (i.e. alongside other workers). Therefore, the number specified here will designate the _maximum number of concurrent report generation tasks_.
 
 - __Timeout__ (Optional): The timeoutAfter function takes a FiniteDuration. Importing scala.concurrent.duration._ will allow this setting to be specified using Scala's duration DSL:
 
