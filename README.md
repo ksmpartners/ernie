@@ -69,7 +69,7 @@ Ernie wraps the BIRT runtime in an Akka ActorSystem and provides a configuration
 
 Embedded API <a id="api"></a>
 ---------------
-Ernie-api and ernie-java-api are, respectively, Scala and Java interfaces for Ernie-engine. If you are integrating these libraries as standalone jars (with dependencies), please note that they do not include the __BIRT Report Runtime jars which is required to be in your classpath__. The BIRT runtime can be downloaded [here](http://download.eclipse.org/birt/downloads/). Find the requisite jars in ReportEngine/lib.
+Ernie-api and ernie-java-api are, respectively, Scala and Java interfaces for Ernie-engine. If you are integrating these libraries as standalone jars (with dependencies), please note that they do not include the __BIRT Report Runtime jars which are required to be in your classpath__. The BIRT runtime can be downloaded [here](http://download.eclipse.org/birt/downloads/). Find the requisite jars in ReportEngine/lib.
 
 The embedded APIs provide a builder pattern for configuring Ernie and an engine object that takes a built configuration and produces an interface for interacting with Ernie. For example, using ernie-api:
 
