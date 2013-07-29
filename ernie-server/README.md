@@ -34,9 +34,9 @@ Basic Usage
 --------------------
 Given a running ernie-server without any authentication/authorization enabled, the following cURL/wget commands illustrate a basic Ernie workflow.
 
-1. __Uploading a report definition__
+__Uploading a report definition__
 
-  1. POST a serialized DefinitionEntity to /defs
+  - POST a serialized DefinitionEntity to /defs
   
     ``` 
         curl -v -X POST -d \
@@ -46,14 +46,15 @@ Given a running ernie-server without any authentication/authorization enabled, t
 
     The response will include a Location header with the new definition's ID.
     
-  2. PUT a rptdesign to /defs/NEW_DEF_ID/rptdesign 
+    
+  - PUT a rptdesign to /defs/NEW_DEF_ID/rptdesign 
   
     ``` 
         curl -v -X PUT -T my_local_def.rptdesign -H "Content-type: application/rptdesign+xml" \
           --header "Accept: application/vnd.ksmpartners.ernie+json" http://loclahost:8080/defs/NEW_DEF_ID/rptdesign 
     ```
 
-2. __Initiating a report generation task:__
+__Initiating a report generation task:__
 
     POST a serialized ReportRequest to /jobs.
     
@@ -66,19 +67,21 @@ Given a running ernie-server without any authentication/authorization enabled, t
         
     The response will include a Location header with the job's ID.
     
-3. __Poll for report generation completion:__ 
+__Poll for report generation completion:__ 
 
     GET /jobs/JOB_ID/status
     
     ``` wget --header "Accept: application/vnd.ksmpartners.ernie+json" http://localhost:8080/jobs/JOB_ID/status ```
     
-4. When the response to (3) is: ```json {"jobStatus":"COMPLETE"} ```, 
+__Retrieve report output__ when the response to (3) is: ```json {"jobStatus":"COMPLETE"} ```, 
 
     GET /jobs/JOB_ID/result
     
     ``` wget --header "Accept: application/pdf" http://localhost:8080/jobs/JOB_ID/result ```
-  
+    
 
+Other operations
+---------------------
 For complete documentation of all supported REST operations, please run
 
 ```
@@ -87,11 +90,6 @@ For complete documentation of all supported REST operations, please run
 ```
 
 and browse to http://localhost:8080/static/docs.
-
-
-
-
-
 
 Authentication and authorization
 --------------------------
