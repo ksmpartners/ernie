@@ -47,7 +47,8 @@ object ErnieSimulation {
           .set("resCount", range(4, 8))
           .set("defs", List())
       })
-      .exec(e.createDef(Thread.currentThread.getContextClassLoader.getResource("test_def_params.rptdesign").getPath))
+      .randomSwitch(5 -> exec(e.createDef(Thread.currentThread.getContextClassLoader.getResource("test_def_params.rptdesign").getPath)),
+                   95 -> pause(1 second))
       .exec(e.getDefs)
       .repeat(5) {
         randomSwitch(
