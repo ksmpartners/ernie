@@ -4,7 +4,7 @@ Welcome to the alpha release of Ernie, a [high performance](#gatling-performance
 
 ![alt text](ernie-small.png "Ernie Logo")
 
-Ernie uses a report definition created using the [Eclipse BIRT Designer](http://www.eclipse.org/birt/phoenix/intro/intro03.php). Report definitions specify data sources (any JDBC driver will work), business logic, all presentation markup, and report parameters. Ernie report generation requests specify the output format and report parameter values to apply to a given definition. 
+Ernie uses report definitions created by the [Eclipse BIRT Designer](http://www.eclipse.org/birt/phoenix/intro/intro03.php). Report definitions specify data sources (any JDBC driver will work), business logic, all presentation markup, and report parameters. Ernie report generation requests specify the output format and report parameter values to apply to a given definition. 
 
  The following features are supported by all Ernie APIs (ernie-api, ernie-java-api, ernie-server):
 
