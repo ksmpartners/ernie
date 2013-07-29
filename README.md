@@ -2,9 +2,11 @@ Ernie Report Generator
 ============================================
 Ernie is a [high performance](#gatling) reporting engine. Developers can integrate Ernie using an embedded [Java or Scala API](#api), or deploy a [servlet](#server) that exposes Ernie's features as a RESTful web service.
 
+![alt text](ernie-small.png "Ernie Logo")
+
 Ernie uses a report definition created using the [Eclipse BIRT Designer](http://www.eclipse.org/birt/phoenix/intro/intro03.php). Report definitions specify data sources (any JDBC driver will work), business logic, all presentation markup, and report parameters. Ernie report generation requests specify the output format and report parameter values to apply to a given definition. 
 
-![alt text](ernie-small.png "Ernie Logo") The following features are supported by all Ernie APIs (ernie-api, ernie-java-api, ernie-server):
+ The following features are supported by all Ernie APIs (ernie-api, ernie-java-api, ernie-server):
 
 *	 managing report definitions and their metadata
 
