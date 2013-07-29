@@ -35,7 +35,9 @@ Authentication and authorization
 --------------------------
 Ernie supports HTTP Basic, SAML, or no authentication/authorization. 
 
-For SAML, use the keystore.location and authentication.mode system properties. Again, an example with Maven/Jetty:
+__SAML__
+
+Use the keystore.location and authentication.mode system properties. Again, an example with Maven/Jetty:
 
 ```
   mvn jetty:run -f ernie-server/pom.xml \
@@ -46,7 +48,9 @@ For SAML, use the keystore.location and authentication.mode system properties. A
 
 TODO: Elaborate on required SAML tokens.
 
-For Basic, you will need to modify the ernie-server source code. Modify the variable ``` DispatchRestAPI.basicAuthentication ``` to produce roles given a username and password.
+__Basic__
+
+You will need to modify the ernie-server source code. Modify the variable ``` DispatchRestAPI.basicAuthentication ``` to produce roles given a username and password.
 
 The basicAuthentication variable contains a PartialFunction[(String, String, Req), Boolean]. It should:
 
