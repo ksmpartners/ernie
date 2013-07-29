@@ -1,6 +1,6 @@
 Ernie Embedded API (Scala)
 =======================================
-The embedded API can be mixed into a project by including a fat jar and the BIRT runtime in the classpath (see [here](../#prerequisites-and-setup-)) or by specifying it as a Maven dependency:
+The embedded API can be mixed into a project by including a fat jar and the BIRT runtime in the classpath (see the [setup instructions](../#prerequisites-and-setup-) and [sample code](../samples/ernie-test)) or by specifying it as a Maven dependency:
 
 ```
         <dependency>
