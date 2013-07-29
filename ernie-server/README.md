@@ -2,7 +2,7 @@ Ernie server
 =================================
 This package is a Java servlet that uses [ernie-api](../ernie-api) and the [Lift web framework](http://liftweb.net/) to expose all of Ernie's features as a RESTful web service.
 
-The following README will provide an overview of how to configure, test, deploy, and interact with ernie-server.
+The following README will provide an overview of how to configure, deploy, and interact with ernie-server.
 
 Configuration
 ------------------------
@@ -11,7 +11,6 @@ The configuration for ernie-server is specified through Java runtime parameters.
 ```
   mvn jetty:run -f ernie-server/pom.xml \
     -Dernie.props="./ernie-server/src/main/resources/props/default.props"
-
 ```
 
 The ernie.props argument specifies the location of the properties file to use. Valid property names are as follows:
@@ -30,6 +29,39 @@ The ernie.props argument specifies the location of the properties file to use. V
   _If an incoming report request does not specify a number of days after which report output should expire, this value will be used. Note that expired report output remains available until purgeExpiredReports() is called._
 - __retention.period.maximum__
   _The maximum allowed number of days for report retention._
+
+Basic Usage
+--------------------
+Given a running ernie-server without any authentication/authorization enabled, the following cURL/wget commands illustrate a basic Ernie workflow.
+
+1. Uploading a report definition
+  1. POST a serialized DefinitionEntity to /defs
+    ``` curl -v -X POST -d '{"createdDate":null,"defId":"","createdUser":"default","paramNames":null,"params":null,"defDescription":"test","unsupportedReportTypes":null}' -H "Content-type: application/json" --header "Accept: application/vnd.ksmpartners.ernie+json" http://localhost:8080/defs ```
+    The response will include a Location header with the new definition's ID.
+  2. PUT a rptdesign to /defs/NEW_DEF_ID/rptdesign 
+    ``` curl -v -X PUT -T my_local_def.rptdesign -H "Content-type: application/rptdesign+xml" --header "Accept: application/vnd.ksmpartners.ernie+json" http://loclahost:8080/defs/NEW_DEF_ID/rptdesign ```
+2. Initiating a report generation task: POST a serialized ReportRequest to /jobs.
+    ``` curl -v -X POST -d '{"defId":"NEW_DEF_ID","rptType":"PDF","retentionDays":'7',"reportParameters":null' -H "Content-type: application/json" --header "Accept: application/vnd.ksmpartners.ernie+json" http://localhost:8080/jobs ```
+    The response will include a Location header with the job's ID.
+3. Poll for report generation completion: GET /jobs/JOB_ID/status
+    ``` wget --header "Accept: application/vnd.ksmpartners.ernie+json" http://localhost:8080/jobs/JOB_ID/status ```
+4. When the response to (3) is: ```json {"jobStatus":"COMPLETE"} ```, GET /jobs/JOB_ID/result
+    ``` wget --header "Accept: application/pdf" http://localhost:8080/jobs/JOB_ID/result ```
+  
+
+For complete documentation of all supported REST operations, please run
+
+```
+  mvn jetty:run -f ernie-server/pom.xml \
+    -Dernie.props="./ernie-server/src/main/resources/props/default.props"
+```
+
+and browse to http://localhost:8080/static/docs.
+
+
+
+
+
 
 Authentication and authorization
 --------------------------
