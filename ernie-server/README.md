@@ -16,20 +16,20 @@ The configuration for ernie-server is specified through Java runtime parameters.
 
 The ernie.props argument specifies the location of the properties file to use. Valid property names are as follows:
 
-- rpt.def.dir
-  The directory in which definitions and their metadata are stored. Required. Must be different from output.dir and jobs.dir.
-- output.dir
-  The directory in which report output and metadata is stored. Required. Must be different from rpt.def.dir and jobs.dir.
-- jobs.dir
-  The directory in which job metadata is stored. Required. Must be different from rpt.def.dir and output.dir.
-- worker.count
-  An Ernie Worker is an Akka Actor that has the ability to execute report generation requests (i.e. alongside other workers). Therefore, the number specified here will designate the maximum number of concurrent report generation tasks.
-- swagger.docs
-  Either true or false. Determines whether Swagger UI is enabled.
-- retention.period.default
-  If an incoming report request does not specify a number of days after which report output should expire, this value will be used. Note that expired report output remains available until purgeExpiredReports() is called.
-- retention.period.maximum
-  The maximum allowed number of days for report retention.
+- __rpt.def.dir__
+  _The directory in which definitions and their metadata are stored. Required. Must be different from output.dir and jobs.dir._
+- __output.dir__
+  _The directory in which report output and metadata is stored. Required. Must be different from rpt.def.dir and jobs.dir._
+- __jobs.dir__
+  _The directory in which job metadata is stored. Required. Must be different from rpt.def.dir and output.dir._
+- __worker.count__
+  _An Ernie Worker is an Akka Actor that has the ability to execute report generation requests (i.e. alongside other workers). Therefore, the number specified here will designate the maximum number of concurrent report generation tasks._
+- __swagger.docs__
+  _Either true or false. Determines whether Swagger UI is enabled._
+- __retention.period.default__
+  _If an incoming report request does not specify a number of days after which report output should expire, this value will be used. Note that expired report output remains available until purgeExpiredReports() is called._
+- __retention.period.maximum__
+  _The maximum allowed number of days for report retention._
 
 Authentication and authorization
 --------------------------
