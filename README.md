@@ -153,6 +153,7 @@ Future versions of Ernie will provide:
 	- [ ] Gatling stress tests
 	- [ ] Jetty 
 - [ ] Clustered deployment support for embedded API and servlet
+- [ ] Plug-n-play for additional BIRT emitters
 - [ ] Swagger client generation for REST server
 - [ ] More extensive documentation
 - [ ] Push notifications on report generation job status change, via:
