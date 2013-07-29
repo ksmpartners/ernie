@@ -1,4 +1,4 @@
-![alt text](ernie.png) "Ernie Logo")
+![alt text](ernie-small.png "Ernie Logo")
 
 Ernie Report Generator
 ============================================
