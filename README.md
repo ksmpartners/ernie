@@ -1,6 +1,6 @@
 Ernie Report Generator
 ============================================
-Welcome to the alpha release of Ernie, a [high performance](#gatling-performance-testing-) reporting engine. Developers can integrate Ernie using an embedded [Java or Scala API](#embedded-api-), or deploy a [servlet](#ernie-server-) that exposes Ernie's features as a RESTful web service.
+Welcome to the alpha release of Ernie, a [high performance](#gatling-performance-testing-), asynchronous reporting engine. Developers can integrate Ernie using an embedded [Java or Scala API](#embedded-api-), or deploy a [servlet](#ernie-server-) that exposes Ernie's features as a RESTful web service.
 
 ![alt text](ernie-small.png "Ernie Logo")
 
