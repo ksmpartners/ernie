@@ -42,7 +42,7 @@ class FileReportManager(pathToDefinitions: String, pathToOutputs: String) extend
 
   private lazy val definitions: mutable.Map[String, File] = {
     val newMap = new mutable.HashMap[String, File]()
-    rptDefDir.listFiles().filter({ _.isFile }).filter({ !_.getName.endsWith("entity") }).foreach({ file =>
+    rptDefDir.listFiles().filter({ _.isFile }).filter({ _.getName.endsWith("rptdesign") }).foreach({ file =>
       newMap += (file.getName.replaceFirst("[.][^.]+$", "") -> file)
     })
     newMap
