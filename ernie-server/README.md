@@ -34,18 +34,48 @@ Basic Usage
 --------------------
 Given a running ernie-server without any authentication/authorization enabled, the following cURL/wget commands illustrate a basic Ernie workflow.
 
-1. Uploading a report definition
+1. __Uploading a report definition__
+
   1. POST a serialized DefinitionEntity to /defs
-    ``` curl -v -X POST -d '{"createdDate":null,"defId":"","createdUser":"default","paramNames":null,"params":null,"defDescription":"test","unsupportedReportTypes":null}' -H "Content-type: application/json" --header "Accept: application/vnd.ksmpartners.ernie+json" http://localhost:8080/defs ```
+  
+    ``` 
+        curl -v -X POST -d \
+         '{"createdDate":null,"defId":"","createdUser":"default","paramNames":null,"params":null,"defDescription":"test","unsupportedReportTypes":null}' \
+         -H "Content-type: application/json" --header "Accept: application/vnd.ksmpartners.ernie+json" http://localhost:8080/defs 
+    ```
+
     The response will include a Location header with the new definition's ID.
+    
   2. PUT a rptdesign to /defs/NEW_DEF_ID/rptdesign 
-    ``` curl -v -X PUT -T my_local_def.rptdesign -H "Content-type: application/rptdesign+xml" --header "Accept: application/vnd.ksmpartners.ernie+json" http://loclahost:8080/defs/NEW_DEF_ID/rptdesign ```
-2. Initiating a report generation task: POST a serialized ReportRequest to /jobs.
-    ``` curl -v -X POST -d '{"defId":"NEW_DEF_ID","rptType":"PDF","retentionDays":'7',"reportParameters":null' -H "Content-type: application/json" --header "Accept: application/vnd.ksmpartners.ernie+json" http://localhost:8080/jobs ```
+  
+    ``` 
+        curl -v -X PUT -T my_local_def.rptdesign -H "Content-type: application/rptdesign+xml" \
+          --header "Accept: application/vnd.ksmpartners.ernie+json" http://loclahost:8080/defs/NEW_DEF_ID/rptdesign 
+    ```
+
+2. __Initiating a report generation task:__
+
+    POST a serialized ReportRequest to /jobs.
+    
+    ``` 
+      curl -v -X POST -d \
+        '{"defId":"NEW_DEF_ID","rptType":"PDF","retentionDays":'7',"reportParameters":null}' \
+        -H "Content-type: application/json" --header "Accept: application/vnd.ksmpartners.ernie+json" \
+        http://localhost:8080/jobs 
+    ```
+        
     The response will include a Location header with the job's ID.
-3. Poll for report generation completion: GET /jobs/JOB_ID/status
+    
+3. __Poll for report generation completion:__ 
+
+    GET /jobs/JOB_ID/status
+    
     ``` wget --header "Accept: application/vnd.ksmpartners.ernie+json" http://localhost:8080/jobs/JOB_ID/status ```
-4. When the response to (3) is: ```json {"jobStatus":"COMPLETE"} ```, GET /jobs/JOB_ID/result
+    
+4. When the response to (3) is: ```json {"jobStatus":"COMPLETE"} ```, 
+
+    GET /jobs/JOB_ID/result
+    
     ``` wget --header "Accept: application/pdf" http://localhost:8080/jobs/JOB_ID/result ```
   
 
