@@ -23,6 +23,7 @@ import com.ksmpartners.ernie.api._
 import com.ksmpartners.ernie.engine.DeleteDefinitionResponse
 import akka.pattern.ask
 import scala.concurrent.Await
+import scala.xml.NodeSeq
 
 /**
  * Dependencies for interacting with report definitions.
@@ -45,17 +46,20 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
      * @return updated definition metadata.
      */
     def putDefinition(defId: Option[String], rptDesign: Option[InputStream], definitionEntity: Option[DefinitionEntity]): DefinitionEntity = {
+      var designXml = NodeSeq.Empty
       defId.map(f => if (!reportManager.getDefinition(f).isDefined) throw new NotFoundException(f + " not found"))
       if (!(definitionEntity.isDefined || rptDesign.isDefined)) throw new MissingArgumentException("Must specify at least a definition entity or design")
       var defEnt = definitionEntity.getOrElse(defId.flatMap(d => reportManager.getDefinition(d).map(f => f.getEntity)) getOrElse (new DefinitionEntity))
       if (rptDesign.isDefined) {
         if (rptDesign.get == null) throw new InvalidDefinitionException("Definition null")
-        if (!BirtReportGenerator.isValidDefinition(rptDesign.get))
+        try {
+          designXml = scala.xml.XML.load(rptDesign.get)
+        } catch {
+          case e: Exception => throw InvalidDefinitionException("Malformed report design while extracting parameters: " + e.getMessage)
+        }
+        if (!BirtReportGenerator.isValidDefinition(new ByteArrayInputStream(designXml.toString.getBytes)))
           throw new InvalidDefinitionException("Definition invalid")
         else try {
-          rptDesign.get.reset
-          val designXml = scala.xml.XML.load(rptDesign.get)
-
           var paramList: java.util.List[ParameterEntity] = if (defEnt.getParams == null) new java.util.ArrayList[ParameterEntity]() else defEnt.getParams
 
           (designXml \\ "parameters").foreach(f => f.child.foreach(g => {
@@ -82,14 +86,13 @@ trait DefinitionDependencies extends RequiresReportManager with RequiresCoordina
       if (!defId.isDefined) {
         val (defEntRes: DefinitionEntity, stream: java.io.OutputStream) = reportManager.putDefinition(defEnt)
         defEnt = defEntRes
-
-        rptDesign.map(r => { r.reset; org.apache.commons.io.CopyUtils.copy(r, stream) })
+        if (rptDesign.isDefined) org.apache.commons.io.CopyUtils.copy(new ByteArrayInputStream(designXml.toString.getBytes), stream)
         stream.close
         defEnt
       } else {
         defEnt.setDefId(defId.get)
         val result = reportManager.updateDefinition(defId.get, defEnt)
-        rptDesign.map(r => { r.reset; org.apache.commons.io.CopyUtils.copy(r, result) })
+        if (rptDesign.isDefined) org.apache.commons.io.CopyUtils.copy(new ByteArrayInputStream(designXml.toString.getBytes), result)
         result.close
         defEnt
       }
