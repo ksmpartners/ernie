@@ -19,6 +19,8 @@ Ernie uses report definitions created by the [Eclipse BIRT Designer](http://www.
 *	 retrieving lists and catalogs of report generation jobs and definitions
 
 *	specifying an output expiration date and purging expired output
+	
+The Ernie project was initiated by [KSM Technology Partners](http://ksmpartners.com).
 
 Prerequisites and setup <a id="setup"></a>
 ----------------------
