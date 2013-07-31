@@ -159,8 +159,9 @@ Future versions of Ernie will provide:
 - [ ] Swagger client generation for REST server
 - [ ] More extensive documentation
 - [ ] Push notifications on report generation job status change, via:
-	- [ ] Embedded API callbacks
+	- [x] Embedded API callbacks
 	- [ ] Comet
 - [ ] Code coverage working for all packages in Maven and SBT
 - [ ] Encryption for rptdesign files with passwords
+- [ ] Ability to limit report processing time
 
