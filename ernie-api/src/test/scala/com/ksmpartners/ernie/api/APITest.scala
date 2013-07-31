@@ -26,6 +26,11 @@ import scala.Array
 import ErnieBuilder._
 import ApiTestUtil._
 import org.joda.time.DateTime
+import com.ksmpartners.ernie.api.InvalidDefinitionException
+import com.ksmpartners.ernie.api.MissingArgumentException
+import scala.Some
+import com.ksmpartners.ernie.api.NotFoundException
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object ApiTestUtil {
   def testException[B <: Exception](func: () => Unit, ex: Class[B]) = try {
@@ -131,6 +136,7 @@ class APITest { //extends TestNGSuite {
     Assert.assertEquals(status, com.ksmpartners.ernie.model.JobStatus.FAILED_NO_SUCH_DEFINITION)
     jobId = ernie.createJob(defId, ReportType.PDF, None, null, "test")._1
     Assert.assertTrue(jobId > 0)
+    getStatusFuture
   }
 
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
@@ -177,6 +183,15 @@ class APITest { //extends TestNGSuite {
     ernie.getJobStatus(jobId)
   }
 
+  var callbackSuccess = false
+
+  def getStatusFuture() = {
+    val f = ernie.getJobStatusFuture(jobId, Some(com.ksmpartners.ernie.model.JobStatus.COMPLETE))
+    f.onSuccess {
+      case j => callbackSuccess = (j.status == com.ksmpartners.ernie.model.JobStatus.COMPLETE)
+    }
+  }
+
   @Test(dependsOnGroups = Array("setup"), groups = Array("main"))
   def getJobEntity() {
     testException(() => ernie.getJobEntity(-1L), classOf[MissingArgumentException])
@@ -201,6 +216,11 @@ class APITest { //extends TestNGSuite {
       if (getStatus == com.ksmpartners.ernie.model.JobStatus.COMPLETE) inProgress = false
     }
     Assert.assertFalse(inProgress)
+  }
+
+  @Test(dependsOnGroups = Array("main"), groups = Array("completed"))
+  def callbackSuccessful() {
+    Assert.assertTrue(callbackSuccess)
   }
 
   @Test(dependsOnGroups = Array("main"), groups = Array("completed"))

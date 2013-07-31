@@ -26,6 +26,7 @@ import com.ksmpartners.ernie.util.Utility._
 import scala.Some
 import akka.actor._
 import akka.util.Timeout
+import scala.concurrent.Promise
 
 /**
  * Template for a [[com.ksmpartners.ernie.engine.ErnieCoordinator]] that can perform various integral operations
@@ -38,12 +39,13 @@ trait ErnieActions extends ErnieCoordinator {
   protected val pathToJobEntities: Option[String]
   protected def generateJobId(): Long
   protected def updateJob(jobId: Long, jobEnt: JobEntity)
+  protected val jobNotificationRequests: mutable.HashMap[ActorRef, JobNotificationRequest]
 
   /**
    * Process a request for report generation, initiate a job if possible, and respond to sender.
    * Response: [[com.ksmpartners.ernie.engine.ReportResponse]]
    */
-  def reportRequest(req: ReportRequest, sender: ActorRef) {
+  def reportRequest(req: ReportRequest, sender: ActorRef): Long = {
     val reportParameters = if (req.reportParameters != null) req.reportParameters else Map.empty[String, String]
     val retentionOption = req.retentionPeriod
     val defId = req.defId
@@ -84,6 +86,15 @@ trait ErnieActions extends ErnieCoordinator {
       updateJob(jobId, new JobEntity(jobId, JobStatus.FAILED_NO_SUCH_DEFINITION, DateTime.now, null, null))
       sender ! ReportResponse(jobId, JobStatus.FAILED_NO_SUCH_DEFINITION, req)
     }
+    jobId
+  }
+
+  /**
+   * Process a request for job status notification
+   */
+  def jobNotificationRequest(req: JobNotificationRequest, sender: ActorRef) = {
+    if (jobIdToResultMap.find(p => p._1 == req.jobId).isEmpty) sender ! JobNotificationResponse(JobStatus.NO_SUCH_JOB, req)
+    jobNotificationRequests += (sender -> req)
   }
 
   /**

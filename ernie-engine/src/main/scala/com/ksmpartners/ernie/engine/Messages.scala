@@ -21,7 +21,7 @@ import scala.collection.immutable
 
 /** Request that the report defId be generated resulting in an output of type rptType */
 case class ReportRequest(defId: String, rptType: ReportType, retentionPeriod: Option[Int], reportParameters: immutable.Map[String, String], userName: String)
-/** The response to the given ReportRequest */
+/** The response to the given ReportRequest or ReportAndNotifyRequest */
 case class ReportResponse(jobId: Long, jobStatus: JobStatus, req: ReportRequest)
 /** Request the resulting file for the given jobId */
 case class ResultRequest(jobId: Long)
@@ -69,3 +69,7 @@ case class JobsCatalogRequest(jobCatalog: Option[JobCatalog])
 case class JobsCatalogResponse(catalog: List[JobEntity], req: JobsCatalogRequest)
 /**Request a worker added to the Coordinator pool */
 case class NewWorkerRequest()
+/**Request notification on job status change or on specified job status **/
+case class JobNotificationRequest(jobId: Long, status: Option[JobStatus])
+/**The response associated with the given JobNotificationRequest **/
+case class JobNotificationResponse(status: JobStatus, req: JobNotificationRequest)

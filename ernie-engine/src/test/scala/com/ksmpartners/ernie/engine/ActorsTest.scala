@@ -183,14 +183,19 @@ class ActorsTest extends TestLogger {
     import com.ksmpartners.ernie.engine._
     val rsp = Await.result((coordinator ? (ReportRequest("test_def", ReportType.PDF, None, Map.empty[String, String], "testUser"))).mapTo[ReportResponse], timeout.duration)
     val defaultRetentionDate = DateTime.now().plusDays(reportManager.getDefaultRetentionDays)
-    var statusRespOp = rsp.jobStatus
-    do {
+    // var statusRespOp = rsp.jobStatus
+    /*do {
       statusRespOp = Await.result((coordinator ? (StatusRequest(rsp.jobId))).mapTo[StatusResponse], timeout.duration).jobStatus
-    } while (statusRespOp != JobStatus.COMPLETE)
-    val r = Await.result((coordinator ? (ResultRequest(rsp.jobId))).mapTo[ResultResponse], timeout.duration)
-    Assert.assertTrue(r.rptId.isDefined)
-    Assert.assertTrue(reportManager.getReport(r.rptId.get).isDefined)
-    Assert.assertTrue(reportManager.getReport(r.rptId.get).get.getRetentionDate.dayOfYear == defaultRetentionDate.dayOfYear)
+    } while (statusRespOp != JobStatus.COMPLETE)*/
+    try {
+      Await.result((coordinator ? JobNotificationRequest(rsp.jobId, Some(JobStatus.COMPLETE))).mapTo[JobNotificationResponse], timeout.duration)
+      val r = Await.result((coordinator ? (ResultRequest(rsp.jobId))).mapTo[ResultResponse], timeout.duration)
+      Assert.assertTrue(r.rptId.isDefined)
+      Assert.assertTrue(reportManager.getReport(r.rptId.get).isDefined)
+      Assert.assertTrue(reportManager.getReport(r.rptId.get).get.getRetentionDate.dayOfYear == defaultRetentionDate.dayOfYear)
+    } catch {
+      case t: Throwable => Assert.assertTrue(false)
+    }
   }
 }
 

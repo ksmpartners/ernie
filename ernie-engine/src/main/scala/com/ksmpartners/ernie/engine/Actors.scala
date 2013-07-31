@@ -73,6 +73,7 @@ class Coordinator(_pathToJobEntities: Option[String], rptMgr: ReportManager, to:
   }
 
   protected val jobIdToResultMap: mutable.HashMap[Long, JobEntity] = new mutable.HashMap[Long, JobEntity]() /* rptId */
+  protected val jobNotificationRequests: mutable.HashMap[ActorRef, JobNotificationRequest] = new mutable.HashMap[ActorRef, JobNotificationRequest]() /* rptId */
   protected val reportManager = rptMgr
   protected val pathToJobEntities: Option[String] = _pathToJobEntities
 
@@ -159,6 +160,7 @@ class Coordinator(_pathToJobEntities: Option[String], rptMgr: ReportManager, to:
     case req @ ReportDetailRequest(jobId) => {
       sender ! ReportDetailResponse(jobIdToResultMap.get(jobId).map(je => reportManager.getReport(jobToRptId(je.getJobId)).map(f => f.getEntity)) getOrElse None, req)
     }
+    case req: JobNotificationRequest => jobNotificationRequest(req, sender)
     case req @ JobDetailRequest(jobId) => {
       sender ! JobDetailResponse(jobIdToResultMap.get(jobId), req)
     }
@@ -189,6 +191,9 @@ class Coordinator(_pathToJobEntities: Option[String], rptMgr: ReportManager, to:
       try_(new FileOutputStream(jobEntFile, false)) { fos =>
         mapper.writeValue(fos, jobEnt)
       }
+    })
+    jobNotificationRequests.foreach(j => {
+      if ((j._2.jobId == jobId) && (j._2.status.map(status => status == jobEnt.getJobStatus) getOrElse (true))) j._1 ! JobNotificationResponse(jobEnt.getJobStatus, j._2)
     })
   }
 

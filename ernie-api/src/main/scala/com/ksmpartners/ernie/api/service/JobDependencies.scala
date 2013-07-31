@@ -22,10 +22,9 @@ import com.ksmpartners.ernie.model._
 import scala.collection.immutable
 import com.ksmpartners.ernie.api
 import akka.pattern.ask
-import scala.concurrent.Await
-import com.ksmpartners.ernie.engine.PurgeRequest
+import scala.concurrent.{ Future, Await }
+import com.ksmpartners.ernie.engine.{ JobNotificationResponse, PurgeRequest, PurgeResponse }
 import scala.Some
-import com.ksmpartners.ernie.engine.PurgeResponse
 
 /**
  * Dependencies for starting and interacting with jobs for the creation of reports.
@@ -94,6 +93,13 @@ trait JobDependencies extends RequiresCoordinator
      */
     def get(jobId: Long): model.JobStatus = {
       Await.result((coordinator ? (engine.StatusRequest(jobId))).mapTo[engine.StatusResponse], timeoutDuration).jobStatus
+    }
+
+    /**
+     * Get a Future to notify caller on job status change
+     */
+    def getFuture(jobId: Long, status: Option[JobStatus]): Future[JobNotificationResponse] = {
+      (coordinator ? engine.JobNotificationRequest(jobId, status)).mapTo[JobNotificationResponse]
     }
   }
 

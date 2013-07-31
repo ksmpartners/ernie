@@ -25,6 +25,8 @@ import akka.pattern.AskTimeoutException
 import scala.Some
 import com.ksmpartners.ernie.api.ErnieBuilder._
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.Future
+import com.ksmpartners.ernie.engine.JobNotificationResponse
 
 /**
  * API for interacting with Ernie.
@@ -255,6 +257,22 @@ protected[api] class ErnieControl extends ErnieDependencies {
    * @return the status of the batch deletion and a list of purged report IDs.
    */
   def purgeExpiredReports(): (model.DeleteStatus, List[String]) = wrapper(() => jobCatalogResource.purge)
+
+  /**
+   * Request notification of job status change via an Akka Future
+   * {{{ val f = Future {
+   * val (id,st) = ernie.createJob(res0.getDefId, PDF, None, Map.empty[String, String], "user")
+   * ernie.getJobStatusFuture(id, Some(com.ksmpartners.ernie.model.JobStatus.COMPLETE))
+   * } onSuccess {
+   * case r =>
+   * r.onSuccess {
+   * case g => println (g.status)
+   * }
+   * }
+   * }}}
+   * @param status Notify when job status changes to status, or pass None to be notified on any change
+   */
+  def getJobStatusFuture(jobId: Long, status: Option[model.JobStatus]): Future[JobNotificationResponse] = jobStatusResource.getFuture(jobId, status).mapTo[JobNotificationResponse]
 
   /**
    * Shut down the instance of [[com.ksmpartners.ernie.engine]] in use by this object
