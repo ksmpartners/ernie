@@ -24,7 +24,7 @@ The Ernie project was initiated by [KSM Technology Partners](http://ksmpartners.
 
 Support
 ----------------------
-The Ernie support forum is [here](https://groups.google.com/a/ksmpartners.com/forum/#!forum/ernie-forum) on Google Groups.
+The Ernie support forum is [here](http://groups.google.com/a/ksmpartners.com/group/ernie-forum) on Google Groups.
 
 Prerequisites and setup <a id="setup"></a>
 ----------------------
